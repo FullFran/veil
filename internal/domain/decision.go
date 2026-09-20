@@ -4,9 +4,15 @@ package domain
 type DecisionKind int
 
 const (
+	// Unknown is the zero value of DecisionKind. It is deliberately not a
+	// valid verdict: a zero-valued Decision (for example one returned
+	// alongside an error) must never be mistaken for an explicit Allow.
+	// Every code path that produces a real decision uses Allow, Deny or
+	// Rewrite explicitly.
+	Unknown DecisionKind = iota
 	// Allow means nothing blocked or altered the event; it may proceed
 	// unchanged.
-	Allow DecisionKind = iota
+	Allow
 	// Deny means the event must be blocked. Reason explains why.
 	Deny
 	// Rewrite means the event may proceed, but only after RedactedText

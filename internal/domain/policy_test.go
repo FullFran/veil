@@ -55,7 +55,7 @@ func TestPolicy_Evaluate_UnsupportedCapability_ErrorsInsteadOfDeciding(t *testin
 	if !errors.As(err, &capErr) {
 		t.Fatalf("error = %v, want *domain.UnsupportedCapabilityError", err)
 	}
-	if decision != (domain.Decision{}) {
+	if decision.Kind != domain.Unknown || decision.Reason != "" || decision.RedactedText != "" || decision.RedactedFields != nil {
 		t.Fatalf("decision = %+v, want the zero Decision", decision)
 	}
 }

@@ -52,3 +52,19 @@ func TestDecisionKind_String(t *testing.T) {
 		}
 	}
 }
+
+// TestZeroValueDecision_IsNotAllow guards against a specific, easy-to-miss
+// bug class: if Allow were DecisionKind(0), an accidentally zero-valued
+// Decision (e.g. returned alongside an error, or from a forgotten return
+// path) would silently read as an explicit Allow. That is exactly the
+// silent-downgrade failure mode this project exists to prevent, so the
+// zero value must be a distinct, non-actionable Unknown.
+func TestZeroValueDecision_IsNotAllow(t *testing.T) {
+	var zero domain.Decision
+	if zero.Kind == domain.Allow {
+		t.Fatal("the zero value of Decision must not equal Allow")
+	}
+	if zero.Kind != domain.Unknown {
+		t.Fatalf("zero.Kind = %v, want Unknown", zero.Kind)
+	}
+}

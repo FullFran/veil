@@ -101,6 +101,9 @@ func TestLeak_DNIInPrompt_OnOpenCode_IsNeverSilentlyAllowed(t *testing.T) {
 	if decision.Kind == domain.Allow {
 		t.Fatalf("decision must not be Allow when the host cannot enforce the guarantee")
 	}
+	if decision.Kind != domain.Unknown {
+		t.Fatalf("decision.Kind = %v, want Unknown", decision.Kind)
+	}
 }
 
 // 4. Reading a .env file is denied on both hosts, using each host's native
