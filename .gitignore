@@ -1,0 +1,5 @@
+/veil
+/bin/
+*.test
+*.out
+.DS_Store
