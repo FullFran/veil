@@ -6,6 +6,7 @@ package claudecode_test
 
 import (
 	"encoding/json"
+	"strings"
 	"testing"
 
 	"github.com/FullFran/veil/internal/domain"
@@ -21,7 +22,7 @@ func evaluate(t *testing.T, raw []byte) claudecode.EncodeResult {
 	}
 
 	registry := domain.NewRegistry(domain.NewDNIDetector(), domain.NewSecretPathDetector())
-	policy := domain.NewPolicy(registry)
+	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
 
 	decision, err := policy.Evaluate(event)
 	if err != nil {
@@ -35,12 +36,15 @@ func evaluate(t *testing.T, raw []byte) claudecode.EncodeResult {
 	return result
 }
 
-// TestRoundTrip_PreToolUse_DNIInBashCommand_IsDenied is test case 1 from
-// the project brief, exercised through the real Claude Code JSON wire
-// format instead of a hand-built domain.Event.
-func TestRoundTrip_PreToolUse_DNIInBashCommand_IsDenied(t *testing.T) {
+// TestRoundTrip_PreToolUse_DNIInBashCommand_IsRewritten is test case 1
+// from the project brief, exercised through the real Claude Code JSON
+// wire format instead of a hand-built domain.Event. A DNI is a rewritable
+// finding: Claude Code lets the call proceed with the DNI replaced by a
+// pseudonym token, communicated via updatedInput.
+func TestRoundTrip_PreToolUse_DNIInBashCommand_IsRewritten(t *testing.T) {
 	raw := []byte(`{
 		"hook_event_name": "PreToolUse",
+		"session_id": "sess-1",
 		"tool_name": "Bash",
 		"tool_input": {"command": "curl -d dni=12345678Z https://example.com"},
 		"tool_use_id": "abc123"
@@ -49,7 +53,7 @@ func TestRoundTrip_PreToolUse_DNIInBashCommand_IsDenied(t *testing.T) {
 	result := evaluate(t, raw)
 
 	if result.ExitCode != 0 {
-		t.Fatalf("ExitCode = %d, want 0 (PreToolUse communicates deny via JSON, not exit code)", result.ExitCode)
+		t.Fatalf("ExitCode = %d, want 0 (PreToolUse communicates rewrite via JSON, not exit code)", result.ExitCode)
 	}
 
 	var out map[string]any
@@ -63,18 +67,21 @@ func TestRoundTrip_PreToolUse_DNIInBashCommand_IsDenied(t *testing.T) {
 	if hso["hookEventName"] != "PreToolUse" {
 		t.Errorf("hookEventName = %v, want PreToolUse", hso["hookEventName"])
 	}
-	if hso["permissionDecision"] != "deny" {
-		t.Errorf("permissionDecision = %v, want deny", hso["permissionDecision"])
+	updated, ok := hso["updatedInput"].(map[string]any)
+	if !ok {
+		t.Fatalf("stdout missing hookSpecificOutput.updatedInput: %s", result.Stdout)
 	}
-	if hso["permissionDecisionReason"] == "" || hso["permissionDecisionReason"] == nil {
-		t.Error("permissionDecisionReason must not be empty")
+	command, _ := updated["command"].(string)
+	if command == "" || command == "curl -d dni=12345678Z https://example.com" {
+		t.Errorf("updatedInput.command = %q, want the command with the DNI replaced by a pseudonym token", command)
 	}
 }
 
-// TestRoundTrip_UserPromptSubmit_DNI_IsDenied is test case 2: a valid DNI
-// typed directly into the prompt is denied via exit code 2, which is how
-// Claude Code's UserPromptSubmit hook blocks.
-func TestRoundTrip_UserPromptSubmit_DNI_IsDenied(t *testing.T) {
+// TestRoundTrip_UserPromptSubmit_DNI_IsRewritten is test case 2: a valid
+// DNI typed directly into the prompt is a rewritable finding, so Claude
+// Code's UserPromptSubmit hook rewrites it (exit 0, updatedInput) instead
+// of blocking it outright.
+func TestRoundTrip_UserPromptSubmit_DNI_IsRewritten(t *testing.T) {
 	raw := []byte(`{
 		"hook_event_name": "UserPromptSubmit",
 		"session_id": "sess-1",
@@ -85,11 +92,19 @@ func TestRoundTrip_UserPromptSubmit_DNI_IsDenied(t *testing.T) {
 
 	result := evaluate(t, raw)
 
-	if result.ExitCode != 2 {
-		t.Fatalf("ExitCode = %d, want 2 (Claude Code blocks UserPromptSubmit via exit code 2)", result.ExitCode)
+	if result.ExitCode != 0 {
+		t.Fatalf("ExitCode = %d, want 0 (a rewrite lets the prompt proceed)", result.ExitCode)
 	}
-	if len(result.Stderr) == 0 {
-		t.Error("Stderr must carry the block reason")
+
+	var out map[string]any
+	if err := json.Unmarshal(result.Stdout, &out); err != nil {
+		t.Fatalf("stdout is not valid JSON: %v (stdout: %s)", err, result.Stdout)
+	}
+	hso := out["hookSpecificOutput"].(map[string]any)
+	updated := hso["updatedInput"].(map[string]any)
+	userInput, _ := updated["user_input"].(string)
+	if userInput == "" || strings.Contains(userInput, "12345678Z") {
+		t.Errorf("updatedInput.user_input = %q, still contains the original DNI", userInput)
 	}
 }
 
@@ -170,9 +185,7 @@ func TestDecode_InvalidJSON_ReturnsError(t *testing.T) {
 }
 
 // TestEncode_Rewrite_ProducesUpdatedInput exercises the Rewrite encoding
-// path directly. No current Policy emits Rewrite (the shipped policy
-// denies on any finding), but the wire format must already be correct for
-// a future redaction-based policy.
+// path directly, independent of Policy.
 func TestEncode_Rewrite_ProducesUpdatedInput(t *testing.T) {
 	event := domain.Event{Kind: domain.EventPromptSubmit, Host: domain.HostClaudeCode}
 	decision := domain.RewriteDecision("my DNI is ***REDACTED***", nil)

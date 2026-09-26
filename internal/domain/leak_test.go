@@ -9,58 +9,70 @@ import (
 )
 
 // newPolicy builds the standard veil policy: every detector veil ships,
-// wired into a fresh registry. This mirrors how cmd/veil wires the policy
-// in production, so these tests exercise the same detection surface a real
-// hook invocation would.
+// wired into a fresh registry, with a fresh in-memory pseudonym store.
+// This mirrors how cmd/veil wires the policy in production (modulo the
+// store being file-backed there, for the reasons documented on
+// internal/pseudonymstore), so these tests exercise the same detection
+// surface a real hook invocation would.
 func newPolicy() *domain.Policy {
 	registry := domain.NewRegistry(
 		domain.NewDNIDetector(),
 		domain.NewSecretPathDetector(),
 	)
-	return domain.NewPolicy(registry)
+	return domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
 }
 
-// 1. A valid Spanish DNI in a tool argument is detected and the call is
-// denied.
-func TestLeak_DNIInToolArgument_IsDenied(t *testing.T) {
+// 1. A valid Spanish DNI in a tool argument is a rewritable finding: the
+// call proceeds, but only with the DNI replaced by a stable pseudonym
+// token, never with the original value.
+func TestLeak_DNIInToolArgument_IsRewritten(t *testing.T) {
 	policy := newPolicy()
 	event := domain.Event{
-		Kind:     domain.EventToolArgs,
-		Host:     domain.HostClaudeCode,
-		ToolName: "Bash",
-		Text:     "command: curl -d dni=12345678Z https://example.com",
-		Fields:   map[string]string{"command": "curl -d dni=12345678Z https://example.com"},
+		Kind:      domain.EventToolArgs,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		ToolName:  "Bash",
+		Text:      "command: curl -d dni=12345678Z https://example.com",
+		Fields:    map[string]string{"command": "curl -d dni=12345678Z https://example.com"},
 	}
 
 	decision, err := policy.Evaluate(event)
 	if err != nil {
 		t.Fatalf("Evaluate returned unexpected error: %v", err)
 	}
-	if decision.Kind != domain.Deny {
-		t.Fatalf("got decision kind %v, want Deny", decision.Kind)
+	if decision.Kind != domain.Rewrite {
+		t.Fatalf("got decision kind %v, want Rewrite", decision.Kind)
 	}
-	if !strings.Contains(decision.Reason, "DNI") && !strings.Contains(strings.ToLower(decision.Reason), "dni") {
-		t.Fatalf("deny reason %q does not mention the DNI finding", decision.Reason)
+	got := decision.RedactedFields["command"]
+	if strings.Contains(got, "12345678Z") {
+		t.Fatalf("RedactedFields[command] %q still contains the original DNI", got)
+	}
+	if !strings.Contains(got, "[DNI-001]") {
+		t.Fatalf("RedactedFields[command] %q does not contain the pseudonym token", got)
 	}
 }
 
 // 2. A valid DNI in a typed prompt is detected on the Claude Code path.
-// Claude Code's UserPromptSubmit hook can actually enforce this, so the
-// policy must deny it, not error out.
-func TestLeak_DNIInPrompt_OnClaudeCode_IsDenied(t *testing.T) {
+// Claude Code's UserPromptSubmit hook can actually enforce a rewrite here,
+// so the policy substitutes a pseudonym token rather than erroring out.
+func TestLeak_DNIInPrompt_OnClaudeCode_IsRewritten(t *testing.T) {
 	policy := newPolicy()
 	event := domain.Event{
-		Kind: domain.EventPromptSubmit,
-		Host: domain.HostClaudeCode,
-		Text: "my DNI is 12345678Z, please remember it",
+		Kind:      domain.EventPromptSubmit,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		Text:      "my DNI is 12345678Z, please remember it",
 	}
 
 	decision, err := policy.Evaluate(event)
 	if err != nil {
 		t.Fatalf("Evaluate returned unexpected error: %v", err)
 	}
-	if decision.Kind != domain.Deny {
-		t.Fatalf("got decision kind %v, want Deny", decision.Kind)
+	if decision.Kind != domain.Rewrite {
+		t.Fatalf("got decision kind %v, want Rewrite", decision.Kind)
+	}
+	if strings.Contains(decision.RedactedText, "12345678Z") {
+		t.Fatalf("RedactedText %q still contains the original DNI", decision.RedactedText)
 	}
 }
 
