@@ -168,6 +168,10 @@ func (failingPseudonymStore) Token(sessionID, category, original string) (string
 	return "", errors.New("boom: store unavailable")
 }
 
+func (failingPseudonymStore) Original(sessionID, token string) (string, bool, error) {
+	return "", false, errors.New("boom: store unavailable")
+}
+
 func TestPolicy_Evaluate_PseudonymStoreError_FailsClosed(t *testing.T) {
 	registry := domain.NewRegistry(domain.NewDNIDetector())
 	policy := domain.NewPolicy(registry, failingPseudonymStore{})

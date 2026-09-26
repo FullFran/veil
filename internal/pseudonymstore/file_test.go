@@ -90,6 +90,52 @@ func TestFileStore_DifferentSessions_UseSeparateFiles(t *testing.T) {
 	}
 }
 
+// TestFileStore_Original_ReversesAMintedToken_AcrossInstances proves
+// rehydration works the same way Token does: a token minted by one
+// *FileStore instance is reversible by a separate instance pointed at the
+// same directory, since that is how veil's OpenCode shim actually calls
+// this (a fresh process per hook).
+func TestFileStore_Original_ReversesAMintedToken_AcrossInstances(t *testing.T) {
+	dir := t.TempDir()
+
+	first := pseudonymstore.NewFileStore(dir)
+	token, err := first.Token("session-1", "DNI", "12345678Z")
+	if err != nil {
+		t.Fatalf("Token returned unexpected error: %v", err)
+	}
+
+	second := pseudonymstore.NewFileStore(dir)
+	original, found, err := second.Original("session-1", token)
+	if err != nil {
+		t.Fatalf("Original returned unexpected error: %v", err)
+	}
+	if !found {
+		t.Fatal("Original reported not found for a token minted by a separate instance")
+	}
+	if original != "12345678Z" {
+		t.Fatalf("Original(...) = %q, want %q", original, "12345678Z")
+	}
+}
+
+// TestFileStore_Original_UnknownToken_ReportsNotFound proves an
+// unrecognized token reports not-found rather than erroring.
+func TestFileStore_Original_UnknownToken_ReportsNotFound(t *testing.T) {
+	dir := t.TempDir()
+	store := pseudonymstore.NewFileStore(dir)
+
+	if _, err := store.Token("session-1", "DNI", "12345678Z"); err != nil {
+		t.Fatalf("Token returned unexpected error: %v", err)
+	}
+
+	_, found, err := store.Original("session-1", "[DNI-999]")
+	if err != nil {
+		t.Fatalf("Original returned unexpected error: %v", err)
+	}
+	if found {
+		t.Fatal("Original reported found for a token that was never minted")
+	}
+}
+
 // TestFileStore_CorruptedSessionFile_FailsClosed proves a corrupted
 // on-disk mapping produces an error instead of silently starting over
 // (which could reuse a token number already sent to the model for a
