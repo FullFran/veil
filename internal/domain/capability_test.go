@@ -13,11 +13,23 @@ import (
 //
 //   - Claude Code's UserPromptSubmit hook can block or rewrite the typed
 //     prompt before the model sees it.
-//   - OpenCode exposes no hook that reaches the typed prompt at all.
+//   - OpenCode's chat.message hook can ALSO block (by throwing, which
+//     aborts the whole request before the model is ever contacted) or
+//     rewrite (by mutating a part's text) the typed prompt: verified with
+//     a local mock OpenAI-compatible provider against OpenCode 1.18.32 (see
+//     the project's T1 spike). This corrects an earlier, unverified
+//     assumption that OpenCode had no prompt-level hook at all.
 //   - Both hosts can block or rewrite tool call arguments before execution.
 //   - Claude Code's PostToolUse hook is observe-only: it cannot redact a
-//     tool's output. OpenCode's tool.execute.after is unverified and is
-//     therefore also treated as unsupported.
+//     tool's output. OpenCode's tool.execute.after CAN redact a tool's
+//     output, but only by mutating output.output (and output.metadata.output
+//     when present); throwing there does NOT block anything (also verified
+//     in the T1 spike: the thrown error text just becomes the tool's own
+//     result and the conversation continues).
+//   - OpenCode alone exposes experimental.chat.messages.transform (rewrite
+//     any text or tool-result part resent to the model from prior turns)
+//     and experimental.chat.system.transform (rewrite the system prompt).
+//     Claude Code has no equivalent hook for either.
 func TestCapabilityMatrix_MatchesVerifiedHostBehavior(t *testing.T) {
 	tests := []struct {
 		name       string
@@ -28,9 +40,13 @@ func TestCapabilityMatrix_MatchesVerifiedHostBehavior(t *testing.T) {
 		{"claude code supports prompt blocking", domain.HostClaudeCode, domain.CapabilityPromptBlock, true},
 		{"claude code supports tool args blocking", domain.HostClaudeCode, domain.CapabilityToolArgsBlock, true},
 		{"claude code does not support tool output redaction", domain.HostClaudeCode, domain.CapabilityToolOutputRedact, false},
-		{"opencode does not support prompt blocking", domain.HostOpenCode, domain.CapabilityPromptBlock, false},
+		{"claude code does not support history rewrite", domain.HostClaudeCode, domain.CapabilityHistoryRewrite, false},
+		{"claude code does not support system prompt rewrite", domain.HostClaudeCode, domain.CapabilitySystemPromptRewrite, false},
+		{"opencode supports prompt blocking (via chat.message)", domain.HostOpenCode, domain.CapabilityPromptBlock, true},
 		{"opencode supports tool args blocking", domain.HostOpenCode, domain.CapabilityToolArgsBlock, true},
-		{"opencode does not support tool output redaction", domain.HostOpenCode, domain.CapabilityToolOutputRedact, false},
+		{"opencode supports tool output redaction (via mutation, not throw)", domain.HostOpenCode, domain.CapabilityToolOutputRedact, true},
+		{"opencode supports history rewrite", domain.HostOpenCode, domain.CapabilityHistoryRewrite, true},
+		{"opencode supports system prompt rewrite", domain.HostOpenCode, domain.CapabilitySystemPromptRewrite, true},
 	}
 
 	for _, tt := range tests {
@@ -51,9 +67,11 @@ func TestRequireCapability_Supported_ReturnsNil(t *testing.T) {
 
 // TestRequireCapability_Unsupported_ErrorsLoudly is the codified version of
 // this project's core rule: asking for a guarantee a host cannot provide
-// must produce an explicit, typed error, never a silent "allowed".
+// must produce an explicit, typed error, never a silent "allowed". Claude
+// Code's PostToolUse is still observe-only, so tool output redaction is
+// still the right unsupported case to exercise this with.
 func TestRequireCapability_Unsupported_ErrorsLoudly(t *testing.T) {
-	err := domain.RequireCapability(domain.HostOpenCode, domain.CapabilityPromptBlock)
+	err := domain.RequireCapability(domain.HostClaudeCode, domain.CapabilityToolOutputRedact)
 	if err == nil {
 		t.Fatal("RequireCapability returned nil, want an UnsupportedCapabilityError")
 	}
@@ -62,11 +80,11 @@ func TestRequireCapability_Unsupported_ErrorsLoudly(t *testing.T) {
 	if !errors.As(err, &capErr) {
 		t.Fatalf("error = %v (%T), want *domain.UnsupportedCapabilityError", err, err)
 	}
-	if capErr.Host != domain.HostOpenCode {
-		t.Errorf("capErr.Host = %q, want %q", capErr.Host, domain.HostOpenCode)
+	if capErr.Host != domain.HostClaudeCode {
+		t.Errorf("capErr.Host = %q, want %q", capErr.Host, domain.HostClaudeCode)
 	}
-	if capErr.Capability != domain.CapabilityPromptBlock {
-		t.Errorf("capErr.Capability = %q, want %q", capErr.Capability, domain.CapabilityPromptBlock)
+	if capErr.Capability != domain.CapabilityToolOutputRedact {
+		t.Errorf("capErr.Capability = %q, want %q", capErr.Capability, domain.CapabilityToolOutputRedact)
 	}
 	if capErr.Error() == "" {
 		t.Error("capErr.Error() must not be empty")

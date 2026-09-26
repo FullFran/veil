@@ -1,0 +1,6 @@
+Client intake notes:
+- Name: María Pérez
+- DNI: 12345678Z
+- IBAN: ES9121000418450200051332
+- Email: maria.perez@example.com
+- Phone: +34 612345678

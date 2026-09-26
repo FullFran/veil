@@ -12,19 +12,38 @@ import (
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/hosts/claudecode"
 	"github.com/FullFran/veil/internal/hosts/opencode"
+	"github.com/FullFran/veil/internal/pseudonymstore"
 )
 
 func main() {
 	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }
 
-// newPolicy builds the standard veil policy shared by every host.
-func newPolicy() *domain.Policy {
-	registry := domain.NewRegistry(
+// newPolicy builds the standard veil policy shared by every host. It
+// returns an error instead of a *domain.Policy if VEIL_CATALOG is set but
+// cannot be loaded: startup fails closed rather than silently running
+// with an empty name catalog.
+func newPolicy() (*domain.Policy, error) {
+	detectors := []domain.Detector{
 		domain.NewDNIDetector(),
+		domain.NewIBANDetector(),
+		domain.NewEmailDetector(),
+		domain.NewPhoneDetector(),
 		domain.NewSecretPathDetector(),
-	)
-	return domain.NewPolicy(registry)
+		domain.NewBinaryContentDetector(),
+	}
+
+	if catalogPath := os.Getenv("VEIL_CATALOG"); catalogPath != "" {
+		names, err := domain.LoadNameCatalog(catalogPath)
+		if err != nil {
+			return nil, fmt.Errorf("veil: load VEIL_CATALOG: %w", err)
+		}
+		detectors = append(detectors, domain.NewNameCatalogDetector(names))
+	}
+
+	registry := domain.NewRegistry(detectors...)
+	store := pseudonymstore.NewFileStore(pseudonymstore.DefaultDir())
+	return domain.NewPolicy(registry, store), nil
 }
 
 // run implements the CLI: it reads exactly one JSON event from stdin,
@@ -43,7 +62,11 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return 1
 	}
 
-	policy := newPolicy()
+	policy, err := newPolicy()
+	if err != nil {
+		fmt.Fprintf(stderr, "veil: %v\n", err)
+		return 1
+	}
 
 	switch args[0] {
 	case "claude-code":

@@ -8,8 +8,22 @@ type Finding struct {
 	// Reason is a human-readable explanation of what was found.
 	Reason string
 	// Redacted is a masked replacement for the sensitive value, for use
-	// by a future policy that chooses to Rewrite instead of Deny.
+	// in a Deny reason or log line. It is never sent to the model as
+	// itself; Policy substitutes a stable pseudonym token instead.
 	Redacted string
+	// Match is the exact original substring this finding matched in the
+	// event's text. Policy uses it, verbatim, to find-and-replace every
+	// occurrence with a stable pseudonym token. Empty for a finding that
+	// does not target a specific substring (e.g. a whole-field secret
+	// path finding).
+	Match string
+	// Category is the pseudonym token prefix (e.g. "DNI", "IBAN",
+	// "EMAIL", "TEL", "NOMBRE") for a finding Policy may Rewrite instead
+	// of Deny. Empty means this finding must never be rewritten and
+	// always forces a Deny: veil has no way to make the payload safe
+	// short of blocking it outright (e.g. a tool call targeting a
+	// secrets-bearing file).
+	Category string
 }
 
 // Detector inspects an Event and reports any Findings. Implementations

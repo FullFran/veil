@@ -18,16 +18,23 @@ package opencode
 import (
 	"encoding/json"
 	"fmt"
+	"strings"
 
 	"github.com/FullFran/veil/internal/domain"
 )
 
-// rawInput mirrors the JSON the OpenCode shim sends on stdin for a
-// tool.execute.before call.
+// rawInput mirrors the JSON the OpenCode shim sends on stdin. Args
+// carries a tool.execute.before call's raw (possibly non-string)
+// arguments; Fields carries every other event's already-extracted text,
+// keyed by a shape specific to that event (see the Decode cases below),
+// so the shim can later map a redacted value back to the exact part,
+// tool-output field, history part, or system prompt line it came from.
 type rawInput struct {
-	Event string                 `json:"event"`
-	Tool  string                 `json:"tool"`
-	Args  map[string]interface{} `json:"args"`
+	Event     string                 `json:"event"`
+	SessionID string                 `json:"sessionID"`
+	Tool      string                 `json:"tool"`
+	Args      map[string]interface{} `json:"args"`
+	Fields    map[string]string      `json:"fields"`
 }
 
 // Decode parses the shim's JSON into a host-neutral domain.Event. It
@@ -42,15 +49,87 @@ func Decode(raw []byte) (domain.Event, error) {
 	case "tool.execute.before":
 		fields, text := flattenArgs(in.Args)
 		return domain.Event{
-			Kind:     domain.EventToolArgs,
-			Host:     domain.HostOpenCode,
-			ToolName: in.Tool,
-			Text:     text,
-			Fields:   fields,
+			Kind:      domain.EventToolArgs,
+			Host:      domain.HostOpenCode,
+			SessionID: in.SessionID,
+			ToolName:  in.Tool,
+			Text:      text,
+			Fields:    fields,
+		}, nil
+	case "chat.message":
+		// The user's typed prompt, as one or more text parts. Verified
+		// in T1 to actually reach the model: throwing here aborts the
+		// request before the mock provider is ever contacted, and
+		// mutating a part's text is what the mock provider (and
+		// OpenCode's own session storage) receive instead of the
+		// original.
+		text := flattenFields(in.Fields)
+		return domain.Event{
+			Kind:      domain.EventPromptSubmit,
+			Host:      domain.HostOpenCode,
+			SessionID: in.SessionID,
+			Text:      text,
+			Fields:    in.Fields,
+		}, nil
+	case "tool.execute.after":
+		// A tool's output, after it already executed. Verified in T1
+		// that only mutation (never throwing) actually changes what is
+		// resent to the model: throwing there just becomes the tool's
+		// own result text and the conversation continues regardless.
+		text := flattenFields(in.Fields)
+		return domain.Event{
+			Kind:      domain.EventToolOutput,
+			Host:      domain.HostOpenCode,
+			SessionID: in.SessionID,
+			ToolName:  in.Tool,
+			Text:      text,
+			Fields:    in.Fields,
+		}, nil
+	case "experimental.chat.messages.transform":
+		// Every text and tool-result part from prior turns OpenCode is
+		// about to resend to the model, keyed by the shim in whatever
+		// shape lets it write a redacted value back to the exact part
+		// (e.g. "<messageIndex>:<partIndex>:text" or
+		// "...:tool" for a part.state.output). veil does not need to
+		// understand the key shape; it only needs to preserve it
+		// unchanged from Decode's Fields to Encode's RedactedFields.
+		text := flattenFields(in.Fields)
+		return domain.Event{
+			Kind:      domain.EventHistoryText,
+			Host:      domain.HostOpenCode,
+			SessionID: in.SessionID,
+			Text:      text,
+			Fields:    in.Fields,
+		}, nil
+	case "experimental.chat.system.transform":
+		// The system prompt, as one string per array index.
+		text := flattenFields(in.Fields)
+		return domain.Event{
+			Kind:      domain.EventSystemPrompt,
+			Host:      domain.HostOpenCode,
+			SessionID: in.SessionID,
+			Text:      text,
+			Fields:    in.Fields,
 		}, nil
 	default:
 		return domain.Event{}, fmt.Errorf("opencode: unsupported event %q", in.Event)
 	}
+}
+
+// flattenFields concatenates an already-extracted field map into a single
+// text blob for detectors that scan free text. Map iteration order is
+// unspecified, which is fine here: nothing downstream depends on the
+// concatenation's order, only on every value being present somewhere in
+// it.
+func flattenFields(fields map[string]string) string {
+	var b strings.Builder
+	for key, value := range fields {
+		b.WriteString(key)
+		b.WriteString(": ")
+		b.WriteString(value)
+		b.WriteString("\n")
+	}
+	return b.String()
 }
 
 // flattenArgs turns a tool call's args object into both a field map (for

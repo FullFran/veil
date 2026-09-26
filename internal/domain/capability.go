@@ -34,6 +34,13 @@ const (
 	// CapabilityToolOutputRedact is the ability to redact or block a
 	// tool's output after the tool has already run.
 	CapabilityToolOutputRedact Capability = "tool-output-redact"
+	// CapabilityHistoryRewrite is the ability to rewrite (or block) any
+	// text or tool-result content resent to the model from prior
+	// conversation turns, on every subsequent turn.
+	CapabilityHistoryRewrite Capability = "history-rewrite"
+	// CapabilitySystemPromptRewrite is the ability to rewrite (or block)
+	// the system prompt sent to the model.
+	CapabilitySystemPromptRewrite Capability = "system-prompt-rewrite"
 )
 
 // capabilityMatrix is the single source of truth for what each host can
@@ -41,26 +48,47 @@ const (
 // consults exactly this table, and every enforcement path in veil must
 // go through it before acting on a Deny or Rewrite decision.
 //
-// Verified facts encoded here (see project README for the sourcing):
+// Verified facts encoded here (see project README and
+// integration notes's T1 findings, in the downstream harness repo, for
+// the sourcing: a local mock OpenAI-compatible provider plus a throwing
+// and mutating spike plugin, run against the real, installed OpenCode
+// 1.18.32 binary):
 //
 //   - Claude Code: UserPromptSubmit can block (exit 2) and rewrite the
 //     prompt; PreToolUse can block and rewrite tool arguments;
-//     PostToolUse is observe-only and cannot redact tool output.
-//   - OpenCode: there is no documented hook that reaches the typed
-//     prompt at all; tool.execute.before can block (by throwing) and
-//     rewrite tool arguments (by mutating output.args);
-//     tool.execute.after's ability to mutate the tool result is
-//     unverified and is therefore treated as unsupported.
+//     PostToolUse is observe-only and cannot redact tool output. Claude
+//     Code has no hook that resends prior-turn history or the system
+//     prompt through a rewritable hook.
+//   - OpenCode: chat.message can block (by throwing, which aborts the
+//     request before the model is ever contacted — verified: the mock
+//     provider received nothing) and rewrite the typed prompt (by
+//     mutating a part's text — verified: the mutated text is what the
+//     mock provider received, and what OpenCode's own session storage
+//     persisted). tool.execute.before can block (throw) and rewrite tool
+//     arguments (mutate output.args), as before. tool.execute.after can
+//     redact a tool's output, but ONLY by mutating output.output (and
+//     output.metadata.output, when present): throwing there does NOT
+//     block anything — the thrown error text just becomes the tool's own
+//     result, and the conversation continues with the real tool call
+//     already having executed. experimental.chat.messages.transform can
+//     rewrite any text or tool-result part resent to the model on every
+//     later turn (verified against the real part shape OpenCode sends:
+//     {type:"tool", state:{output, metadata:{output}}}).
+//     experimental.chat.system.transform can rewrite the system prompt.
 var capabilityMatrix = map[Host]map[Capability]bool{
 	HostClaudeCode: {
-		CapabilityPromptBlock:      true,
-		CapabilityToolArgsBlock:    true,
-		CapabilityToolOutputRedact: false,
+		CapabilityPromptBlock:         true,
+		CapabilityToolArgsBlock:       true,
+		CapabilityToolOutputRedact:    false,
+		CapabilityHistoryRewrite:      false,
+		CapabilitySystemPromptRewrite: false,
 	},
 	HostOpenCode: {
-		CapabilityPromptBlock:      false,
-		CapabilityToolArgsBlock:    true,
-		CapabilityToolOutputRedact: false,
+		CapabilityPromptBlock:         true,
+		CapabilityToolArgsBlock:       true,
+		CapabilityToolOutputRedact:    true,
+		CapabilityHistoryRewrite:      true,
+		CapabilitySystemPromptRewrite: true,
 	},
 }
 

@@ -10,6 +10,16 @@ const (
 	// EventToolArgs represents the arguments of a tool call about to
 	// execute.
 	EventToolArgs EventKind = "ToolArgs"
+	// EventToolOutput represents a tool call's output after it has
+	// already executed, before that output is sent back to the model.
+	EventToolOutput EventKind = "ToolOutput"
+	// EventHistoryText represents the full set of text and tool-result
+	// parts from prior conversation turns that a host is about to resend
+	// to the model on this turn.
+	EventHistoryText EventKind = "HistoryText"
+	// EventSystemPrompt represents the system prompt strings a host is
+	// about to send to the model.
+	EventSystemPrompt EventKind = "SystemPrompt"
 )
 
 // Event is the host-neutral representation of something veil is asked to
@@ -35,4 +45,9 @@ type Event struct {
 	// is EventToolArgs, so detectors can target specific fields (e.g. a
 	// file path field) without re-parsing Text.
 	Fields map[string]string
+	// SessionID identifies the host's conversation/session, when the
+	// host exposes one. Policy uses it only to scope a PseudonymStore's
+	// per-session token mapping; detection logic must never branch on
+	// it. Empty means the host did not supply one.
+	SessionID string
 }
