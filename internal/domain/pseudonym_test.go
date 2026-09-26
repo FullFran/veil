@@ -66,3 +66,42 @@ func TestMemoryPseudonymStore_DifferentCategories_HaveIndependentCounters(t *tes
 		t.Fatalf("got dni=%q iban=%q, want independent per-category counters", dni, iban)
 	}
 }
+
+// TestMemoryPseudonymStore_Original_ReversesAMintedToken proves the
+// reverse lookup rehydration depends on: given a token this session
+// already minted, Original returns the exact original value back.
+func TestMemoryPseudonymStore_Original_ReversesAMintedToken(t *testing.T) {
+	store := domain.NewMemoryPseudonymStore()
+
+	token, err := store.Token("session-1", "DNI", "12345678Z")
+	if err != nil {
+		t.Fatalf("Token returned unexpected error: %v", err)
+	}
+
+	original, found, err := store.Original("session-1", token)
+	if err != nil {
+		t.Fatalf("Original returned unexpected error: %v", err)
+	}
+	if !found {
+		t.Fatal("Original reported not found for a token this session just minted")
+	}
+	if original != "12345678Z" {
+		t.Fatalf("Original(...) = %q, want %q", original, "12345678Z")
+	}
+}
+
+// TestMemoryPseudonymStore_Original_UnknownToken_ReportsNotFound proves an
+// unrecognized token (wrong session, or not a real token at all) reports
+// not-found rather than erroring: it is not a storage failure, just a
+// miss, and the caller decides what to do (typically: leave it alone).
+func TestMemoryPseudonymStore_Original_UnknownToken_ReportsNotFound(t *testing.T) {
+	store := domain.NewMemoryPseudonymStore()
+
+	_, found, err := store.Original("session-1", "[DNI-999]")
+	if err != nil {
+		t.Fatalf("Original returned unexpected error: %v", err)
+	}
+	if found {
+		t.Fatal("Original reported found for a token that was never minted")
+	}
+}
