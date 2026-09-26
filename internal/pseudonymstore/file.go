@@ -27,6 +27,9 @@ type sessionFile struct {
 	// Mapping is keyed by "category:original" and holds the token
 	// already minted for it.
 	Mapping map[string]string `json:"mapping"`
+	// Reverse is keyed by token and holds the original value, for
+	// rehydrating a tool call that writes real data to disk.
+	Reverse map[string]string `json:"reverse"`
 	// Counters holds the next-token counter per category.
 	Counters map[string]int `json:"counters"`
 }
@@ -100,11 +103,30 @@ func (s *FileStore) Token(sessionID, category, original string) (string, error) 
 	data.Counters[category]++
 	token := fmt.Sprintf("[%s-%03d]", category, data.Counters[category])
 	data.Mapping[key] = token
+	data.Reverse[token] = original
 
 	if err := s.save(path, data); err != nil {
 		return "", err
 	}
 	return token, nil
+}
+
+// Original implements domain.PseudonymStore's reverse lookup, guarded by
+// the same lock and fail-closed load as Token.
+func (s *FileStore) Original(sessionID, token string) (string, bool, error) {
+	unlock, err := s.acquireLock(sessionID)
+	if err != nil {
+		return "", false, err
+	}
+	defer unlock()
+
+	data, err := s.load(s.sessionPath(sessionID))
+	if err != nil {
+		return "", false, err
+	}
+
+	original, found := data.Reverse[token]
+	return original, found, nil
 }
 
 // load reads path's session mapping, treating a missing file as an empty,
@@ -115,7 +137,7 @@ func (s *FileStore) Token(sessionID, category, original string) (string, error) 
 func (s *FileStore) load(path string) (*sessionFile, error) {
 	raw, err := os.ReadFile(path)
 	if os.IsNotExist(err) {
-		return &sessionFile{Mapping: map[string]string{}, Counters: map[string]int{}}, nil
+		return &sessionFile{Mapping: map[string]string{}, Reverse: map[string]string{}, Counters: map[string]int{}}, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("pseudonymstore: read %s: %w", path, err)
@@ -127,6 +149,9 @@ func (s *FileStore) load(path string) (*sessionFile, error) {
 	}
 	if data.Mapping == nil {
 		data.Mapping = map[string]string{}
+	}
+	if data.Reverse == nil {
+		data.Reverse = map[string]string{}
 	}
 	if data.Counters == nil {
 		data.Counters = map[string]int{}
