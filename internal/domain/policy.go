@@ -29,6 +29,12 @@ func capabilityFor(kind EventKind) (Capability, error) {
 		return CapabilityPromptBlock, nil
 	case EventToolArgs:
 		return CapabilityToolArgsBlock, nil
+	case EventToolOutput:
+		return CapabilityToolOutputRedact, nil
+	case EventHistoryText:
+		return CapabilityHistoryRewrite, nil
+	case EventSystemPrompt:
+		return CapabilitySystemPromptRewrite, nil
 	default:
 		return "", fmt.Errorf("veil: unknown event kind %q", kind)
 	}

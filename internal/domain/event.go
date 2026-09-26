@@ -10,6 +10,16 @@ const (
 	// EventToolArgs represents the arguments of a tool call about to
 	// execute.
 	EventToolArgs EventKind = "ToolArgs"
+	// EventToolOutput represents a tool call's output after it has
+	// already executed, before that output is sent back to the model.
+	EventToolOutput EventKind = "ToolOutput"
+	// EventHistoryText represents the full set of text and tool-result
+	// parts from prior conversation turns that a host is about to resend
+	// to the model on this turn.
+	EventHistoryText EventKind = "HistoryText"
+	// EventSystemPrompt represents the system prompt strings a host is
+	// about to send to the model.
+	EventSystemPrompt EventKind = "SystemPrompt"
 )
 
 // Event is the host-neutral representation of something veil is asked to
