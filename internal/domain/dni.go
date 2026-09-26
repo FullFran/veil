@@ -41,6 +41,8 @@ func (d *DNIDetector) Detect(event Event) []Finding {
 			Detector: "dni",
 			Reason:   "Spanish DNI/NIE detected",
 			Redacted: strings.Repeat("*", len(digits)) + letter,
+			Match:    m[0],
+			Category: "DNI",
 		})
 	}
 	return findings

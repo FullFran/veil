@@ -25,9 +25,10 @@ import (
 // rawInput mirrors the JSON the OpenCode shim sends on stdin for a
 // tool.execute.before call.
 type rawInput struct {
-	Event string                 `json:"event"`
-	Tool  string                 `json:"tool"`
-	Args  map[string]interface{} `json:"args"`
+	Event     string                 `json:"event"`
+	SessionID string                 `json:"sessionID"`
+	Tool      string                 `json:"tool"`
+	Args      map[string]interface{} `json:"args"`
 }
 
 // Decode parses the shim's JSON into a host-neutral domain.Event. It
@@ -42,11 +43,12 @@ func Decode(raw []byte) (domain.Event, error) {
 	case "tool.execute.before":
 		fields, text := flattenArgs(in.Args)
 		return domain.Event{
-			Kind:     domain.EventToolArgs,
-			Host:     domain.HostOpenCode,
-			ToolName: in.Tool,
-			Text:     text,
-			Fields:   fields,
+			Kind:      domain.EventToolArgs,
+			Host:      domain.HostOpenCode,
+			SessionID: in.SessionID,
+			ToolName:  in.Tool,
+			Text:      text,
+			Fields:    fields,
 		}, nil
 	default:
 		return domain.Event{}, fmt.Errorf("opencode: unsupported event %q", in.Event)
