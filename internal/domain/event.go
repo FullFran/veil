@@ -35,4 +35,9 @@ type Event struct {
 	// is EventToolArgs, so detectors can target specific fields (e.g. a
 	// file path field) without re-parsing Text.
 	Fields map[string]string
+	// SessionID identifies the host's conversation/session, when the
+	// host exposes one. Policy uses it only to scope a PseudonymStore's
+	// per-session token mapping; detection logic must never branch on
+	// it. Empty means the host did not supply one.
+	SessionID string
 }

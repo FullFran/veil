@@ -17,6 +17,7 @@ import (
 // modeled; other hook events are rejected by Decode.
 type rawInput struct {
 	HookEventName string                 `json:"hook_event_name"`
+	SessionID     string                 `json:"session_id"`
 	UserInput     string                 `json:"user_input"`
 	ToolName      string                 `json:"tool_name"`
 	ToolInput     map[string]interface{} `json:"tool_input"`
@@ -34,18 +35,20 @@ func Decode(raw []byte) (domain.Event, error) {
 	switch in.HookEventName {
 	case "UserPromptSubmit":
 		return domain.Event{
-			Kind: domain.EventPromptSubmit,
-			Host: domain.HostClaudeCode,
-			Text: in.UserInput,
+			Kind:      domain.EventPromptSubmit,
+			Host:      domain.HostClaudeCode,
+			SessionID: in.SessionID,
+			Text:      in.UserInput,
 		}, nil
 	case "PreToolUse":
 		fields, text := flattenToolInput(in.ToolInput)
 		return domain.Event{
-			Kind:     domain.EventToolArgs,
-			Host:     domain.HostClaudeCode,
-			ToolName: in.ToolName,
-			Text:     text,
-			Fields:   fields,
+			Kind:      domain.EventToolArgs,
+			Host:      domain.HostClaudeCode,
+			SessionID: in.SessionID,
+			ToolName:  in.ToolName,
+			Text:      text,
+			Fields:    fields,
 		}, nil
 	default:
 		return domain.Event{}, fmt.Errorf("claudecode: unsupported hook_event_name %q", in.HookEventName)
