@@ -30,6 +30,7 @@ func newPolicy() (*domain.Policy, error) {
 		domain.NewEmailDetector(),
 		domain.NewPhoneDetector(),
 		domain.NewSecretPathDetector(),
+		domain.NewBinaryContentDetector(),
 	}
 
 	if catalogPath := os.Getenv("VEIL_CATALOG"); catalogPath != "" {
