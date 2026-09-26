@@ -189,13 +189,15 @@ func TestPolicy_Evaluate_PseudonymStoreError_FailsClosed(t *testing.T) {
 // TestPolicy_Evaluate_UnsupportedCapability_ErrorsInsteadOfDeciding proves
 // that Evaluate refuses to render any verdict (Allow, Deny or Rewrite) for
 // an event whose host cannot actually enforce the resulting decision.
+// Claude Code's PostToolUse hook is observe-only, so a ToolOutput event on
+// Claude Code is the real, still-unsupported case.
 func TestPolicy_Evaluate_UnsupportedCapability_ErrorsInsteadOfDeciding(t *testing.T) {
 	registry := domain.NewRegistry(domain.NewDNIDetector())
 	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
 
 	decision, err := policy.Evaluate(domain.Event{
-		Kind: domain.EventPromptSubmit,
-		Host: domain.HostOpenCode,
+		Kind: domain.EventToolOutput,
+		Host: domain.HostClaudeCode,
 		Text: "DNI 12345678Z",
 	})
 
@@ -210,13 +212,13 @@ func TestPolicy_Evaluate_UnsupportedCapability_ErrorsInsteadOfDeciding(t *testin
 
 func TestPolicy_Evaluate_UnsupportedCapability_ChecksEvenWithoutFindings(t *testing.T) {
 	// Capability must be checked before running detectors: even a
-	// perfectly clean prompt must not be silently "allowed" on a host
-	// that has no way to have blocked it if it had not been clean.
+	// perfectly clean tool output must not be silently "allowed" on a
+	// host that has no way to have blocked it if it had not been clean.
 	policy := domain.NewPolicy(domain.NewRegistry(), domain.NewMemoryPseudonymStore())
 
 	_, err := policy.Evaluate(domain.Event{
-		Kind: domain.EventPromptSubmit,
-		Host: domain.HostOpenCode,
+		Kind: domain.EventToolOutput,
+		Host: domain.HostClaudeCode,
 		Text: "nothing sensitive here at all",
 	})
 
