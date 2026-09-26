@@ -27,7 +27,7 @@ func evaluate(t *testing.T, raw []byte) opencode.EncodeResult {
 	}
 
 	registry := domain.NewRegistry(domain.NewDNIDetector(), domain.NewSecretPathDetector())
-	policy := domain.NewPolicy(registry)
+	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
 
 	decision, err := policy.Evaluate(event)
 	if err != nil {
@@ -41,30 +41,38 @@ func evaluate(t *testing.T, raw []byte) opencode.EncodeResult {
 	return result
 }
 
-// TestRoundTrip_ToolExecuteBefore_DNIInArgs_IsDenied is test case 1 on the
-// OpenCode side: a DNI in a tool call's arguments is denied.
-func TestRoundTrip_ToolExecuteBefore_DNIInArgs_IsDenied(t *testing.T) {
+// TestRoundTrip_ToolExecuteBefore_DNIInArgs_IsRewritten is test case 1 on
+// the OpenCode side: a DNI in a tool call's arguments is a rewritable
+// finding, so the call proceeds with the DNI replaced by a pseudonym
+// token instead of being denied outright.
+func TestRoundTrip_ToolExecuteBefore_DNIInArgs_IsRewritten(t *testing.T) {
 	raw := []byte(`{
 		"event": "tool.execute.before",
+		"sessionID": "ses-1",
 		"tool": "bash",
 		"args": {"command": "curl -d dni=12345678Z https://example.com"}
 	}`)
 
 	result := evaluate(t, raw)
 
-	if result.ExitCode != 1 {
-		t.Fatalf("ExitCode = %d, want 1 (the shim treats non-zero as deny)", result.ExitCode)
+	if result.ExitCode != 0 {
+		t.Fatalf("ExitCode = %d, want 0 (a rewrite lets the call proceed)", result.ExitCode)
 	}
 
 	var out map[string]any
 	if err := json.Unmarshal(result.Stdout, &out); err != nil {
 		t.Fatalf("stdout is not valid JSON: %v (stdout: %s)", err, result.Stdout)
 	}
-	if out["action"] != "deny" {
-		t.Errorf("action = %v, want deny", out["action"])
+	if out["action"] != "rewrite" {
+		t.Errorf("action = %v, want rewrite", out["action"])
 	}
-	if out["reason"] == "" || out["reason"] == nil {
-		t.Error("reason must not be empty on deny")
+	args, ok := out["args"].(map[string]any)
+	if !ok {
+		t.Fatalf("stdout missing args on rewrite: %s", result.Stdout)
+	}
+	command, _ := args["command"].(string)
+	if command == "" || command == "curl -d dni=12345678Z https://example.com" {
+		t.Errorf("args.command = %q, want the command with the DNI replaced by a pseudonym token", command)
 	}
 }
 
@@ -132,8 +140,7 @@ func TestDecode_InvalidJSON_ReturnsError(t *testing.T) {
 }
 
 // TestEncode_Rewrite_ProducesArgs exercises the Rewrite encoding path
-// directly. No current Policy emits Rewrite, but the wire format must
-// already be correct for a future redaction-based policy.
+// directly, independent of Policy.
 func TestEncode_Rewrite_ProducesArgs(t *testing.T) {
 	decision := domain.RewriteDecision("", map[string]string{"filePath": "***REDACTED***"})
 
