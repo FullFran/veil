@@ -2,8 +2,30 @@ package domain
 
 import (
 	"fmt"
+	"regexp"
 	"strings"
 )
+
+// writeToolNames lists tool names (compared case-insensitively, so this
+// covers both Claude Code's "Write"/"Edit"/"MultiEdit" and OpenCode's
+// "write"/"edit"/"patch") that write their arguments to disk. A pseudonym
+// token reaching one of these tools must be rehydrated back to the real
+// value first, so the file on disk holds real data, not a placeholder
+// the model was shown instead of it.
+var writeToolNames = map[string]bool{
+	"write":     true,
+	"edit":      true,
+	"multiedit": true,
+	"patch":     true,
+}
+
+func isWriteTool(toolName string) bool {
+	return writeToolNames[strings.ToLower(toolName)]
+}
+
+// tokenPattern matches one of veil's own pseudonym tokens, e.g.
+// "[DNI-001]" or "[IBAN-014]".
+var tokenPattern = regexp.MustCompile(`\[[A-Z]+-[0-9]{3}\]`)
 
 // Policy evaluates Events against a Registry of Detectors, turning any
 // Findings into a Decision. Findings tagged with a Category are rewritable
@@ -63,6 +85,24 @@ func (p *Policy) Evaluate(event Event) (Decision, error) {
 		return Decision{}, err
 	}
 
+	decision, err := p.decide(event)
+	if err != nil {
+		return Decision{}, err
+	}
+
+	// A tool call that writes to disk gets one more pass: rehydrate any
+	// pseudonym token back to the real value the model never saw, so the
+	// file on disk holds real data. This never runs on a Deny: there is
+	// nothing to rehydrate into a call veil is blocking outright.
+	if decision.Kind != Deny && event.Kind == EventToolArgs && isWriteTool(event.ToolName) {
+		return p.rehydrate(event, decision)
+	}
+	return decision, nil
+}
+
+// decide runs the registry's detectors and turns their Findings into an
+// Allow, Deny, or Rewrite Decision, without any rehydration.
+func (p *Policy) decide(event Event) (Decision, error) {
 	findings := p.registry.DetectAll(event)
 	if len(findings) == 0 {
 		return AllowDecision(), nil
@@ -123,4 +163,79 @@ func substituteAll(s string, substitutions map[string]string) string {
 		s = strings.ReplaceAll(s, original, token)
 	}
 	return s
+}
+
+// rehydrate reverses every pseudonym token in decision's effective fields
+// (its RedactedFields if it is already a Rewrite, or event.Fields
+// otherwise) back to the real value the model never saw, for a tool call
+// that writes to disk. A token this session never minted is left exactly
+// as-is: that is a miss, not a failure. Any store error, however, fails
+// the whole call closed.
+func (p *Policy) rehydrate(event Event, decision Decision) (Decision, error) {
+	fields := decision.RedactedFields
+	if fields == nil {
+		fields = event.Fields
+	}
+	if fields == nil {
+		return decision, nil
+	}
+
+	rehydratedFields := make(map[string]string, len(fields))
+	anyChanged := false
+	for key, value := range fields {
+		newValue, changed, err := p.rehydrateText(event.SessionID, value)
+		if err != nil {
+			return Decision{}, fmt.Errorf("veil: rehydrate tool argument %q: %w", key, err)
+		}
+		rehydratedFields[key] = newValue
+		if changed {
+			anyChanged = true
+		}
+	}
+
+	if !anyChanged && decision.Kind == Allow {
+		return decision, nil
+	}
+
+	text := decision.RedactedText
+	if text == "" {
+		text = event.Text
+	}
+	rehydratedText, _, err := p.rehydrateText(event.SessionID, text)
+	if err != nil {
+		return Decision{}, fmt.Errorf("veil: rehydrate tool text: %w", err)
+	}
+
+	return RewriteDecision(rehydratedText, rehydratedFields), nil
+}
+
+// rehydrateText finds every veil pseudonym token in text and replaces the
+// ones this session recognizes with their real original value, leaving
+// any unrecognized token exactly as it was. changed reports whether at
+// least one token was actually replaced.
+func (p *Policy) rehydrateText(sessionID, text string) (result string, changed bool, err error) {
+	tokens := tokenPattern.FindAllString(text, -1)
+	if len(tokens) == 0 {
+		return text, false, nil
+	}
+
+	substitutions := make(map[string]string)
+	for _, token := range tokens {
+		if _, done := substitutions[token]; done {
+			continue
+		}
+		original, found, err := p.pseudonyms.Original(sessionID, token)
+		if err != nil {
+			return "", false, err
+		}
+		if !found {
+			continue
+		}
+		substitutions[token] = original
+	}
+
+	if len(substitutions) == 0 {
+		return text, false, nil
+	}
+	return substituteAll(text, substitutions), true, nil
 }
