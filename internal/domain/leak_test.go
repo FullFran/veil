@@ -78,19 +78,33 @@ func TestLeak_DNIInPrompt_OnClaudeCode_IsRewritten(t *testing.T) {
 
 // 3. THE MOST IMPORTANT TEST IN THE REPO.
 //
-// The exact same prompt-level DNI leak, evaluated for OpenCode instead of
-// Claude Code, must NOT be silently allowed through. OpenCode has no hook
-// that reaches the user's typed prompt at all, so there is no way for veil
-// to actually enforce a Deny verdict here. Pretending otherwise would be
-// worse than doing nothing: it would tell the caller "you are protected"
-// when they are not. Evaluate must refuse to answer with a loud, explicit
-// capability error instead.
-func TestLeak_DNIInPrompt_OnOpenCode_IsNeverSilentlyAllowed(t *testing.T) {
+// Claude Code's PostToolUse hook is observe-only: it has no way to redact
+// or block a tool's output after the tool has already run. If veil ever
+// evaluated a ToolOutput event for Claude Code, it must NOT be silently
+// allowed through. Pretending otherwise would be worse than doing
+// nothing: it would tell the caller "you are protected" when they are
+// not. Evaluate must refuse to answer with a loud, explicit capability
+// error instead.
+//
+// (This test's premise changed from an earlier version of this suite,
+// which asserted OpenCode had no prompt-level hook at all. That
+// assumption was never verified against a real OpenCode install and
+// turned out to be wrong: OpenCode's chat.message hook can both block
+// (by throwing) and rewrite (by mutating a part's text) the user's typed
+// prompt, confirmed against OpenCode 1.18.32 with a local mock provider.
+// See TestLeak_DNIInPrompt_OnOpenCode_IsRewritten below, and this
+// project's T1 spike notes in downstream harness's
+// integration notes, for the evidence. Claude Code's inability to
+// redact a tool's OUTPUT, by contrast, is real and unchanged, so it is
+// the new anchor for "the guarantee itself is what is unsupported".)
+func TestLeak_ToolOutput_OnClaudeCode_IsNeverSilentlyAllowed(t *testing.T) {
 	policy := newPolicy()
 	event := domain.Event{
-		Kind: domain.EventPromptSubmit,
-		Host: domain.HostOpenCode,
-		Text: "my DNI is 12345678Z, please remember it",
+		Kind:     domain.EventToolOutput,
+		Host:     domain.HostClaudeCode,
+		ToolName: "Bash",
+		Text:     "my DNI is 12345678Z, in the tool's output",
+		Fields:   map[string]string{"output": "my DNI is 12345678Z, in the tool's output"},
 	}
 
 	decision, err := policy.Evaluate(event)
@@ -102,11 +116,11 @@ func TestLeak_DNIInPrompt_OnOpenCode_IsNeverSilentlyAllowed(t *testing.T) {
 	if !errors.As(err, &capErr) {
 		t.Fatalf("Evaluate returned error %v (%T), want *domain.UnsupportedCapabilityError", err, err)
 	}
-	if capErr.Host != domain.HostOpenCode {
-		t.Fatalf("capability error host = %q, want %q", capErr.Host, domain.HostOpenCode)
+	if capErr.Host != domain.HostClaudeCode {
+		t.Fatalf("capability error host = %q, want %q", capErr.Host, domain.HostClaudeCode)
 	}
-	if capErr.Capability != domain.CapabilityPromptBlock {
-		t.Fatalf("capability error capability = %q, want %q", capErr.Capability, domain.CapabilityPromptBlock)
+	if capErr.Capability != domain.CapabilityToolOutputRedact {
+		t.Fatalf("capability error capability = %q, want %q", capErr.Capability, domain.CapabilityToolOutputRedact)
 	}
 
 	// Decision must be the zero value: never a disguised Allow.
@@ -115,6 +129,31 @@ func TestLeak_DNIInPrompt_OnOpenCode_IsNeverSilentlyAllowed(t *testing.T) {
 	}
 	if decision.Kind != domain.Unknown {
 		t.Fatalf("decision.Kind = %v, want Unknown", decision.Kind)
+	}
+}
+
+// 3b. The corrected companion to the old test 3: the exact same
+// prompt-level DNI leak, evaluated for OpenCode, is now rewritten rather
+// than erroring, because OpenCode's chat.message hook genuinely can
+// enforce this (see the comment on the test above).
+func TestLeak_DNIInPrompt_OnOpenCode_IsRewritten(t *testing.T) {
+	policy := newPolicy()
+	event := domain.Event{
+		Kind:      domain.EventPromptSubmit,
+		Host:      domain.HostOpenCode,
+		SessionID: "session-1",
+		Text:      "my DNI is 12345678Z, please remember it",
+	}
+
+	decision, err := policy.Evaluate(event)
+	if err != nil {
+		t.Fatalf("Evaluate returned unexpected error: %v", err)
+	}
+	if decision.Kind != domain.Rewrite {
+		t.Fatalf("got decision kind %v, want Rewrite", decision.Kind)
+	}
+	if strings.Contains(decision.RedactedText, "12345678Z") {
+		t.Fatalf("RedactedText %q still contains the original DNI", decision.RedactedText)
 	}
 }
 
