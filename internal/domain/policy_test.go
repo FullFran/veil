@@ -159,6 +159,108 @@ func TestPolicy_Evaluate_MixedFindings_HardDenyWins(t *testing.T) {
 	}
 }
 
+// TestPolicy_Evaluate_WriteTool_RehydratesKnownTokens proves the
+// rehydration step: a token this session already minted, appearing in a
+// write-tool's arguments, is replaced back with the real original value
+// before the call proceeds, so the file that tool writes to disk holds
+// the real value, not the pseudonym the model was shown.
+func TestPolicy_Evaluate_WriteTool_RehydratesKnownTokens(t *testing.T) {
+	registry := domain.NewRegistry(domain.NewDNIDetector())
+	store := domain.NewMemoryPseudonymStore()
+	policy := domain.NewPolicy(registry, store)
+
+	// First, the DNI is seen and tokenized (e.g. read from a file, or
+	// typed in a prompt earlier in the same session).
+	first, err := policy.Evaluate(domain.Event{
+		Kind:      domain.EventPromptSubmit,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		Text:      "client DNI is 12345678Z",
+	})
+	if err != nil {
+		t.Fatalf("first Evaluate returned unexpected error: %v", err)
+	}
+	token := strings.TrimSpace(strings.TrimPrefix(first.RedactedText, "client DNI is "))
+
+	// Later, the model asks to write that same token to a file.
+	decision, err := policy.Evaluate(domain.Event{
+		Kind:      domain.EventToolArgs,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		ToolName:  "Write",
+		Text:      "content: client DNI is " + token,
+		Fields:    map[string]string{"content": "client DNI is " + token, "file_path": "/home/user/project/notes.txt"},
+	})
+	if err != nil {
+		t.Fatalf("second Evaluate returned unexpected error: %v", err)
+	}
+	if decision.Kind != domain.Rewrite {
+		t.Fatalf("Kind = %v, want Rewrite (rehydration always reports what changed)", decision.Kind)
+	}
+	if decision.RedactedFields["content"] != "client DNI is 12345678Z" {
+		t.Fatalf("RedactedFields[content] = %q, want the real DNI rehydrated", decision.RedactedFields["content"])
+	}
+}
+
+// TestPolicy_Evaluate_NonWriteTool_DoesNotRehydrate proves rehydration is
+// scoped to write-type tools: a token appearing in, say, a Bash command's
+// arguments is left exactly as the model wrote it (still a token), never
+// silently turned back into the real value for a non-writing tool call.
+func TestPolicy_Evaluate_NonWriteTool_DoesNotRehydrate(t *testing.T) {
+	registry := domain.NewRegistry(domain.NewDNIDetector())
+	store := domain.NewMemoryPseudonymStore()
+	policy := domain.NewPolicy(registry, store)
+
+	first, err := policy.Evaluate(domain.Event{
+		Kind:      domain.EventPromptSubmit,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		Text:      "client DNI is 12345678Z",
+	})
+	if err != nil {
+		t.Fatalf("first Evaluate returned unexpected error: %v", err)
+	}
+	token := strings.TrimSpace(strings.TrimPrefix(first.RedactedText, "client DNI is "))
+
+	decision, err := policy.Evaluate(domain.Event{
+		Kind:      domain.EventToolArgs,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		ToolName:  "Bash",
+		Text:      "command: echo " + token,
+		Fields:    map[string]string{"command": "echo " + token},
+	})
+	if err != nil {
+		t.Fatalf("second Evaluate returned unexpected error: %v", err)
+	}
+	if decision.Kind != domain.Allow {
+		t.Fatalf("Kind = %v, want Allow (nothing to detect, and no rehydration for a non-write tool)", decision.Kind)
+	}
+}
+
+// TestPolicy_Evaluate_WriteTool_UnknownToken_LeftUnchanged proves a
+// token-shaped string that this session never actually minted is left
+// alone rather than erroring: it is a miss, not a storage failure.
+func TestPolicy_Evaluate_WriteTool_UnknownToken_LeftUnchanged(t *testing.T) {
+	registry := domain.NewRegistry(domain.NewDNIDetector())
+	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
+
+	decision, err := policy.Evaluate(domain.Event{
+		Kind:      domain.EventToolArgs,
+		Host:      domain.HostClaudeCode,
+		SessionID: "session-1",
+		ToolName:  "Write",
+		Text:      "content: see [DNI-999]",
+		Fields:    map[string]string{"content": "see [DNI-999]"},
+	})
+	if err != nil {
+		t.Fatalf("Evaluate returned unexpected error: %v", err)
+	}
+	if decision.Kind != domain.Allow {
+		t.Fatalf("Kind = %v, want Allow (an unrecognized token is left as-is)", decision.Kind)
+	}
+}
+
 // failingPseudonymStore always errors, to prove Evaluate fails closed
 // instead of falling back to Allow or an unpseudonymized rewrite when the
 // store cannot be used.
