@@ -203,9 +203,28 @@ Claude Code invokes `veil claude-code` for each matching event, feeding
 the hook's JSON payload on stdin. Set `VEIL_CATALOG` in the environment
 Claude Code's hooks run in if you want the name catalog detector active.
 
+## Prebuilt binaries
+
+Every release publishes, as assets, `veil-<os>-<arch>` binaries built with
+`CGO_ENABLED=0` (`linux`, `darwin` and `windows`, each on `amd64` and
+`arm64`; Windows files end in `.exe`), the OpenCode plugin `veil-plugin.js`,
+and a `SHA256SUMS` file covering all of them
+(`.github/workflows/release.yml`). Verify before use:
+
+```bash
+curl -fsSLO https://github.com/FullFran/veil/releases/download/v0.1.0/veil-linux-amd64
+curl -fsSLO https://github.com/FullFran/veil/releases/download/v0.1.0/SHA256SUMS
+sha256sum --check --ignore-missing SHA256SUMS
+```
+
+The workflow runs on every `v*` tag push. To publish assets for a tag that
+already exists, run it by hand (`gh workflow run release.yml -f tag=v0.1.0`);
+it builds that tag's sources and does not move the tag.
+
 ## Installing on OpenCode
 
-Build the binary, then wire the shim plugin in `adapters/opencode`:
+Build the binary (or download a prebuilt one, above), then wire the shim
+plugin in `adapters/opencode`:
 
 ```bash
 go build -o /usr/local/bin/veil ./cmd/veil
