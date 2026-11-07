@@ -1,3 +1,5 @@
+<p align="center"><img src="assets/logo.svg" alt="veil logo" width="120" height="120"></p>
+
 # veil
 
 A host-agnostic privacy guard for AI coding agents. It inspects what an
