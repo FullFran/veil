@@ -1,0 +1,10 @@
+{
+  "jsonrpc": "2.0",
+  "id": "1",
+  "result": {
+    "type": "final",
+    "acs_version": "0.1.0",
+    "request_id": "b3e1c9f0-3b21-4b7a-9f2e-6a6d2e6a9a11",
+    "decision": "allow"
+  }
+}

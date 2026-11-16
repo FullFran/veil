@@ -4,7 +4,8 @@
 // response to stdout/stderr with the matching exit code. A failure is one
 // RFC 9457 problem details line on stderr; the exit code carries only its
 // class (see internal/problem and the README). `veil store reveal|forget
-// <session>` serves a host the pseudonym store instead (see store.go).
+// <session>` serves a host the pseudonym store instead (see store.go), and
+// `veil acs` answers OWASP Agent Control Standard messages (see acs.go).
 package main
 
 import (
@@ -179,7 +180,7 @@ var hostsByName = map[string]hostProfile{
 	"opencode":    {handle: runOpenCode, failureExit: opencode.FailureExitCode},
 }
 
-// run implements the CLI: `policy` and `store` subcommands go to their
+// run implements the CLI: `policy`, `store` and `acs` go to their
 // runners; otherwise
 // it reads exactly one JSON event from stdin,
 // dispatches on the requested host, and returns the process exit code.
@@ -192,6 +193,9 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	}
 	if len(args) >= 1 && args[0] == "store" {
 		return runStore(args[1:], stdin, stdout, stderr)
+	}
+	if len(args) == 1 && args[0] == "acs" {
+		return runACS(stdin, stdout, stderr)
 	}
 	if len(args) != 1 {
 		_ = problem.Write(stderr, problem.New(problem.Usage))

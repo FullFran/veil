@@ -153,7 +153,7 @@ var titles = map[Code]string{
 }
 
 var details = map[Code]string{
-	Usage:                   "Run veil with exactly one host argument (claude-code, opencode or acs), or as veil policy [file] or veil store reveal|forget <session>.",
+	Usage:                   "Run veil with exactly one host argument (claude-code, opencode or acs), or as veil policy [file] or veil store <command>.",
 	InputInvalid:            "stdin must hold exactly one JSON event of a kind the host adapter supports.",
 	CatalogUnreadable:       "The name catalog (VEIL_CATALOG or the policy's catalog.path) cannot be read or parsed.",
 	PolicyUnreadable:        "VEIL_POLICY is set but the file cannot be read.",
