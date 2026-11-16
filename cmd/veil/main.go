@@ -17,6 +17,7 @@ import (
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/hosts/claudecode"
 	"github.com/FullFran/veil/internal/hosts/opencode"
+	"github.com/FullFran/veil/internal/policy"
 	"github.com/FullFran/veil/internal/problem"
 	"github.com/FullFran/veil/internal/pseudonymstore"
 )
@@ -25,29 +26,20 @@ func main() {
 	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }
 
-// newPolicy builds the standard veil policy shared by every host. It
-// returns an error instead of a *domain.Policy if VEIL_CATALOG is set but
-// cannot be loaded: startup fails closed rather than silently running
-// with an empty name catalog.
+// newPolicy builds the veil policy shared by every host from the policy
+// file in VEIL_POLICY (or the embedded default policy when it is unset).
+// It returns an error instead of a *domain.Policy if the policy file, or
+// the name catalog it uses, cannot be loaded: startup fails closed rather
+// than silently running with a different policy.
 func newPolicy() (*domain.Policy, error) {
-	detectors := []domain.Detector{
-		domain.NewDNIDetector(),
-		domain.NewIBANDetector(),
-		domain.NewEmailDetector(),
-		domain.NewPhoneDetector(),
-		domain.NewSecretPathDetector(),
-		domain.NewBinaryContentDetector(),
+	p, err := policy.FromEnv()
+	if err != nil {
+		return nil, err
 	}
-
-	if catalogPath := os.Getenv("VEIL_CATALOG"); catalogPath != "" {
-		names, err := domain.LoadNameCatalog(catalogPath)
-		if err != nil {
-			return nil, fmt.Errorf("veil: load VEIL_CATALOG: %w", err)
-		}
-		detectors = append(detectors, domain.NewNameCatalogDetector(names))
+	registry, err := p.Registry(os.Getenv("VEIL_CATALOG"))
+	if err != nil {
+		return nil, err
 	}
-
-	registry := domain.NewRegistry(detectors...)
 	store := pseudonymstore.NewFileStore(pseudonymstore.DefaultDir())
 	return domain.NewPolicy(registry, store), nil
 }
@@ -77,6 +69,9 @@ var hostsByName = map[string]hostProfile{
 // internal/problem) and nothing on stdout. It is split out from main so
 // tests can inject buffers instead of the real stdio.
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) >= 1 && args[0] == "policy" {
+		return runPolicy(args[1:], stdout, stderr)
+	}
 	if len(args) != 1 {
 		problem.Write(stderr, problem.New(problem.Usage))
 		return problem.ExitUsage
@@ -94,7 +89,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 
 	policy, err := newPolicy()
 	if err != nil {
-		return host.fail(stderr, problem.CatalogUnreadable)
+		return host.fail(stderr, classifyPolicyError(err))
 	}
 
 	exitCode, failure := host.handle(policy, raw, stdout, stderr)
@@ -102,6 +97,16 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return host.fail(stderr, failure)
 	}
 	return exitCode
+}
+
+// classifyPolicyError maps a newPolicy error to its problem code by error
+// type: a *policy.Error carries its own code (policy or catalog).
+func classifyPolicyError(err error) problem.Code {
+	var perr *policy.Error
+	if errors.As(err, &perr) {
+		return perr.Code
+	}
+	return problem.Internal
 }
 
 // classifyEvaluateError maps a Policy.Evaluate error to its problem code
@@ -163,4 +168,46 @@ func runOpenCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) (i
 
 	stdout.Write(result.Stdout)
 	return result.ExitCode, ""
+}
+
+// runPolicy validates a policy and prints its version and digest as one
+// JSON object: the file given as the only argument, else the file in
+// VEIL_POLICY, else the embedded default policy. A failure is one problem
+// line on stderr and exit ExitFailedClosed (ExitUsage for bad arguments),
+// so a policy can be checked before it is deployed.
+func runPolicy(args []string, stdout, stderr io.Writer) int {
+	var (
+		p      *policy.Policy
+		err    error
+		source string
+	)
+	switch {
+	case len(args) > 1:
+		problem.Write(stderr, problem.New(problem.Usage))
+		return problem.ExitUsage
+	case len(args) == 1:
+		source = args[0]
+		p, err = policy.Load(args[0])
+	case os.Getenv(policy.EnvVar) != "":
+		source = os.Getenv(policy.EnvVar)
+		p, err = policy.FromEnv()
+	default:
+		source = "default"
+		p = policy.Default()
+	}
+	if err != nil {
+		problem.Write(stderr, problem.New(classifyPolicyError(err)))
+		return problem.ExitFailedClosed
+	}
+	out, err := json.Marshal(struct {
+		Source  string `json:"source"`
+		Version string `json:"version"`
+		Digest  string `json:"digest"`
+	}{source, p.Version, p.Digest()})
+	if err != nil {
+		problem.Write(stderr, problem.New(problem.Internal))
+		return problem.ExitFailedClosed
+	}
+	fmt.Fprintln(stdout, string(out))
+	return problem.ExitDecision
 }

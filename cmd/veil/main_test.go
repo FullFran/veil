@@ -152,6 +152,24 @@ func TestRun_Failures_ReportOneProblemAndTheExitClass(t *testing.T) {
 			wantCode: problem.CatalogUnreadable, wantExit: ocFailed,
 		},
 		{
+			name: "claude-code policy unreadable", args: []string{"claude-code"}, stdin: dniHook,
+			setup:    func(t *testing.T) { t.Setenv("VEIL_POLICY", filepath.Join(t.TempDir(), "missing.json")) },
+			wantCode: problem.PolicyUnreadable, wantExit: ccFailed,
+		},
+		{
+			name: "opencode policy invalid", args: []string{"opencode"}, stdin: dniTool,
+			setup:    func(t *testing.T) { t.Setenv("VEIL_POLICY", writePolicy(t, `{"version":"1.0","detectors":{}}`)) },
+			wantCode: problem.PolicyInvalid, wantExit: ocFailed,
+		},
+		{
+			name: "claude-code policy and catalog ambiguous", args: []string{"claude-code"}, stdin: dniHook,
+			setup: func(t *testing.T) {
+				t.Setenv("VEIL_POLICY", writePolicy(t, `{"version":"1.0","detectors":{"dni":{"action":"rewrite"}}}`))
+				t.Setenv("VEIL_CATALOG", filepath.Join("testdata", "equivalence", "catalog.json"))
+			},
+			wantCode: problem.PolicyInvalid, wantExit: ccFailed,
+		},
+		{
 			name: "opencode store corrupt", args: []string{"opencode"}, stdin: dniTool,
 			setup:    corruptSession,
 			wantCode: problem.StoreCorrupt, wantExit: ocFailed,

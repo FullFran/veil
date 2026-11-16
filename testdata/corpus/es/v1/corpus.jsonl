@@ -1,0 +1,73 @@
+{"id": "dni-001", "tags": ["valid"], "text": "Mi DNI es [[DNI:12345678Z]], por favor actualízalo."}
+{"id": "dni-002", "tags": ["valid"], "text": "El titular ([[DNI:48291736Q]]) firmó ayer."}
+{"id": "dni-003", "tags": ["valid", "lowercase"], "text": "dni del cliente: [[DNI:70123456k]]"}
+{"id": "dni-004", "tags": ["valid", "leading-zero"], "text": "Documento [[DNI:05555123W]] adjunto al expediente."}
+{"id": "dni-005", "tags": ["separated"], "text": "Con DNI [[DNI:31.415.926-L]] y domicilio en Sevilla."}
+{"id": "dni-006", "tags": ["separated"], "text": "DNI: [[DNI:27182818-S]]"}
+{"id": "dni-007", "tags": ["separated"], "text": "Identificado con [[DNI:60 606 060 W]]."}
+{"id": "dni-008", "tags": ["valid", "repeated"], "text": "[[DNI:11223344B]] aparece dos veces: [[DNI:11223344B]]."}
+{"id": "nie-001", "tags": ["valid", "nie"], "text": "NIE del trabajador: [[DNI:X1234567L]]"}
+{"id": "nie-002", "tags": ["valid", "nie"], "text": "Su NIE [[DNI:Y7654321G]] caduca en marzo."}
+{"id": "nie-003", "tags": ["separated", "nie"], "text": "NIE [[DNI:Z-1112223-V]] registrado."}
+{"id": "nie-004", "tags": ["valid", "nie"], "text": "Residente con NIE [[DNI:X9080706F]]."}
+{"id": "dni-009", "tags": ["invalid-checksum"], "text": "Este DNI tiene mal la letra: 12345678S."}
+{"id": "dni-010", "tags": ["invalid-checksum"], "text": "Revisa 48291736V y 70123456E, no cuadran."}
+{"id": "dni-011", "tags": ["invalid-checksum", "separated"], "text": "DNI 31.415.926-C mal escrito."}
+{"id": "dni-012", "tags": ["near-miss"], "text": "Referencia interna 12345678 sin letra."}
+{"id": "dni-013", "tags": ["near-miss"], "text": "Pedido número 2024123456A del almacén."}
+{"id": "dni-014", "tags": ["near-miss", "unicode"], "text": "«[[DNI:99887766P]]» es el DNI de la escritura — revisado ✓"}
+{"id": "dni-015", "tags": ["valid", "multi"], "text": "Cónyuges: [[DNI:40213579B]] y [[DNI:23456789D]]."}
+{"id": "iban-001", "tags": ["valid"], "text": "Transfiere a [[IBAN:ES9121000418450200051332]] antes del viernes."}
+{"id": "iban-002", "tags": ["separated"], "text": "IBAN: [[IBAN:ES60 0049 1500 0512 3456 7892]]"}
+{"id": "iban-003", "tags": ["separated"], "text": "Cuenta [[IBAN:ES17-2085-2066-6234-5678-9011]] (nómina)."}
+{"id": "iban-004", "tags": ["separated"], "text": "Domiciliación en [[IBAN:ES10.0182.2370.4202.0123.4567]]."}
+{"id": "iban-005", "tags": ["valid"], "text": "Cuenta de cargo [[IBAN:ES6814650100911701234567]]; cuenta de abono [[IBAN:ES3800811234561234567890]]."}
+{"id": "iban-006", "tags": ["foreign"], "text": "Proveedor alemán: [[IBAN:DE89370400440532013000]]"}
+{"id": "iban-007", "tags": ["foreign", "separated"], "text": "Proveedor francés: [[IBAN:FR14 2004 1010 0505 0001 3M02 606]]"}
+{"id": "iban-008", "tags": ["foreign"], "text": "Cuenta portuguesa [[IBAN:PT50000201231234567890154]]."}
+{"id": "iban-009", "tags": ["invalid-checksum"], "text": "IBAN erróneo ES0021000418450200051332, devolver al cliente."}
+{"id": "iban-010", "tags": ["invalid-checksum", "separated"], "text": "Comprueba ES12 2100 0418 4502 0005 1332, falla el dígito."}
+{"id": "iban-011", "tags": ["near-miss"], "text": "Código de producto AB12CDEFGHIJ0123 en el catálogo."}
+{"id": "iban-012", "tags": ["near-miss"], "text": "Expediente ES-2024-000123-ADM pendiente."}
+{"id": "email-001", "tags": ["valid"], "text": "Escríbeme a [[EMAIL:lucia.martin@example.com]]."}
+{"id": "email-002", "tags": ["valid"], "text": "CC: [[EMAIL:rrhh+nominas@empresa.example.es]], [[EMAIL:j_ortiz@correo.example.org]]"}
+{"id": "email-003", "tags": ["valid", "unicode"], "text": "Contacto → [[EMAIL:soporte@ejemplo.example]] 📧"}
+{"id": "email-004", "tags": ["near-miss"], "text": "El usuario @lucia comentó en el hilo."}
+{"id": "email-005", "tags": ["near-miss"], "text": "Versión paquete@1.2.3 publicada."}
+{"id": "email-006", "tags": ["valid", "angle"], "text": "De: Gestoría <[[EMAIL:info@gestoria.example.com]]>"}
+{"id": "email-007", "tags": ["idn"], "text": "Correo [[EMAIL:josé@dominio.example.es]] con tilde."}
+{"id": "tel-001", "tags": ["valid"], "text": "Llámame al [[TEL:612345678]]."}
+{"id": "tel-002", "tags": ["valid", "prefix"], "text": "Móvil [[TEL:+34612345679]] de guardia."}
+{"id": "tel-003", "tags": ["separated", "prefix"], "text": "Teléfono: [[TEL:+34 600 123 456]]"}
+{"id": "tel-004", "tags": ["separated"], "text": "Fijo [[TEL:954 12 34 56]], horario de mañana."}
+{"id": "tel-005", "tags": ["separated"], "text": "Contacto [[TEL:699-123-456]] o [[TEL:699.123.457]]."}
+{"id": "tel-006", "tags": ["valid", "landline"], "text": "Centralita [[TEL:910000000]]."}
+{"id": "tel-007", "tags": ["separated", "prefix"], "text": "WhatsApp [[TEL:+34 699 12 34 56]]"}
+{"id": "tel-008", "tags": ["prefix-0034"], "text": "Desde el extranjero: [[TEL:0034 612 345 678]]"}
+{"id": "tel-009", "tags": ["parenthesized"], "text": "Tel. [[TEL:(+34) 612 345 670]]"}
+{"id": "tel-010", "tags": ["near-miss", "date"], "text": "Reunión el 12/05/2024 a las 10:30."}
+{"id": "tel-011", "tags": ["near-miss", "amount"], "text": "Importe total: 612.345.678,00 €"}
+{"id": "tel-012", "tags": ["near-miss", "invoice"], "text": "Factura n.º 912345678 emitida."}
+{"id": "tel-013", "tags": ["near-miss", "digit-run"], "text": "Lote 600 123 456 789 012 en el inventario."}
+{"id": "tel-014", "tags": ["near-miss"], "text": "Código postal 41001 y portal 6."}
+{"id": "tel-015", "tags": ["near-miss", "timestamp"], "text": "Marca de tiempo 1700000000 en el log."}
+{"id": "nombre-001", "tags": ["catalog"], "text": "Reunión con [[NOMBRE:María Pérez]] el lunes."}
+{"id": "nombre-002", "tags": ["catalog", "case"], "text": "ESCRIBE A [[NOMBRE:JUAN GARCIA]] HOY"}
+{"id": "nombre-003", "tags": ["catalog", "unicode"], "text": "¿Has hablado con [[NOMBRE:José Ángel Núñez]]? 👍"}
+{"id": "nombre-004", "tags": ["catalog", "unicode"], "text": "«[[NOMBRE:Lucía Martín]]» firmó — €1.200"}
+{"id": "nombre-005", "tags": ["catalog", "accents"], "text": "Expediente de [[NOMBRE:begoña iñiguez]]."}
+{"id": "nombre-006", "tags": ["out-of-catalog"], "text": "El cliente [[NOMBRE:Pedro Sánchez Ruiz]] llamó."}
+{"id": "nombre-007", "tags": ["out-of-catalog"], "text": "Firmado: [[NOMBRE:Ana Belén Torres]]"}
+{"id": "nombre-008", "tags": ["near-miss", "compound"], "text": "La empresa Juan Garcíazar S.L. no es una persona."}
+{"id": "nombre-009", "tags": ["catalog", "compound-surname"], "text": "Habla con [[NOMBRE:Juan García-López]]."}
+{"id": "nombre-010", "tags": ["near-miss"], "text": "Calle María Pérez de la Rosa no aplica: es una calle."}
+{"id": "mix-001", "tags": ["multi"], "text": "[[NOMBRE:María Pérez]], DNI [[DNI:51515151G]], IBAN [[IBAN:ES91 2100 0418 4502 0005 1332]], tel [[TEL:+34 600 123 456]], [[EMAIL:maria.perez@example.com]]"}
+{"id": "mix-002", "tags": ["multi", "unicode"], "text": "→ [[NOMBRE:Juan García]] ([[EMAIL:jgarcia@example.org]]) — móvil [[TEL:655443322]] ✓"}
+{"id": "clean-001", "tags": ["clean"], "text": "Refactoriza la función parseArgs y añade tests."}
+{"id": "clean-002", "tags": ["clean"], "text": "El build falla en CI con exit code 137 tras 600 segundos."}
+{"id": "clean-003", "tags": ["clean", "unicode"], "text": "Añade el emoji 🚀 al título y traduce «Guardar» al inglés."}
+{"id": "args-001", "tags": ["nested"], "tool": "multiedit", "args": {"filePath": "clientes.csv", "edits": [{"oldString": "x", "newString": "[[NOMBRE:María Pérez]];[[DNI:12345678Z]]"}, {"oldString": "y", "newString": "[[IBAN:ES6000491500051234567892]]"}]}}
+{"id": "args-002", "tags": ["nested"], "tool": "bash", "args": {"command": "curl -d 'email=[[EMAIL:ana@example.com]]' https://api.example", "env": {"TEL": "[[TEL:612000111]]"}}}
+{"id": "args-003", "tags": ["nested", "array"], "tool": "write", "args": {"filePath": "notas.md", "content": "# Cliente\n- DNI: [[DNI:31.415.926-L]]\n- Tel: [[TEL:954 12 34 56]]\n"}}
+{"id": "args-004", "tags": ["nested", "deep"], "tool": "mcp_crm_update", "args": {"record": {"contact": {"name": "[[NOMBRE:Lucía Martín]]", "ids": ["[[DNI:X1234567L]]", "sin-dato"]}}, "dryRun": true}}
+{"id": "args-005", "tags": ["nested", "near-miss"], "tool": "bash", "args": {"command": "git log --since=2024-05-12 -n 600123456", "cwd": "/repo"}}

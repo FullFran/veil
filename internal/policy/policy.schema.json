@@ -1,0 +1,59 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:veil:schema:policy:1.0",
+  "title": "veil policy",
+  "description": "Which detectors veil runs and what it does with each finding. A detector missing from `detectors` does not run.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "detectors"],
+  "properties": {
+    "version": {
+      "description": "Policy contract version. Identifies the contract, as HCS-0000 does with hcsVersion.",
+      "const": "1.0"
+    },
+    "detectors": {
+      "type": "object",
+      "additionalProperties": false,
+      "minProperties": 1,
+      "properties": {
+        "dni": { "$ref": "#/$defs/rewritable", "description": "Spanish DNI/NIE (category DNI)." },
+        "iban": { "$ref": "#/$defs/rewritable", "description": "IBAN (category IBAN)." },
+        "email": { "$ref": "#/$defs/rewritable", "description": "Email address (category EMAIL)." },
+        "phone": { "$ref": "#/$defs/rewritable", "description": "Spanish phone number (category TEL)." },
+        "name-catalog": { "$ref": "#/$defs/rewritable", "description": "Names from the client catalog (category NOMBRE). Runs only when a catalog is configured." },
+        "secret-path": { "$ref": "#/$defs/denyOnly", "description": "Tool call targeting a secrets-bearing file. No safe rewrite exists." },
+        "binary-content": { "$ref": "#/$defs/denyOnly", "description": "Tool output veil cannot scan (binary or base64). No safe rewrite exists." }
+      }
+    },
+    "catalog": {
+      "description": "Name catalog for the name-catalog detector. A relative path is resolved against the policy file's directory.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path"],
+      "properties": {
+        "path": { "type": "string", "minLength": 1 }
+      }
+    }
+  },
+  "$defs": {
+    "rewritable": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": {
+          "description": "rewrite: replace each match with a stable pseudonym token. deny: block the event.",
+          "enum": ["rewrite", "deny"]
+        }
+      }
+    },
+    "denyOnly": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["action"],
+      "properties": {
+        "action": { "const": "deny" }
+      }
+    }
+  }
+}

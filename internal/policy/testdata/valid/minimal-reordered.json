@@ -1,0 +1,3 @@
+{ "detectors" : { "email" : { "action" : "rewrite" },
+  "dni": {"action": "deny"} },
+  "version": "1.0" }

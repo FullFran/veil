@@ -56,6 +56,11 @@ func (r *Registry) Register(d Detector) {
 	r.detectors = append(r.detectors, d)
 }
 
+// Detectors returns the registered detectors, in registration order.
+func (r *Registry) Detectors() []Detector {
+	return append([]Detector(nil), r.detectors...)
+}
+
 // DetectAll runs every registered detector against event and concatenates
 // their findings, preserving registration order.
 func (r *Registry) DetectAll(event Event) []Finding {

@@ -183,8 +183,78 @@ whatever other characters (`¿`, `€`, `«`, emoji) the text holds. If
 `VEIL_CATALOG` is set but cannot be read or parsed, veil fails
 closed at startup: every event is blocked with a
 `VEIL_CATALOG_UNREADABLE` problem (see [Failures](#failures)) rather than
-silently running without the catalog. If `VEIL_CATALOG` is unset, the
-name-catalog detector is simply not registered.
+silently running without the catalog. If `VEIL_CATALOG` is unset (and the
+policy names no `catalog.path`, see below), the name-catalog detector is
+simply not registered.
+
+## Policy
+
+Which detectors run, and what veil does with each one's findings, is a
+policy file: data, not code. With no policy configured, veil uses the
+**default policy** embedded in the binary,
+[`internal/policy/default.json`](internal/policy/default.json), which is
+exactly the behaviour described above. A test
+(`TestRun_DefaultPolicy_Equivalence`) proves every sample event gives
+byte-identical output with no policy, with `VEIL_POLICY` pointing at the
+default file, and as recorded before policies existed.
+
+Set `VEIL_POLICY` to a policy file to use your own:
+
+```json
+{
+  "version": "1.0",
+  "detectors": {
+    "dni": { "action": "deny" },
+    "iban": { "action": "rewrite" },
+    "email": { "action": "rewrite" },
+    "secret-path": { "action": "deny" },
+    "binary-content": { "action": "deny" },
+    "name-catalog": { "action": "rewrite" }
+  },
+  "catalog": { "path": "names.json" }
+}
+```
+
+- **Schema.** Every policy is validated against
+  [`internal/policy/policy.schema.json`](internal/policy/policy.schema.json),
+  a JSON Schema 2020-12 document. Unknown members, unknown detectors and
+  unknown actions are rejected. `version` names the contract (`1.0`).
+- **Detectors.** A detector missing from `detectors` does not run.
+  `rewrite` replaces each match with a pseudonym token; `deny` blocks the
+  event. `secret-path` and `binary-content` accept only `deny`: there is no
+  safe rewrite for them. Detector ids map to pseudonym categories one to
+  one: `dni` (DNI/NIE) -> `DNI`, `iban` -> `IBAN`, `email` -> `EMAIL`,
+  `phone` -> `TEL`, `name-catalog` -> `NOMBRE`. veil always runs detectors
+  in its own fixed order, whatever order the file lists them in.
+- **Catalog.** `catalog.path` is resolved relative to the policy file.
+  `name-catalog` runs only when a catalog is set, by `catalog.path` or by
+  `VEIL_CATALOG`. Setting both, or setting either while the policy does not
+  enable `name-catalog`, is rejected as ambiguous rather than ignoring one.
+- **Fails closed.** If `VEIL_POLICY` is set, veil never falls back to the
+  default policy: an unreadable file blocks every event with
+  `VEIL_POLICY_UNREADABLE`, and a file that is not exactly one JSON
+  document (duplicate members included), breaks the schema or is ambiguous
+  blocks every event with `VEIL_POLICY_INVALID` (see [Failures](#failures)).
+- **Digest.** A policy is identified by `sha256:<hex>`, the SHA-256 of its
+  [RFC 8785](https://www.rfc-editor.org/rfc/rfc8785) (JCS) canonical form:
+  whitespace and member order do not change it, and any change of content
+  does. It covers the policy document only (the catalog's *path*, never the
+  names in it), so it is safe to put in a decision record.
+- **Not a policy language.** There is no Rego, OPA or CEL in veil.
+  Conditions such as tenant, purpose or provider are authority, which under
+  HCS belongs to the host (HCS-0005); a host that needs them runs its own
+  policy engine and picks which veil policy file to use.
+
+Check a policy, and print its digest, before deploying it:
+
+```bash
+veil policy my-policy.json   # or: VEIL_POLICY=my-policy.json veil policy
+# {"source":"my-policy.json","version":"1.0","digest":"sha256:…"}
+veil policy                  # the embedded default policy
+```
+
+On failure it writes one problem line on stderr and exits 1 (2 for bad
+arguments).
 
 ## Installing on Claude Code
 
@@ -318,6 +388,7 @@ Environment variables the plugin and binary read:
 | --------------- | --------------------------------- | ------------------------------------------------------------------------ |
 | `VEIL_BINARY`   | `adapters/opencode/veil-plugin.js` | Path to the `veil` binary. Defaults to `veil` (resolved via `PATH`).      |
 | `VEIL_CATALOG`  | the `veil` binary (`cmd/veil`)     | Path to a name catalog file (JSON array or one-name-per-line). Optional.  |
+| `VEIL_POLICY`   | the `veil` binary (`cmd/veil`)     | Path to a policy file (see [Policy](#policy)). Optional; unset means the embedded default policy. |
 | `XDG_STATE_HOME`| the `veil` binary (`cmd/veil`)     | Base directory for the per-session pseudonym store. Falls back to the OS temp dir. |
 | `VEIL_TIMEOUT_MS` | `adapters/opencode/veil-plugin.js` | Milliseconds to wait for one `veil` answer before failing closed. Defaults to 30000. |
 
@@ -374,7 +445,9 @@ line on stderr is what tells a failure apart.
 | --- | --- | --- |
 | `VEIL_USAGE` | `usage` | Bad arguments |
 | `VEIL_INPUT_INVALID` | `input-invalid` | stdin is not one valid event for the host |
-| `VEIL_CATALOG_UNREADABLE` | `catalog-unreadable` | `VEIL_CATALOG` set but unreadable or unparsable |
+| `VEIL_CATALOG_UNREADABLE` | `catalog-unreadable` | The name catalog (`VEIL_CATALOG` or the policy's `catalog.path`) is unreadable or unparsable |
+| `VEIL_POLICY_UNREADABLE` | `policy-unreadable` | `VEIL_POLICY` set but the file cannot be read |
+| `VEIL_POLICY_INVALID` | `policy-invalid` | The policy is not one JSON document, breaks the schema, or is ambiguous |
 | `VEIL_CAPABILITY_UNSUPPORTED` | `capability-unsupported` | The host cannot enforce the decision (e.g. Claude Code tool-output redaction) |
 | `VEIL_STORE_KEY_MISSING` | `store-key-missing` | Pseudonym store key not configured (reserved for #5) |
 | `VEIL_STORE_KEY_INVALID` | `store-key-invalid` | Pseudonym store key malformed or wrong (reserved for #5) |
@@ -407,6 +480,80 @@ Whatever the mapping, a guard that fails means the request must not reach
 the model provider (HCS-0008-R020) and the operation is denied
 (HCS-0005-R014).
 
+## Evaluation corpus
+
+No public corpus covers Spanish DNI, NIE or IBAN, so veil ships a synthetic
+one: [`testdata/corpus/es/v1`](testdata/corpus/es/v1). Every value in it is
+made up (checksums computed, not copied from real people). The
+ai4privacy `pii-masking-200k` dataset was considered and not used: it has
+no Spanish split and declares no licence in its dataset card.
+
+- `corpus.jsonl` has one record per line: either `{"id", "tags", "text"}`
+  (a prompt) or `{"id", "tags", "tool", "args"}` (a tool call, nested
+  arguments included). Gold annotations are inline, `[[LABEL:value]]`, with
+  labels `DNI`, `IBAN`, `EMAIL`, `TEL` and `NOMBRE`; the loader strips them
+  and derives the offsets, so nobody types offsets by hand. A span covers
+  the whole value as written, separators and `+34` included. Every personal
+  name is annotated `NOMBRE`, including names outside the catalog.
+- It covers valid and invalid control letters and check digits, separated
+  forms, near misses (dates, amounts, invoice numbers, digit runs), names
+  next to Unicode, names outside the catalog, and nested tool arguments.
+- `catalog.json` is the name catalog the corpus is evaluated with.
+- `baseline.json` holds the committed numbers.
+
+Run it:
+
+```bash
+go run ./cmd/veil-eval            # table: per label and micro, plus latency
+go run ./cmd/veil-eval -check     # also exit 1 if worse than baseline.json
+go run ./cmd/veil-eval -json      # the same report as JSON
+go run ./cmd/veil-eval -policy my-policy.json
+```
+
+How to read it:
+
+- A predicted span is every place veil would replace with a token: each
+  occurrence of a rewritable finding's match, in the prompt or in each
+  tool-argument field. Detection uses the policy's detectors whatever their
+  action, so `deny` does not change what is measured.
+- **Strict span match, MEDDOCAN convention**: a prediction is a true
+  positive only if field, start offset, end offset (code points) and label
+  all equal a gold span. Off by one character counts as one false positive
+  and one false negative.
+- **precision** = tp / (tp + fp): how often a replacement was right.
+  **recall** = tp / (tp + fn): how much personal data was caught. For a
+  privacy guard, recall is the number that matters most. **micro** sums
+  tp, fp and fn over every label before dividing, so frequent labels
+  weigh more.
+- **latency** is `Evaluate` time per event (detection plus rewrite, with an
+  in-memory pseudonym store), over every repeat of every event: p50, p95
+  and max in microseconds. Process start-up and disk I/O are not included.
+
+The baseline at the time of writing (73 cases, default policy):
+
+| label | tp | fp | fn | precision | recall | f1 |
+| --- | --: | --: | --: | --: | --: | --: |
+| DNI | 20 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| IBAN | 10 | 0 | 1 | 1.0000 | 0.9091 | 0.9524 |
+| EMAIL | 8 | 0 | 1 | 1.0000 | 0.8889 | 0.9412 |
+| TEL | 12 | 3 | 2 | 0.8000 | 0.8571 | 0.8276 |
+| NOMBRE | 9 | 2 | 3 | 0.8182 | 0.7500 | 0.7826 |
+| micro | 59 | 5 | 7 | 0.9219 | 0.8939 | 0.9077 |
+
+Known misses, kept on purpose so the numbers stay honest: a separated
+foreign IBAN, an email with a non-ASCII local part, a dot-separated phone,
+`(+34)` in parentheses, names outside the catalog, and a catalog name
+inside a longer compound surname or a street name.
+
+**Gate.** `TestCorpus_MeetsBaseline` (in `go test ./...`, so CI runs it)
+fails when recall on any label drops below `baseline.json`, or when p95
+latency exceeds its absolute budget (`latencyP95BudgetMicros`, 2000 µs;
+absolute because shared CI runners are too noisy for a relative bound).
+After a deliberate improvement, pin the new numbers with
+`go run ./cmd/veil-eval -write-baseline` and commit `baseline.json`. A
+change that lowers recall needs the same command and a reason in the pull
+request.
+
 ## Development
 
 Every pull request runs `.github/workflows/ci.yml`: `gofmt -l`, `go vet`,
@@ -434,6 +581,7 @@ node /tmp/archsieve/bin/archsieve.mjs diff /tmp/base.json /tmp/head.json --forma
 go test ./...
 go vet ./...
 gofmt -l .
+go run ./cmd/veil-eval -check   # detector quality against the corpus baseline
 node --test adapters/opencode/veil-plugin.test.mjs   # the plugin against stub binaries
 node test/e2e/opencode/run.mjs   # end-to-end acceptance test; see test/e2e/opencode/README.md
 ```
