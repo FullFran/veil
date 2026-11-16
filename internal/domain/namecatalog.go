@@ -6,6 +6,7 @@ import (
 	"os"
 	"regexp"
 	"strings"
+	"unicode"
 )
 
 // diacriticFold maps accented Latin runes commonly found in Spanish names
@@ -107,7 +108,8 @@ func (d *NameCatalogDetector) Detect(event Event) []Finding {
 	var findings []Finding
 	for _, pattern := range d.patterns {
 		for _, idx := range pattern.FindAllStringIndex(folded, -1) {
-			match := string(original[runeAt[idx[0]]:runeAt[idx[1]]])
+			start, end := extendJoined(original, runeAt[idx[0]], runeAt[idx[1]])
+			match := string(original[start:end])
 			findings = append(findings, Finding{
 				Detector: "name-catalog",
 				Reason:   "catalog name detected",
@@ -118,6 +120,36 @@ func (d *NameCatalogDetector) Detect(event Event) []Finding {
 		}
 	}
 	return findings
+}
+
+// isNameJoiner reports whether r joins two parts of one written name:
+// a hyphen ("García-López", also U+2010) or an apostrophe ("O'Neill",
+// also U+2019).
+func isNameJoiner(r rune) bool {
+	return r == '-' || r == '\u2010' || r == '\'' || r == '\u2019'
+}
+
+// extendJoined widens the catalog match original[start:end] over every
+// joined name part on either side ("Juan García" in "Juan García-López",
+// "María Pérez" in "Ana-María Pérez"), so no part of the written name is
+// left in clear and the token is keyed by the whole written name: two
+// people whose names share a catalog entry never share a token. A joiner
+// not followed by a letter ("García - López", "García-2024") is not part
+// of the name.
+func extendJoined(original []rune, start, end int) (int, int) {
+	for end+1 < len(original) && isNameJoiner(original[end]) && unicode.IsLetter(original[end+1]) {
+		end++
+		for end < len(original) && unicode.IsLetter(original[end]) {
+			end++
+		}
+	}
+	for start >= 2 && isNameJoiner(original[start-1]) && unicode.IsLetter(original[start-2]) {
+		start--
+		for start > 0 && unicode.IsLetter(original[start-1]) {
+			start--
+		}
+	}
+	return start, end
 }
 
 // LoadNameCatalog reads a name catalog from path: either a JSON array of

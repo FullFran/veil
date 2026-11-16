@@ -1,11 +1,14 @@
 package domain
 
-import "regexp"
+import (
+	"regexp"
+	"strings"
+)
 
 // phoneWithPrefixPattern matches a Spanish phone number written with its
-// +34 country code, with or without a single space before the 9-digit
-// number.
-var phoneWithPrefixPattern = regexp.MustCompile(`\+34[ ]?[6789][0-9]{8}\b`)
+// +34 country code, also in parentheses ("(+34)", "(0034)"), with or
+// without a single space before the 9-digit number.
+var phoneWithPrefixPattern = regexp.MustCompile(`(?:\+34|\(\+34\)|\(0034\))[ ]?[6789][0-9]{8}\b`)
 
 // barePhonePattern matches a bare 9-digit Spanish phone number: mobile
 // numbers start with 6 or 7, landlines with 8 or 9.
@@ -31,7 +34,14 @@ func (d *PhoneDetector) Detect(event Event) []Finding {
 
 	prefixed := phoneWithPrefixPattern.FindAllStringIndex(event.Text, -1)
 	for _, idx := range prefixed {
-		findings = append(findings, phoneFinding(event.Text[idx[0]:idx[1]]))
+		match := event.Text[idx[0]:idx[1]]
+		f := phoneFinding(match)
+		if strings.HasPrefix(match, "(") {
+			// Keyed like "+34NNNNNNNNN", so it shares a token with the
+			// compact form.
+			f.Key = phoneKey(match)
+		}
+		findings = append(findings, f)
 	}
 
 	for _, idx := range barePhonePattern.FindAllStringIndex(event.Text, -1) {
