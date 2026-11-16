@@ -6,6 +6,7 @@ import (
 	"path/filepath"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/policy"
@@ -48,6 +49,11 @@ func TestLoad_InvalidFiles(t *testing.T) {
 		"trailing-data.json":                       policy.RuleSyntax,
 		"not-json.json":                            policy.RuleSyntax,
 		"not-an-object.json":                       "/type",
+		"store-ttl-not-iso.json":                   "/properties/store/properties/ttl/pattern",
+		"store-ttl-months.json":                    "/properties/store/properties/ttl/pattern",
+		"store-ttl-zero.json":                      policy.RuleTTLNotPositive,
+		"store-missing-ttl.json":                   "/properties/store/required",
+		"store-unknown-member.json":                "/properties/store/additionalProperties",
 	}
 	files, err := filepath.Glob(filepath.Join("testdata", "invalid", "*.json"))
 	if err != nil {
@@ -92,6 +98,31 @@ func TestLoad_Valid(t *testing.T) {
 	}
 	if got := p.Detectors["dni"].Action; got != policy.ActionDeny {
 		t.Fatalf("dni action = %q, want deny", got)
+	}
+}
+
+func TestRetention_TTLFromStoreMember(t *testing.T) {
+	p, err := policy.Load(filepath.Join("testdata", "valid", "store-ttl.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	ttl, ok := p.Retention()
+	if !ok || ttl != (30*24+12)*time.Hour {
+		t.Fatalf("Retention() = (%v, %v), want (732h, true)", ttl, ok)
+	}
+}
+
+// TestRetention_DefaultKeepsEverything guards the upgrade path: a policy
+// without a store member, the default one included, deletes nothing.
+func TestRetention_DefaultKeepsEverything(t *testing.T) {
+	min, err := policy.Load(filepath.Join("testdata", "valid", "minimal.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, p := range []*policy.Policy{policy.Default(), min} {
+		if ttl, ok := p.Retention(); ok {
+			t.Fatalf("Retention() = (%v, true), want no TTL", ttl)
+		}
 	}
 }
 

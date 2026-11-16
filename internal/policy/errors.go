@@ -24,6 +24,7 @@ const (
 	RuleCatalogUnused   = "veil:catalog-without-name-catalog"
 	RuleCatalogConflict = "veil:catalog-env-and-path"
 	RuleCatalogIgnored  = "veil:catalog-env-without-name-catalog"
+	RuleTTLNotPositive  = "veil:store-ttl-not-positive"
 )
 
 func (e *Error) Error() string { return string(e.Code) + ": " + e.Err.Error() }
