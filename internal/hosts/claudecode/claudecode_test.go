@@ -208,3 +208,34 @@ func TestEncode_Rewrite_ProducesUpdatedInput(t *testing.T) {
 		t.Errorf("updatedInput.user_input = %v, want the redacted text", updated["user_input"])
 	}
 }
+
+// TestRoundTrip_PreToolUse_NestedInput_KeepsShape proves updatedInput (which
+// replaces the whole tool input in Claude Code) keeps every argument's
+// type: v0.1.0 sent every argument back as a %v string.
+func TestRoundTrip_PreToolUse_NestedInput_KeepsShape(t *testing.T) {
+	raw := []byte(`{
+		"hook_event_name": "PreToolUse",
+		"session_id": "sess-1",
+		"tool_name": "MultiEdit",
+		"tool_input": {"file_path": "/tmp/a.md", "edits": [{"old_string": "x", "new_string": "dni 12345678Z", "replace_all": true}], "timeout": 30}
+	}`)
+
+	result := evaluate(t, raw)
+
+	var out map[string]any
+	if err := json.Unmarshal(result.Stdout, &out); err != nil {
+		t.Fatalf("stdout is not valid JSON: %v (stdout: %s)", err, result.Stdout)
+	}
+	updated := out["hookSpecificOutput"].(map[string]any)["updatedInput"].(map[string]any)
+	if updated["timeout"] != float64(30) {
+		t.Errorf("updatedInput.timeout = %#v, want the number 30", updated["timeout"])
+	}
+	edits, ok := updated["edits"].([]any)
+	if !ok || len(edits) != 1 {
+		t.Fatalf("updatedInput.edits = %#v, want an array of one edit", updated["edits"])
+	}
+	edit := edits[0].(map[string]any)
+	if edit["replace_all"] != true || edit["old_string"] != "x" {
+		t.Errorf("edit = %#v, want replace_all true and old_string kept", edit)
+	}
+}

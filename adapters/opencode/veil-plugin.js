@@ -44,14 +44,38 @@ import { spawnSync } from "node:child_process";
 
 const VEIL_BINARY = process.env.VEIL_BINARY || "veil";
 
+// A history rewrite answers with every field, JSON-escaped: Node's default
+// 1 MiB maxBuffer fails a long conversation for good (ENOBUFS).
+const VEIL_MAX_BUFFER = 64 * 1024 * 1024;
+// veil answers in milliseconds; without a timeout a stuck veil blocks the
+// host process forever. VEIL_TIMEOUT_MS overrides the default.
+const VEIL_DEFAULT_TIMEOUT_MS = 30_000;
+
+// failure is a thrown error with a stable code a host can map to its own
+// message: VEIL_OUTPUT_TOO_LARGE, VEIL_TIMEOUT, or VEIL_UNAVAILABLE.
+function failure(code, message) {
+  const err = new Error(message);
+  err.code = code;
+  return err;
+}
+
 function runVeil(payload) {
   const result = spawnSync(VEIL_BINARY, ["opencode"], {
     input: JSON.stringify(payload),
     encoding: "utf8",
+    maxBuffer: VEIL_MAX_BUFFER,
+    timeout: Number(process.env.VEIL_TIMEOUT_MS) || VEIL_DEFAULT_TIMEOUT_MS,
+    killSignal: "SIGKILL",
   });
 
+  if (result.error && result.error.code === "ENOBUFS") {
+    throw failure("VEIL_OUTPUT_TOO_LARGE", `veil: answer larger than ${VEIL_MAX_BUFFER} bytes, failing closed`);
+  }
+  if (result.error && result.error.code === "ETIMEDOUT") {
+    throw failure("VEIL_TIMEOUT", `veil: no answer from binary "${VEIL_BINARY}" in time, failing closed`);
+  }
   if (result.error) {
-    throw new Error(`veil: failed to invoke binary "${VEIL_BINARY}": ${result.error.message}`);
+    throw failure("VEIL_UNAVAILABLE", `veil: failed to invoke binary "${VEIL_BINARY}": ${result.error.message}`);
   }
 
   let parsed;

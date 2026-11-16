@@ -41,13 +41,13 @@ type rawInput struct {
 // returns an error for any event veil does not act on.
 func Decode(raw []byte) (domain.Event, error) {
 	var in rawInput
-	if err := json.Unmarshal(raw, &in); err != nil {
+	if err := domain.DecodeJSON(raw, &in); err != nil {
 		return domain.Event{}, fmt.Errorf("opencode: decode input: %w", err)
 	}
 
 	switch in.Event {
 	case "tool.execute.before":
-		fields, text := flattenArgs(in.Args)
+		fields, text := domain.FlattenArgs(in.Args)
 		return domain.Event{
 			Kind:      domain.EventToolArgs,
 			Host:      domain.HostOpenCode,
@@ -55,6 +55,7 @@ func Decode(raw []byte) (domain.Event, error) {
 			ToolName:  in.Tool,
 			Text:      text,
 			Fields:    fields,
+			Args:      in.Args,
 		}, nil
 	case "chat.message":
 		// The user's typed prompt, as one or more text parts. Verified
@@ -132,24 +133,11 @@ func flattenFields(fields map[string]string) string {
 	return b.String()
 }
 
-// flattenArgs turns a tool call's args object into both a field map (for
-// detectors that target a specific argument) and a flattened text blob
-// (for detectors that scan free text).
-func flattenArgs(args map[string]interface{}) (fields map[string]string, text string) {
-	fields = make(map[string]string, len(args))
-	for key, value := range args {
-		s := fmt.Sprintf("%v", value)
-		fields[key] = s
-		text += key + ": " + s + "\n"
-	}
-	return fields, text
-}
-
 // output is the JSON shape the OpenCode shim expects on stdout.
 type output struct {
-	Action string            `json:"action"`
-	Reason string            `json:"reason,omitempty"`
-	Args   map[string]string `json:"args,omitempty"`
+	Action string         `json:"action"`
+	Reason string         `json:"reason,omitempty"`
+	Args   map[string]any `json:"args,omitempty"`
 }
 
 // EncodeResult is what the caller needs to actually respond to the shim:
@@ -162,7 +150,7 @@ type EncodeResult struct {
 // Encode turns a Decision into the exact bytes and exit code the OpenCode
 // shim expects. Exit code 0 means the tool call may proceed (allow or
 // rewrite); a non-zero exit code means the shim must throw to block it.
-func Encode(decision domain.Decision) (EncodeResult, error) {
+func Encode(event domain.Event, decision domain.Decision) (EncodeResult, error) {
 	switch decision.Kind {
 	case domain.Allow:
 		b, err := json.Marshal(output{Action: "allow"})
@@ -177,7 +165,7 @@ func Encode(decision domain.Decision) (EncodeResult, error) {
 		}
 		return EncodeResult{Stdout: b, ExitCode: 1}, nil
 	case domain.Rewrite:
-		b, err := json.Marshal(output{Action: "rewrite", Args: decision.RedactedFields})
+		b, err := json.Marshal(output{Action: "rewrite", Args: rewriteArgs(event, decision)})
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("opencode: encode rewrite: %w", err)
 		}
@@ -185,4 +173,14 @@ func Encode(decision domain.Decision) (EncodeResult, error) {
 	default:
 		return EncodeResult{}, fmt.Errorf("opencode: unknown decision kind %v", decision.Kind)
 	}
+}
+
+// rewriteArgs is a rewrite's args: a tool call's own arguments, rebuilt
+// with their shape, or the field map the shim keyed itself for any other
+// event.
+func rewriteArgs(event domain.Event, decision domain.Decision) map[string]any {
+	if event.Kind == domain.EventToolArgs {
+		return domain.RebuildArgs(event.Args, decision.RedactedFields)
+	}
+	return domain.RebuildArgs(nil, decision.RedactedFields)
 }

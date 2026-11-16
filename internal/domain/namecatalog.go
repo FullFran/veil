@@ -46,18 +46,24 @@ func toLowerRune(r rune) rune {
 	}
 }
 
-// foldText returns the case- and accent-folded rune slice for s, one
-// output rune per input rune, so a caller can match against the folded
-// text using byte-index-as-rune-index (every folded rune here is a single
-// ASCII byte) and then slice the ORIGINAL rune slice at the same indices
-// to recover the exact original substring.
-func foldText(s string) (folded string, original []rune) {
+// foldText returns the case- and accent-folded text for s, plus runeAt:
+// for every byte offset of folded (and one past its end), the index of the
+// original rune that byte came from. A match found in folded is cut from
+// the ORIGINAL rune slice through runeAt, so a rune the fold leaves
+// multi-byte ("¿", "€", "«", "ç", emoji) never shifts where a name is cut.
+func foldText(s string) (folded string, original []rune, runeAt []int) {
 	original = []rune(s)
-	out := make([]rune, len(original))
+	var b strings.Builder
+	runeAt = make([]int, 0, len(s)+1)
 	for i, r := range original {
-		out[i] = foldRune(r)
+		before := b.Len()
+		b.WriteRune(foldRune(r))
+		for range b.Len() - before {
+			runeAt = append(runeAt, i)
+		}
 	}
-	return string(out), original
+	runeAt = append(runeAt, len(original))
+	return b.String(), original, runeAt
 }
 
 // NameCatalogDetector flags whole-word, case- and accent-insensitive
@@ -73,7 +79,7 @@ type NameCatalogDetector struct {
 func NewNameCatalogDetector(names []string) *NameCatalogDetector {
 	patterns := make([]*regexp.Regexp, 0, len(names))
 	for _, name := range names {
-		folded, _ := foldText(name)
+		folded, _, _ := foldText(name)
 		folded = strings.TrimSpace(folded)
 		if folded == "" {
 			continue
@@ -96,14 +102,12 @@ func (d *NameCatalogDetector) Detect(event Event) []Finding {
 		return nil
 	}
 
-	folded, original := foldText(event.Text)
+	folded, original, runeAt := foldText(event.Text)
 
 	var findings []Finding
 	for _, pattern := range d.patterns {
 		for _, idx := range pattern.FindAllStringIndex(folded, -1) {
-			// folded is pure ASCII (one byte per rune), so its byte
-			// indices double as rune indices into original.
-			match := string(original[idx[0]:idx[1]])
+			match := string(original[runeAt[idx[0]]:runeAt[idx[1]]])
 			findings = append(findings, Finding{
 				Detector: "name-catalog",
 				Reason:   "catalog name detected",

@@ -28,7 +28,7 @@ type rawInput struct {
 // unrecognized event fails loudly instead of being silently ignored.
 func Decode(raw []byte) (domain.Event, error) {
 	var in rawInput
-	if err := json.Unmarshal(raw, &in); err != nil {
+	if err := domain.DecodeJSON(raw, &in); err != nil {
 		return domain.Event{}, fmt.Errorf("claudecode: decode input: %w", err)
 	}
 
@@ -41,7 +41,7 @@ func Decode(raw []byte) (domain.Event, error) {
 			Text:      in.UserInput,
 		}, nil
 	case "PreToolUse":
-		fields, text := flattenToolInput(in.ToolInput)
+		fields, text := domain.FlattenArgs(in.ToolInput)
 		return domain.Event{
 			Kind:      domain.EventToolArgs,
 			Host:      domain.HostClaudeCode,
@@ -49,32 +49,20 @@ func Decode(raw []byte) (domain.Event, error) {
 			ToolName:  in.ToolName,
 			Text:      text,
 			Fields:    fields,
+			Args:      in.ToolInput,
 		}, nil
 	default:
 		return domain.Event{}, fmt.Errorf("claudecode: unsupported hook_event_name %q", in.HookEventName)
 	}
 }
 
-// flattenToolInput turns a tool_input JSON object into both a field map
-// (for detectors that target a specific argument) and a flattened text
-// blob (for detectors that scan free text).
-func flattenToolInput(toolInput map[string]interface{}) (fields map[string]string, text string) {
-	fields = make(map[string]string, len(toolInput))
-	for key, value := range toolInput {
-		s := fmt.Sprintf("%v", value)
-		fields[key] = s
-		text += key + ": " + s + "\n"
-	}
-	return fields, text
-}
-
 // hookSpecificOutput is the shape Claude Code expects nested under
 // hookSpecificOutput in a hook's JSON stdout.
 type hookSpecificOutput struct {
-	HookEventName            string            `json:"hookEventName"`
-	PermissionDecision       string            `json:"permissionDecision,omitempty"`
-	PermissionDecisionReason string            `json:"permissionDecisionReason,omitempty"`
-	UpdatedInput             map[string]string `json:"updatedInput,omitempty"`
+	HookEventName            string         `json:"hookEventName"`
+	PermissionDecision       string         `json:"permissionDecision,omitempty"`
+	PermissionDecisionReason string         `json:"permissionDecisionReason,omitempty"`
+	UpdatedInput             map[string]any `json:"updatedInput,omitempty"`
 }
 
 type hookOutput struct {
@@ -96,7 +84,7 @@ func Encode(event domain.Event, decision domain.Decision) (EncodeResult, error) 
 	case domain.EventPromptSubmit:
 		return encodePromptSubmit(decision)
 	case domain.EventToolArgs:
-		return encodeToolArgs(decision)
+		return encodeToolArgs(event, decision)
 	default:
 		return EncodeResult{}, fmt.Errorf("claudecode: unsupported event kind %q", event.Kind)
 	}
@@ -117,7 +105,7 @@ func encodePromptSubmit(decision domain.Decision) (EncodeResult, error) {
 	case domain.Rewrite:
 		b, err := json.Marshal(hookOutput{HookSpecificOutput: hookSpecificOutput{
 			HookEventName: "UserPromptSubmit",
-			UpdatedInput:  map[string]string{"user_input": decision.RedactedText},
+			UpdatedInput:  map[string]any{"user_input": decision.RedactedText},
 		}})
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("claudecode: encode rewrite: %w", err)
@@ -131,7 +119,7 @@ func encodePromptSubmit(decision domain.Decision) (EncodeResult, error) {
 // encodeToolArgs encodes a decision for PreToolUse. Both deny and rewrite
 // are communicated via JSON on stdout with exit code 0; Claude Code reads
 // permissionDecision, not the exit code, for this hook.
-func encodeToolArgs(decision domain.Decision) (EncodeResult, error) {
+func encodeToolArgs(event domain.Event, decision domain.Decision) (EncodeResult, error) {
 	switch decision.Kind {
 	case domain.Allow:
 		return EncodeResult{ExitCode: 0}, nil
@@ -148,7 +136,7 @@ func encodeToolArgs(decision domain.Decision) (EncodeResult, error) {
 	case domain.Rewrite:
 		b, err := json.Marshal(hookOutput{HookSpecificOutput: hookSpecificOutput{
 			HookEventName: "PreToolUse",
-			UpdatedInput:  decision.RedactedFields,
+			UpdatedInput:  domain.RebuildArgs(event.Args, decision.RedactedFields),
 		}})
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("claudecode: encode rewrite: %w", err)

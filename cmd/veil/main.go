@@ -116,7 +116,7 @@ func runOpenCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) in
 		return 1
 	}
 
-	result, err := opencode.Encode(decision)
+	result, err := opencode.Encode(event, decision)
 	if err != nil {
 		fmt.Fprintf(stderr, "veil: %v\n", err)
 		return 1

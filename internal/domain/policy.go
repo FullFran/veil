@@ -136,7 +136,11 @@ func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
 		if _, done := substitutions[f.Match]; done {
 			continue
 		}
-		token, err := p.pseudonyms.Token(event.SessionID, f.Category, f.Match)
+		key := f.Key
+		if key == "" {
+			key = f.Match
+		}
+		token, err := p.pseudonyms.Token(event.SessionID, f.Category, key)
 		if err != nil {
 			return Decision{}, fmt.Errorf("veil: mint pseudonym token for %s finding: %w", f.Category, err)
 		}

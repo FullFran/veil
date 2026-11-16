@@ -94,3 +94,39 @@ func writeFile(t *testing.T, path, content string) {
 		t.Fatalf("failed to write test fixture %s: %v", path, err)
 	}
 }
+
+// TestNameCatalogDetector_NonFoldedRunes_KeepOffsets proves a rune the fold
+// leaves multi-byte ("¿", "€", "«", "ç") never shifts where a name is cut
+// from the original: v0.1.0 let the name out in clear, half masked it, or
+// panicked with "slice bounds out of range".
+func TestNameCatalogDetector_NonFoldedRunes_KeepOffsets(t *testing.T) {
+	d := domain.NewNameCatalogDetector([]string{"Ana García", "José Núñez"})
+
+	cases := []struct {
+		name string
+		text string
+		want []string
+	}{
+		{"inverted question mark before", "¿Ana García", []string{"Ana García"}},
+		{"euro before", "€ Ana García es", []string{"Ana García"}},
+		{"several symbols", "¿Ana García? « José Núñez » 5€ Ana García", []string{"Ana García", "Ana García", "José Núñez"}},
+		{"cedilla and emoji before", "Façade 🙂 José Núñez", []string{"José Núñez"}},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			findings := d.Detect(domain.Event{Kind: domain.EventPromptSubmit, Text: tc.text})
+			got := make([]string, 0, len(findings))
+			for _, f := range findings {
+				got = append(got, f.Match)
+			}
+			if len(got) != len(tc.want) {
+				t.Fatalf("got matches %q, want %q", got, tc.want)
+			}
+			for i := range got {
+				if got[i] != tc.want[i] {
+					t.Errorf("match %d = %q, want %q", i, got[i], tc.want[i])
+				}
+			}
+		})
+	}
+}
