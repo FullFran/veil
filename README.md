@@ -38,7 +38,12 @@ of finding:
   `[EMAIL-001]`, `[TEL-001]`, `[NOMBRE-001]` — before it leaves the
   machine. The same original value always gets the same token within one
   session, and a different session never reuses another session's
-  numbering.
+  numbering. IBAN, DNI/NIE and phone numbers are also found when written
+  with spaces, dots or dashes (`ES91 2100 0418 …`, `12.345.678-Z`,
+  `600 12 34 56`, `+34 600 123 456`), only in those strict shapes, with
+  the checksum checked, and never as part of a date, an amount or a longer
+  run of digit groups. A value written two ways shares one token, and
+  rehydration gives back its compact form (`12345678Z`).
 - **Hard-deny** (a tool call targeting a known secrets-bearing file, or
   tool output veil cannot scan at all — see "Attachments and binary
   content" below): there is no safe rewrite, so the event is blocked
@@ -49,6 +54,11 @@ tool call), veil rehydrates: any pseudonym token still present in that
 call's arguments is turned back into the real value first, so the file on
 disk holds real data, never a placeholder the model was shown instead of
 it.
+
+Tool-call arguments are scanned leaf by leaf, nested ones included (a
+`multiedit` call's `edits`), and a rewrite answers with the arguments'
+own shape: arrays stay arrays, and numbers and booleans keep their type
+unless veil rewrote them.
 
 ## The capability matrix
 
@@ -165,7 +175,9 @@ JSON array of strings, or one name per line:
 
 Matching is whole-word, and both case- and accent-insensitive (`MARIA
 PEREZ`, `maria perez`, and `María Pérez` all match the same catalog
-entry). If `VEIL_CATALOG` is set but cannot be read or parsed, veil fails
+entry). A name is cut from the original text at its exact position,
+whatever other characters (`¿`, `€`, `«`, emoji) the text holds. If
+`VEIL_CATALOG` is set but cannot be read or parsed, veil fails
 closed at startup: every event is blocked with an error rather than
 silently running without the catalog. If `VEIL_CATALOG` is unset, the
 name-catalog detector is simply not registered.
@@ -250,6 +262,11 @@ Environment variables the plugin and binary read:
 | `VEIL_BINARY`   | `adapters/opencode/veil-plugin.js` | Path to the `veil` binary. Defaults to `veil` (resolved via `PATH`).      |
 | `VEIL_CATALOG`  | the `veil` binary (`cmd/veil`)     | Path to a name catalog file (JSON array or one-name-per-line). Optional.  |
 | `XDG_STATE_HOME`| the `veil` binary (`cmd/veil`)     | Base directory for the per-session pseudonym store. Falls back to the OS temp dir. |
+| `VEIL_TIMEOUT_MS` | `adapters/opencode/veil-plugin.js` | Milliseconds to wait for one `veil` answer before failing closed. Defaults to 30000. |
+
+The plugin reads answers up to 64 MiB and never waits forever. When it
+fails closed it throws an `Error` whose `code` a host can map to its own
+message: `VEIL_OUTPUT_TOO_LARGE`, `VEIL_TIMEOUT` or `VEIL_UNAVAILABLE`.
 
 ## Development
 
@@ -257,6 +274,7 @@ Environment variables the plugin and binary read:
 go test ./...
 go vet ./...
 gofmt -l .
+node --test adapters/opencode/veil-plugin.test.mjs   # the plugin against stub binaries
 node test/e2e/opencode/run.mjs   # end-to-end acceptance test; see test/e2e/opencode/README.md
 ```
 
