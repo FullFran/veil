@@ -45,6 +45,11 @@ type Event struct {
 	// is EventToolArgs, so detectors can target specific fields (e.g. a
 	// file path field) without re-parsing Text.
 	Fields map[string]string
+	// Args carries a tool call's arguments as the host sent them
+	// (nested objects, arrays, numbers), when Kind is EventToolArgs, so a
+	// host can answer a rewrite with the same shape. Fields holds every
+	// leaf of it by path; detection only ever reads Fields and Text.
+	Args map[string]any
 	// SessionID identifies the host's conversation/session, when the
 	// host exposes one. Policy uses it only to scope a PseudonymStore's
 	// per-session token mapping; detection logic must never branch on
