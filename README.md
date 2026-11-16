@@ -24,9 +24,10 @@ the model, or the system prompt. veil runs that event through a set of
 detectors and returns Allow, Deny, or Rewrite.
 
 The domain logic in `internal/domain` has zero knowledge of which host
-produced an event. Only the two adapter packages,
-`internal/hosts/claudecode` and `internal/hosts/opencode`, know how to
-speak each host's wire format.
+produced an event. Only the adapter packages,
+`internal/hosts/claudecode`, `internal/hosts/opencode` and
+`internal/hosts/acs` (the OWASP Agent Control Standard, one package per
+ACS version), know how to speak each host's wire format.
 
 ### Rewrite: stable per-session pseudonyms, not blanket denial
 
@@ -88,13 +89,17 @@ each host exposes. The matrix below is enforced in code
 to enforce a guarantee a host cannot provide returns an explicit
 `UnsupportedCapabilityError`, never a silent allow.
 
-| Capability                                       | Claude Code | OpenCode |
-| ------------------------------------------------- | :---------: | :------: |
-| Block or rewrite the typed prompt                 |     Yes     |   Yes    |
-| Block or rewrite a tool call's arguments          |     Yes     |   Yes    |
-| Redact or block a tool call's output               |     No      |   Yes    |
-| Rewrite conversation history resent to the model   |     No      |   Yes    |
-| Rewrite the system prompt                          |     No      |   Yes    |
+| Capability                                       | Claude Code | OpenCode | ACS |
+| ------------------------------------------------- | :---------: | :------: | :-: |
+| Block or rewrite the typed prompt                 |     Yes     |   Yes    | No  |
+| Block or rewrite a tool call's arguments          |     Yes     |   Yes    | Yes |
+| Redact or block a tool call's output               |     No      |   Yes    | Yes |
+| Rewrite conversation history resent to the model   |     No      |   Yes    | No  |
+| Rewrite the system prompt                          |     No      |   Yes    | No  |
+
+The ACS column covers only the hooks veil maps (see
+[Serving the Agent Control Standard](#serving-the-agent-control-standard-acs)):
+ACS has prompt and history hooks, but veil does not evaluate them yet.
 
 This table changed from an earlier version of this README, which claimed
 OpenCode had no prompt-level hook at all and treated
@@ -637,7 +642,9 @@ Environment variables the plugin and binary read:
 | `VEIL_POLICY`   | the `veil` binary (`cmd/veil`)     | Path to a policy file (see [Policy](#policy)). Optional; unset means the embedded default policy. |
 | `XDG_STATE_HOME`| the `veil` binary (`cmd/veil`)     | Base directory for the per-session pseudonym store. Falls back to the OS temp dir. |
 | `VEIL_KEY_FD`   | the `veil` binary (`cmd/veil`)     | Number of an inherited descriptor holding the store key (an age identity). Set by a host; wins over every other key source. See [Key sources](#key-sources). |
-| `CREDENTIALS_DIRECTORY` | the `veil` binary (`cmd/veil`) | Set by systemd; veil reads its `veil-store-key` credential. |
+| `CREDENTIALS_DIRECTORY` | the `veil` binary (`cmd/veil`) | Set by systemd; veil reads its `veil-store-key` credential (and `veil-acs-key` in `veil acs`). |
+| `VEIL_ACS_KEY_ID` | the `veil` binary (`veil acs`) | `key_id` of the ACS HMAC secret. See [Signatures](#signatures). |
+| `VEIL_ACS_KEY_FD` | the `veil` binary (`veil acs`) | Number of an inherited descriptor holding the ACS secret (base64). |
 | `VEIL_TIMEOUT_MS` | `adapters/opencode/veil-plugin.js` | Milliseconds to wait for one `veil` answer before failing closed. Defaults to 30000. |
 
 The plugin reads answers up to 64 MiB and never waits forever. When it
@@ -646,6 +653,140 @@ fails closed it throws an `Error` carrying the problem's `code` and `type`
 `VEIL_TIMEOUT` or `VEIL_UNAVAILABLE`, or the binary's code forwarded
 unchanged. On `tool.execute.after`, where throwing blocks nothing, it
 replaces the tool output with a notice naming the code instead.
+
+## Serving the Agent Control Standard (ACS)
+
+`veil acs` makes veil a Guardian Agent for any agent framework that speaks
+the [OWASP Agent Control Standard](https://github.com/GenAI-Security-Project/agent-control-standard)
+(ACS) over stdio: the framework (the Observed Agent) asks veil before each
+tool call and after each tool result, and veil answers allow, deny or
+modify. It speaks ACS **0.1.0**, pinned to an upstream commit with every
+vendored file's sha256 (`internal/hosts/acs/v0_1/spec/`, see its
+`SOURCE.md`).
+
+```sh
+veil acs < request.json     # one bare JSON-RPC 2.0 request, answered on one line
+veil acs                    # or a stream of Content-Length framed messages until EOF
+```
+
+Every message is JSON-RPC 2.0 with the ACS envelope. veil validates each
+request against the pinned JSON Schemas (with `uuid` and `date-time`
+formats asserted) before reading it, and each response it writes
+validates against the pinned response schema (the tests check this on
+every vendored example).
+
+### Mapping
+
+| ACS | veil |
+| --- | --- |
+| `steps/toolCallRequest` | `ToolArgs` event over the unwrapped argument values (`arguments.<name>.value`) |
+| `steps/toolCallResult` | `ToolOutput` event over the output values, keyed `outputs.<index>` |
+| `metadata.session_id` | the pseudonym session |
+| Allow | `allow` |
+| Deny | `deny`, the policy's reason in `reasoning` |
+| Rewrite of arguments | `modify` with `parameter_overrides` for each top-level argument that changed |
+| Rewrite of output | `modify` with `redactions`, one JSON pointer per changed value (`/outputs/<i>/value/...`) |
+| Decision evidence | `policy_data.veil.evidence`, the same record as [Decision evidence](#decision-evidence) |
+| `handshake/hello` | `ServerHello`: `negotiated_version` `0.1.0`, `methods_evaluated` = the two hooks above the client implements, `on_decision_failure` `deny`, `skew_window_ms` 300000 |
+| `system/ping` | always `allow` with `payload.status` `ok`, never a signature requirement |
+| Any other method | error -32003 `VEIL_ACS_METHOD_UNSUPPORTED` |
+
+veil never answers `ask` or `defer`. It has no channel to a human approver,
+and only the host may collect an approval (HCS-0005-R014, R015); a
+decision veil cannot express, or a rewrite that changes nothing, is a
+deny.
+
+### Failing closed
+
+A request veil refuses is a JSON-RPC error whose `data` carries `reason`
+(the veil code), `message` (its title) and `problem` (the
+[RFC 9457 problem](#failures)):
+
+| Condition | JSON-RPC code | veil code |
+| --- | --- | --- |
+| Not JSON | -32700 | `VEIL_INPUT_INVALID` |
+| Batch, or envelope off the schema | -32600 | `VEIL_ACS_REQUEST_INVALID` |
+| Payload off its method's schema | -32602 | `VEIL_ACS_REQUEST_INVALID` |
+| `acs_version` veil has no package for (`data.supported_versions`) | -32001 | `VEIL_ACS_VERSION_UNSUPPORTED` |
+| Method veil does not evaluate | -32003 | `VEIL_ACS_METHOD_UNSUPPORTED` |
+| Signature missing, unexpected, of another algorithm or `key_id`, or wrong | -32004 | `VEIL_ACS_SIGNATURE_INVALID` |
+| `request_id` already seen in the session | -32005 | `VEIL_ACS_REPLAY` |
+| `timestamp` more than 5 minutes off (`data.skew_window_ms`) | -32006 | `VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW` |
+| veil cannot evaluate, on `handshake/hello` | -32000 | the cause (e.g. `VEIL_POLICY_INVALID`) |
+
+A valid hook request veil cannot decide (invalid policy, store, evidence
+or secret configuration) is not an error but a **deny**, with the code in
+`reason_codes` and the problem in `policy_data.veil.problem`. ACS section
+6.4 has the Observed Agent apply its `on_decision_failure` posture to an
+error, whose default is to proceed, while a decision is always honoured,
+so only a deny keeps veil from failing open.
+
+In both cases veil also writes the problem line on stderr and exits 1
+once the input ends; stdout holds the JSON-RPC answers.
+
+### Signatures
+
+Signing is optional and out of band, like the store key. Set
+`VEIL_ACS_KEY_ID` and give the secret, base64 encoded and at least 32
+bytes once decoded, on an inherited descriptor named by `VEIL_ACS_KEY_FD`
+or as the systemd credential `veil-acs-key`. The key never comes from a
+message.
+
+- With a secret, every request but `system/ping` must carry an
+  `HMAC-SHA256` signature with that `key_id`, over the RFC 8785 (JCS)
+  form of the request without `params.signature`, under the per-session
+  key HKDF-SHA256(secret, no salt, info = `session_id`, 32 bytes) of ACS
+  section 10. Responses to verified requests are signed the same way in
+  `result.signature`.
+- Without one, signed requests are refused: their `key_id` names no key
+  veil holds.
+- A key id without a secret, a secret without a key id, or a secret that
+  is not base64 or is too short fails closed with `VEIL_ACS_KEY_INVALID`.
+
+The JCS and HMAC implementation is checked against vectors produced by
+the `rfc8785` package the ACS reference adapters use
+(`internal/hosts/acs/v0_1/testdata/kat`), and the key derivation against
+the specification's own example.
+
+### Divergences from ACS 0.1.0
+
+- **Fail closed.** veil advertises `on_decision_failure: deny` and answers
+  a failure it can still express as a deny, where the reference Guardian
+  defaults to proceed.
+- **Exact versions.** Only `acs_version` `0.1.0` is accepted; 0.1.x patch
+  releases rewrite the schemas in place, so no other version is assumed to
+  match the pinned files.
+- **No session chain.** veil keeps no `chain_hash` and needs no prior
+  handshake; replays are detected only within one `veil acs` process, so
+  a bare one-message invocation cannot detect them.
+- **Two hooks.** Only `steps/toolCallRequest` and `steps/toolCallResult`
+  are evaluated; ACS lets the Observed Agent treat a method missing from
+  `methods_evaluated` as allowed, so the other hooks are outside veil's
+  guarantee.
+- **HMAC only.** No asymmetric or post-quantum algorithms.
+- **stdio only.** No HTTP transport.
+- **Integers.** Like the `rfc8785` reference, integer literals of
+  magnitude 2^53 or more cannot be signed; such a signed request is
+  refused.
+
+Unverified: which document a `redactions` pointer is relative to is not
+normative in 0.1.0. veil follows the reference AGT adapter, where pointers
+on a tool result address the payload (`/outputs/0/value`).
+
+### Pinning a new ACS version
+
+1. Create `internal/hosts/acs/vX_Y/` as a sibling of `v0_1`: copy the
+   new release's schemas, `LICENSE`, `NOTICE` and the examples unedited
+   into `vX_Y/spec/`, with a `SOURCE.md` naming the upstream commit.
+2. Regenerate the digests from inside `spec/`:
+   `find . -type f ! -name SOURCE.md ! -name SHA256SUMS | sed 's|^\./||' | LC_ALL=C sort | xargs sha256sum > SHA256SUMS`.
+3. Implement `port.Version` there (start from a copy of `v0_1`) and add
+   one entry to `versions` in `internal/hosts/acs/acs.go`.
+4. Run `go test ./internal/hosts/acs/...`: the pin test, the example
+   decoding and the response schema checks must pass for the new package.
+
+Dropping a version is deleting its folder and its entry; `internal/domain`
+never sees any of it (`TestDomainImportsNoHostAdapter`).
 
 ## Decision evidence
 
@@ -747,7 +888,8 @@ invalid value blocks every event with `VEIL_CATALOG_REVISION_INVALID`.
 
 When veil cannot make a decision it fails closed and reports why as one
 [RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem details object,
-written as a single JSON line on stderr (nothing on stdout):
+written as a single JSON line on stderr (nothing on stdout, except in
+`veil acs`, where stdout carries the JSON-RPC answer):
 
 ```json
 {"type":"tag:fullfran.github.io,2026:veil/problems/store-corrupt","title":"Pseudonym store is corrupt","detail":"…","code":"VEIL_STORE_CORRUPT"}
@@ -802,6 +944,13 @@ line on stderr is what tells a failure apart.
 | `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
 | `VEIL_EVIDENCE_WRITE` | `evidence-write` | `VEIL_EVIDENCE_FILE` is set and the evidence record cannot be appended |
 | `VEIL_CATALOG_REVISION_INVALID` | `catalog-revision-invalid` | `VEIL_CATALOG_REVISION` is not an opaque token (`[A-Za-z0-9._:-]{1,128}`) |
+| `VEIL_ACS_VERSION_UNSUPPORTED` | `acs-version-unsupported` | `veil acs`: the message's `acs_version` has no adapter |
+| `VEIL_ACS_REQUEST_INVALID` | `acs-request-invalid` | `veil acs`: a batch, or a message off the pinned ACS schema |
+| `VEIL_ACS_METHOD_UNSUPPORTED` | `acs-method-unsupported` | `veil acs`: a method veil does not evaluate |
+| `VEIL_ACS_SIGNATURE_INVALID` | `acs-signature-invalid` | `veil acs`: signature missing, unexpected, of an unknown `key_id` or algorithm, or wrong |
+| `VEIL_ACS_REPLAY` | `acs-replay` | `veil acs`: `request_id` already seen in the session |
+| `VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW` | `acs-timestamp-out-of-window` | `veil acs`: `timestamp` outside the 5-minute window |
+| `VEIL_ACS_KEY_INVALID` | `acs-key-invalid` | `veil acs`: the secret configuration is incomplete, unreadable, not base64 or under 32 bytes |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
 | `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
 | `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |
