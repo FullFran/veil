@@ -28,6 +28,11 @@ const (
 	schemaToolRequest = schemaBase + "hooks/tool-call-request.json"
 	schemaToolResult  = schemaBase + "hooks/tool-call-result.json"
 	schemaPing        = schemaBase + "hooks/system-ping.json"
+
+	schemaUserMessage     = schemaBase + "hooks/user-message.json"
+	schemaAgentTrigger    = schemaBase + "hooks/agent-trigger.json"
+	schemaKnowledge       = schemaBase + "hooks/knowledge-retrieval.json"
+	schemaMemoryRetrieval = schemaBase + "hooks/memory-context-retrieval.json"
 )
 
 var (
@@ -62,7 +67,8 @@ func compiled() (map[string]*jsonschema.Schema, error) {
 			return
 		}
 		schemas = map[string]*jsonschema.Schema{}
-		for _, loc := range []string{schemaRequest, schemaResponse, schemaClientHello, schemaToolRequest, schemaToolResult, schemaPing} {
+		for _, loc := range []string{schemaRequest, schemaResponse, schemaClientHello, schemaToolRequest, schemaToolResult, schemaPing,
+			schemaUserMessage, schemaAgentTrigger, schemaKnowledge, schemaMemoryRetrieval} {
 			s, err := c.Compile(loc)
 			if err != nil {
 				schemasErr = fmt.Errorf("compile %s: %w", loc, err)

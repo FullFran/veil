@@ -79,12 +79,13 @@ func encodeDecision(env envelope, h hook, d domain.Decision, evidence json.RawMe
 
 // modifications expresses a rewrite in the structured ACS form: for tool
 // arguments, parameter_overrides of each top-level argument that changed;
-// for tool output, redactions whose JSON pointers address the changed
-// leaves under /outputs/<i>/value. A rewrite that changes nothing is an
-// error, never a silent allow.
+// for every other hook, redactions whose JSON pointers address the changed
+// leaves in the payload (under /<member>/<i>/value for a wrapped member,
+// e.g. /outputs/0/value or /content/0/value). A rewrite that changes
+// nothing is an error, never a silent allow.
 func modifications(h hook, d domain.Decision) (map[string]any, error) {
-	switch h.event.Kind {
-	case domain.EventToolArgs:
+	switch {
+	case h.event.Kind == domain.EventToolArgs:
 		rebuilt := domain.RebuildArgs(h.args, d.RedactedFields)
 		overrides := map[string]any{}
 		for name, value := range rebuilt {
@@ -96,15 +97,30 @@ func modifications(h hook, d domain.Decision) (map[string]any, error) {
 			return nil, errors.New("acs v0.1: rewrite changes no argument")
 		}
 		return map[string]any{"parameter_overrides": overrides}, nil
-	case domain.EventToolOutput:
-		original := h.outputs["outputs"].([]any)
-		rebuilt := domain.RebuildArgs(h.outputs, d.RedactedFields)["outputs"].([]any)
+	case h.doc != nil:
+		rebuilt := domain.RebuildArgs(h.doc, d.RedactedFields)
+		members := make([]string, 0, len(h.doc))
+		for member := range h.doc {
+			members = append(members, member)
+		}
+		slices.Sort(members)
 		var redactions []map[string]any
-		for i := range original {
-			diffLeaves(original[i], rebuilt[i], "/outputs/"+strconv.Itoa(i)+"/value", &redactions)
+		for _, member := range members {
+			pointer := "/" + escapePointer(member)
+			if !h.wrapped[member] {
+				diffLeaves(h.doc[member], rebuilt[member], pointer, &redactions)
+				continue
+			}
+			original := h.doc[member].([]any)
+			items, _ := rebuilt[member].([]any)
+			for i := range original {
+				if i < len(items) {
+					diffLeaves(original[i], items[i], pointer+"/"+strconv.Itoa(i)+"/value", &redactions)
+				}
+			}
 		}
 		if len(redactions) == 0 {
-			return nil, errors.New("acs v0.1: rewrite changes no output")
+			return nil, errors.New("acs v0.1: rewrite changes nothing")
 		}
 		return map[string]any{"redactions": redactions}, nil
 	default:

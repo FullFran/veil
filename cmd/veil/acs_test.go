@@ -116,6 +116,59 @@ func TestRun_ACS_Decisions(t *testing.T) {
 	}
 }
 
+// acsHook is a request for method with payload, stamped now.
+func acsHook(t *testing.T, method string, payload map[string]any) string {
+	t.Helper()
+	raw, err := json.Marshal(map[string]any{
+		"jsonrpc": "2.0", "id": 1, "method": method,
+		"params": map[string]any{
+			"acs_version": "0.1.0",
+			"request_id":  acsRequestID,
+			"timestamp":   time.Now().UTC().Format(time.RFC3339),
+			"metadata":    map[string]any{"agent_id": "test", "session_id": "5b7a6e2a-6a2e-4b7a-9f2e-6a6d2e6a9a22"},
+			"payload":     payload,
+		},
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+	return string(raw)
+}
+
+// TestRun_ACS_ContextHooks_PseudonymizeBeforeTheModel sends a DNI through
+// a user message and a retrieval result: veil must answer modify with a
+// redaction at the value, so the DNI never reaches the model.
+func TestRun_ACS_ContextHooks_PseudonymizeBeforeTheModel(t *testing.T) {
+	cases := []struct {
+		method  string
+		payload map[string]any
+		pointer string
+	}{
+		{"steps/userMessage", map[string]any{"content": []any{map[string]any{"type": "text", "value": "my DNI is 12345678Z"}}}, "/content/0/value"},
+		{"steps/knowledgeRetrieval", map[string]any{"query": map[string]any{"value": "q"}, "results": []any{map[string]any{"value": "DNI 12345678Z"}}}, "/results/0/value"},
+	}
+	for _, tc := range cases {
+		t.Run(tc.method, func(t *testing.T) {
+			isolateACS(t)
+			exit, a, stderr := runACSWith(t, acsHook(t, tc.method, tc.payload))
+			if exit != problem.ExitDecision || stderr != "" {
+				t.Fatalf("exit = %d, stderr = %q, want a decision", exit, stderr)
+			}
+			if a.Result == nil || a.Result.Decision != "modify" {
+				t.Fatalf("answer = %+v, want modify", a)
+			}
+			redactions, _ := a.Result.Modifications["redactions"].([]any)
+			if len(redactions) != 1 {
+				t.Fatalf("redactions = %v, want one", a.Result.Modifications)
+			}
+			r := redactions[0].(map[string]any)
+			if r["path"] != tc.pointer || strings.Contains(r["replacement"].(string), "12345678Z") {
+				t.Fatalf("redaction = %v, want %s without the DNI", r, tc.pointer)
+			}
+		})
+	}
+}
+
 // TestRun_ACS_FailsClosed covers the failures the acs mode adds: each is
 // one problem line on stderr, exit 1, and an answer that is never allow.
 func TestRun_ACS_FailsClosed(t *testing.T) {

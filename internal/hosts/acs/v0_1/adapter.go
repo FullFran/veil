@@ -23,8 +23,13 @@ const skewWindow = 5 * time.Minute
 const defaultTimeoutMS = 10000
 
 // evaluated is every hook veil maps to a domain event, in the order
-// ServerHello lists them.
-var evaluated = []string{methodToolRequest, methodToolResult}
+// ServerHello lists them: each hook whose payload carries text that enters
+// the model's context, plus the tool call itself. The README lists the
+// hooks left out and why.
+var evaluated = []string{
+	methodAgentTrigger, methodUserMessage, methodKnowledge, methodMemoryRetrieval,
+	methodToolRequest, methodToolResult,
+}
 
 type version struct {
 	cfg  port.Config
@@ -54,10 +59,10 @@ func (v *version) Answer(msg []byte) port.Reply {
 		return v.refuse(env, ref)
 	}
 
-	switch env.method {
-	case methodPing:
+	switch {
+	case env.method == methodPing:
 		return v.ping(env)
-	case methodHello, methodToolRequest, methodToolResult:
+	case env.method == methodHello, slices.Contains(evaluated, env.method):
 	default:
 		return v.refuse(env, refuse(rpcCapabilityNotNegotiated, problem.ACSMethodUnsupported))
 	}

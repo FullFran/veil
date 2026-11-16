@@ -80,10 +80,12 @@ const (
 //     {type:"tool", state:{output, metadata:{output}}}).
 //     experimental.chat.system.transform can rewrite the system prompt.
 //   - ACS (OWASP Agent Control Standard v0.1.0, docs/spec/instrument/
-//     hooks.md): steps/toolCallRequest accepts ALLOW/DENY/MODIFY/ASK/DEFER
-//     and steps/toolCallResult accepts ALLOW/DENY/MODIFY, so both can be
-//     blocked and rewritten. veil maps no other ACS hook, so every other
-//     capability is unsupported here.
+//     hooks.md): steps/userMessage and steps/agentTrigger (prompts),
+//     steps/toolCallRequest (tool arguments), steps/toolCallResult,
+//     steps/knowledgeRetrieval and steps/memoryContextRetrieval (tool
+//     output) all accept ALLOW/DENY/MODIFY, so each can be blocked and
+//     rewritten. No ACS v0.1.0 hook carries the history or system prompt
+//     resent to the model, so those stay unsupported here.
 var capabilityMatrix = map[Host]map[Capability]bool{
 	HostClaudeCode: {
 		CapabilityPromptBlock:         true,
@@ -100,7 +102,7 @@ var capabilityMatrix = map[Host]map[Capability]bool{
 		CapabilitySystemPromptRewrite: true,
 	},
 	HostACS: {
-		CapabilityPromptBlock:         false,
+		CapabilityPromptBlock:         true,
 		CapabilityToolArgsBlock:       true,
 		CapabilityToolOutputRedact:    true,
 		CapabilityHistoryRewrite:      false,

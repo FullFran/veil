@@ -3,6 +3,7 @@ package v0_1
 import (
 	"bytes"
 	"encoding/json"
+	"strings"
 
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/hosts/acs/port"
@@ -12,11 +13,29 @@ import (
 
 // The ACS methods veil answers.
 const (
-	methodToolRequest = "steps/toolCallRequest"
-	methodToolResult  = "steps/toolCallResult"
-	methodHello       = "handshake/hello"
-	methodPing        = "system/ping"
+	methodAgentTrigger    = "steps/agentTrigger"
+	methodUserMessage     = "steps/userMessage"
+	methodKnowledge       = "steps/knowledgeRetrieval"
+	methodMemoryRetrieval = "steps/memoryContextRetrieval"
+	methodToolRequest     = "steps/toolCallRequest"
+	methodToolResult      = "steps/toolCallResult"
+	methodHello           = "handshake/hello"
+	methodPing            = "system/ping"
 )
+
+// payloadSchemas is the pinned schema of every method veil answers. The
+// acs-provenance variants of the hook schemas only make provenance
+// required, so the base schema accepts every payload they accept.
+var payloadSchemas = map[string]string{
+	methodAgentTrigger:    schemaAgentTrigger,
+	methodUserMessage:     schemaUserMessage,
+	methodKnowledge:       schemaKnowledge,
+	methodMemoryRetrieval: schemaMemoryRetrieval,
+	methodToolRequest:     schemaToolRequest,
+	methodToolResult:      schemaToolResult,
+	methodPing:            schemaPing,
+	methodHello:           schemaClientHello,
+}
 
 // refusal is a request veil answers with a JSON-RPC error instead of a
 // decision: the JSON-RPC code, veil's problem code and any extra error
@@ -90,17 +109,8 @@ func decodeEnvelope(raw []byte) (envelope, *refusal) {
 // validatePayload checks the payload against the schema of its method.
 // Methods veil does not answer have no schema here; dispatch refuses them.
 func validatePayload(env envelope) *refusal {
-	var loc string
-	switch env.method {
-	case methodToolRequest:
-		loc = schemaToolRequest
-	case methodToolResult:
-		loc = schemaToolResult
-	case methodPing:
-		loc = schemaPing
-	case methodHello:
-		loc = schemaClientHello
-	default:
+	loc, ok := payloadSchemas[env.method]
+	if !ok {
 		return nil
 	}
 	if err := validate(loc, env.payload); err != nil {
@@ -122,9 +132,45 @@ func validateRequest(raw []byte) *refusal {
 // hook is a decoded hook request: the host-neutral event veil evaluates
 // and what the encoder needs to express a rewrite in ACS terms.
 type hook struct {
-	event   domain.Event
-	args    map[string]any // steps/toolCallRequest: argument name to value
-	outputs map[string]any // steps/toolCallResult: {"outputs": [value, ...]}
+	event domain.Event
+	// args is steps/toolCallRequest's arguments, name to value; a rewrite
+	// of them is parameter_overrides.
+	args map[string]any
+	// doc is, for every other hook, the payload members veil evaluates,
+	// with the values of the wrapped members unwrapped; a rewrite of them
+	// is redactions into the payload.
+	doc map[string]any
+	// wrapped names the members of doc that are arrays of {"value": v}
+	// items in the payload, so /<member>/<i>/value addresses item i.
+	wrapped map[string]bool
+}
+
+// valueItems is an array of payload items that carry their text in value.
+type valueItems []struct {
+	Value any `json:"value"`
+}
+
+func (items valueItems) values() []any {
+	out := make([]any, len(items))
+	for i, item := range items {
+		out[i] = item.Value
+	}
+	return out
+}
+
+type userMessagePayload struct {
+	Content valueItems `json:"content"`
+}
+
+type agentTriggerPayload struct {
+	TriggerSource any `json:"trigger_source"`
+	Intent        *struct {
+		Raw *string `json:"raw"`
+	} `json:"intent"`
+}
+
+type retrievalPayload struct {
+	Results valueItems `json:"results"`
 }
 
 type toolRequestPayload struct {
@@ -140,18 +186,50 @@ type toolResultPayload struct {
 	Tool struct {
 		Name string `json:"name"`
 	} `json:"tool"`
-	Outputs []struct {
-		Value any `json:"value"`
-	} `json:"outputs"`
+	Outputs valueItems `json:"outputs"`
 }
 
-// decodeHook maps a validated hook request to a domain event:
-// steps/toolCallRequest to EventToolArgs over the unwrapped argument
-// values, steps/toolCallResult to EventToolOutput over the output values
-// keyed outputs.<index>. Any other method is not a hook veil maps.
+// decodeHook maps a validated hook request to a domain event. Text that
+// enters the model's context from outside it is a prompt:
+// steps/userMessage (the content values, keyed content.<i>) and
+// steps/agentTrigger (trigger_source and intent.raw) are
+// EventPromptSubmit. Text a tool or store hands back to the model is tool
+// output: steps/toolCallResult (outputs.<i>), steps/knowledgeRetrieval and
+// steps/memoryContextRetrieval (results.<i>) are EventToolOutput.
+// steps/toolCallRequest is EventToolArgs over the unwrapped argument
+// values. Any other method is not a hook veil maps.
 func decodeHook(env envelope) (hook, *refusal) {
 	base := domain.Event{Host: domain.HostACS, SessionID: env.params.Metadata.SessionID}
+	invalid := refuse(port.RPCInvalidParams, problem.ACSRequestInvalid)
 	switch env.method {
+	case methodUserMessage:
+		var p userMessagePayload
+		if err := domain.DecodeJSON(env.params.Payload, &p); err != nil {
+			return hook{}, invalid
+		}
+		doc := map[string]any{"content": p.Content.values()}
+		return docHook(base, domain.EventPromptSubmit, doc, "content"), nil
+	case methodAgentTrigger:
+		var p agentTriggerPayload
+		if err := domain.DecodeJSON(env.params.Payload, &p); err != nil {
+			return hook{}, invalid
+		}
+		doc := map[string]any{}
+		if p.TriggerSource != nil {
+			doc["trigger_source"] = p.TriggerSource
+		}
+		if p.Intent != nil && p.Intent.Raw != nil {
+			doc["intent"] = map[string]any{"raw": *p.Intent.Raw}
+		}
+		return docHook(base, domain.EventPromptSubmit, doc), nil
+	case methodKnowledge, methodMemoryRetrieval:
+		var p retrievalPayload
+		if err := domain.DecodeJSON(env.params.Payload, &p); err != nil {
+			return hook{}, invalid
+		}
+		base.ToolName = strings.TrimPrefix(env.method, "steps/")
+		doc := map[string]any{"results": p.Results.values()}
+		return docHook(base, domain.EventToolOutput, doc, "results"), nil
 	case methodToolRequest:
 		var p toolRequestPayload
 		if err := domain.DecodeJSON(env.params.Payload, &p); err != nil {
@@ -171,19 +249,25 @@ func decodeHook(env envelope) (hook, *refusal) {
 		if err := domain.DecodeJSON(env.params.Payload, &p); err != nil {
 			return hook{}, refuse(port.RPCInvalidParams, problem.ACSRequestInvalid)
 		}
-		values := make([]any, len(p.Outputs))
-		for i, o := range p.Outputs {
-			values[i] = o.Value
-		}
-		outputs := map[string]any{"outputs": values}
-		fields, text := domain.FlattenArgs(outputs)
-		base.Kind = domain.EventToolOutput
 		base.ToolName = p.Tool.Name
-		base.Fields, base.Text = fields, text
-		return hook{event: base, outputs: outputs}, nil
+		doc := map[string]any{"outputs": p.Outputs.values()}
+		return docHook(base, domain.EventToolOutput, doc, "outputs"), nil
 	default:
 		return hook{}, refuse(rpcCapabilityNotNegotiated, problem.ACSMethodUnsupported)
 	}
+}
+
+// docHook is a hook of kind over doc, whose wrapped members are arrays of
+// {"value": v} items in the payload.
+func docHook(base domain.Event, kind domain.EventKind, doc map[string]any, wrapped ...string) hook {
+	fields, text := domain.FlattenArgs(doc)
+	base.Kind = kind
+	base.Fields, base.Text = fields, text
+	h := hook{event: base, doc: doc, wrapped: map[string]bool{}}
+	for _, member := range wrapped {
+		h.wrapped[member] = true
+	}
+	return h
 }
 
 // ACS error codes (Specification section 17.1) veil raises.

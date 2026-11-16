@@ -297,7 +297,7 @@ func hello(t *testing.T, versions []string) []byte {
 			"metadata":    map[string]any{"agent_id": "a", "session_id": "5b7a6e2a-6a2e-4b7a-9f2e-6a6d2e6a9a22"},
 			"payload": map[string]any{
 				"acs_versions_supported": versions,
-				"methods_implemented":    []string{"steps/toolCallRequest", "steps/userMessage"},
+				"methods_implemented":    []string{"steps/toolCallRequest", "steps/userMessage", "steps/agentResponse"},
 				"transports_supported":   []string{"stdio"},
 				"provenance_producer":    "none",
 			},
@@ -322,8 +322,8 @@ func TestAnswer_Handshake_AnswersAServerHelloThatFailsClosed(t *testing.T) {
 	if r["negotiated_version"] != "0.1.0" || r["on_decision_failure"] != "deny" || r["selected_transport"] != "stdio" {
 		t.Fatalf("ServerHello = %v", r)
 	}
-	if got, _ := json.Marshal(r["methods_evaluated"]); string(got) != `["steps/toolCallRequest"]` {
-		t.Fatalf("methods_evaluated = %s, want only the mapped hook the client implements", got)
+	if got, _ := json.Marshal(r["methods_evaluated"]); string(got) != `["steps/userMessage","steps/toolCallRequest"]` {
+		t.Fatalf("methods_evaluated = %s, want only the mapped hooks the client implements", got)
 	}
 	if got, _ := json.Marshal(r["signature_algorithms_supported"]); string(got) != `[]` {
 		t.Fatalf("signature_algorithms_supported = %s, want [] without a secret", got)
