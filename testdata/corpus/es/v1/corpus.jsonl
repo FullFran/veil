@@ -76,3 +76,12 @@
 {"id": "args-003", "tags": ["nested", "array"], "tool": "write", "args": {"filePath": "notas.md", "content": "# Cliente\n- DNI: [[DNI:31.415.926-L]]\n- Tel: [[TEL:954 12 34 56]]\n"}}
 {"id": "args-004", "tags": ["nested", "deep"], "tool": "mcp_crm_update", "args": {"record": {"contact": {"name": "[[NOMBRE:Lucía Martín]]", "ids": ["[[DNI:X1234567L]]", "sin-dato"]}}, "dryRun": true}}
 {"id": "args-005", "tags": ["nested", "near-miss"], "tool": "bash", "args": {"command": "git log --since=2024-05-12 -n 600123456", "cwd": "/repo"}}
+{"id": "lookalike-001", "tags": ["full-width"], "text": "dni [[DNI:１２３４５６７８Ｚ]] mail [[EMAIL:zed＠example.org]] tel [[TEL:６１２３４５６７８]]"}
+{"id": "lookalike-002", "tags": ["zero-width"], "text": "dni [[DNI:1234\u200b5678Z]], [[EMAIL:zed@exa\u200bmple.org]]"}
+{"id": "lookalike-003", "tags": ["no-break-space", "separated"], "text": "Llámame al [[TEL:612\u00a0345\u202f678]] por la tarde."}
+{"id": "lookalike-004", "tags": ["soft-hyphen"], "text": "Transferencia a [[IBAN:ES91\u00ad2100\u00ad0418\u00ad4502\u00ad0005\u00ad1332]] hoy."}
+{"id": "lookalike-005", "tags": ["full-width", "catalog"], "text": "Reunión con [[NOMBRE:Ｍａｒíａ Ｐéｒｅｚ]] el lunes."}
+{"id": "lookalike-006", "tags": ["other-script-digits"], "text": "Teléfono de contacto: [[TEL:٦١٢٣٤٥٦٧٨]]."}
+{"id": "lookalike-007", "tags": ["full-width", "nie"], "text": "NIE [[DNI:Ｘ１２３４５６７Ｌ]] en vigor."}
+{"id": "lookalike-008", "tags": ["near-miss", "full-width"], "text": "Pedido nº １２３４５ del ２０２４－０５－１２, sin datos personales."}
+{"id": "lookalike-009", "tags": ["near-miss", "zero-width"], "text": "Equipo 👩\u200d💻 listo, revisión ２０２４."}

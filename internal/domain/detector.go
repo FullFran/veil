@@ -62,8 +62,17 @@ func (r *Registry) Detectors() []Detector {
 }
 
 // DetectAll runs every registered detector against event and concatenates
-// their findings, preserving registration order.
+// their findings, preserving registration order. When event.Text holds
+// Unicode lookalike forms (full-width characters, format characters,
+// digits of another script), the detectors run once more on its
+// normalized view and the extra findings follow, each keyed by the
+// canonical value and matching the original written span (lookalike.go).
 func (r *Registry) DetectAll(event Event) []Finding {
+	findings := r.detectRaw(event)
+	return append(findings, lookalikeFindings(event, findings, r.detectRaw)...)
+}
+
+func (r *Registry) detectRaw(event Event) []Finding {
 	var findings []Finding
 	for _, d := range r.detectors {
 		findings = append(findings, d.Detect(event)...)

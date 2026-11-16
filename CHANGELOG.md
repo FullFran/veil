@@ -99,6 +99,12 @@ Each release's notes on GitHub are its section of this file
   names joined by a hyphen or apostrophe (`García-López`, `O'Neill`) (#21).
 - Overlapping catalog names are replaced longest first, so `Juan García`
   no longer leaves `[NOMBRE-001]-López` behind (#21).
+- DNI/NIE, IBAN, email, phone and catalog name values written with Unicode
+  lookalikes (full-width forms, zero-width and other format characters,
+  no-break spaces, digits of other scripts) are pseudonymized on every host:
+  the detectors also scan an NFKC view of the text (UAX #15) with default
+  ignorable characters (UAX #44) removed, replace the characters as written
+  and key the token by the canonical value (#24).
 - If the answer cannot be written to stdout, veil now fails closed
   (`VEIL_INTERNAL`) instead of exiting 0 with no answer, which Claude Code
   read as "proceed with the original input".
