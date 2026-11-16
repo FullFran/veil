@@ -14,8 +14,10 @@ import (
 	"io"
 	"io/fs"
 	"os"
+	"time"
 
 	"github.com/FullFran/veil/internal/domain"
+	"github.com/FullFran/veil/internal/evidence"
 	"github.com/FullFran/veil/internal/hosts/claudecode"
 	"github.com/FullFran/veil/internal/hosts/opencode"
 	"github.com/FullFran/veil/internal/policy"
@@ -27,12 +29,41 @@ func main() {
 	os.Exit(run(os.Args[1:], os.Stdin, os.Stdout, os.Stderr))
 }
 
-// newPolicy builds the veil policy shared by every host from the policy
-// file in VEIL_POLICY (or the embedded default policy when it is unset).
-// It returns an error instead of a *domain.Policy if the policy file, or
-// the name catalog it uses, cannot be loaded: startup fails closed rather
-// than silently running with a different policy.
-func newPolicy() (*domain.Policy, error) {
+// Environment variables for decision evidence (see internal/evidence).
+const (
+	// evidenceFileEnv names a JSONL file every decision's evidence record
+	// is appended to. Unset or empty means no file.
+	evidenceFileEnv = "VEIL_EVIDENCE_FILE"
+	// catalogRevisionEnv is an optional opaque revision of the name
+	// catalog, supplied by the host and recorded as-is.
+	catalogRevisionEnv = "VEIL_CATALOG_REVISION"
+)
+
+// engine is everything one invocation decides with: the domain policy,
+// the registry it runs (to count findings for evidence) and what the
+// evidence records about the configuration.
+type engine struct {
+	evaluator       *domain.Policy
+	registry        *domain.Registry
+	policyDigest    string
+	policyVersion   string
+	catalogRevision string
+	evidenceFile    string
+}
+
+// newEngine builds the veil policy shared by every host from the policy
+// file in VEIL_POLICY (or the embedded default policy when it is unset)
+// and reads the evidence configuration. It returns an error instead of an
+// engine if the policy file, the name catalog it uses or the catalog
+// revision is invalid: startup fails closed rather than silently running
+// with a different policy.
+func newEngine() (*engine, error) {
+	revision := os.Getenv(catalogRevisionEnv)
+	if revision != "" {
+		if err := evidence.ValidateRevision(revision); err != nil {
+			return nil, err
+		}
+	}
 	p, err := policy.FromEnv()
 	if err != nil {
 		return nil, err
@@ -41,7 +72,60 @@ func newPolicy() (*domain.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	return domain.NewPolicy(registry, newStore()), nil
+	return &engine{
+		evaluator:       domain.NewPolicy(registry, newStore()),
+		registry:        registry,
+		policyDigest:    p.Digest(),
+		policyVersion:   p.Version,
+		catalogRevision: revision,
+		evidenceFile:    os.Getenv(evidenceFileEnv),
+	}, nil
+}
+
+// decide evaluates event and builds its evidence record. The record is
+// appended to the evidence file, when one is configured, before the
+// caller writes any answer: a record that cannot be written fails the
+// event closed with problem.EvidenceWrite (HCS-0005-R012), so no decision
+// is ever acted on without its record.
+func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, []byte, problem.Code) {
+	start := time.Now()
+	decision, err := e.evaluator.Evaluate(event)
+	if err != nil {
+		return domain.Decision{}, nil, classifyEvaluateError(err)
+	}
+	elapsed := time.Since(start)
+
+	id, err := evidence.NewID()
+	if err != nil {
+		return domain.Decision{}, nil, problem.Internal
+	}
+	rec, err := evidence.Build(evidence.Input{
+		ID:              id,
+		Time:            start,
+		Host:            host,
+		Event:           event.Kind,
+		Tool:            event.ToolName,
+		Session:         event.SessionID,
+		Action:          decision.Kind,
+		Findings:        e.registry.DetectAll(event),
+		PolicyDigest:    e.policyDigest,
+		PolicyVersion:   e.policyVersion,
+		CatalogRevision: e.catalogRevision,
+		Duration:        elapsed,
+	})
+	if err != nil {
+		return domain.Decision{}, nil, problem.Internal
+	}
+	if e.evidenceFile != "" {
+		if err := evidence.Append(e.evidenceFile, rec); err != nil {
+			return domain.Decision{}, nil, problem.EvidenceWrite
+		}
+	}
+	raw, err := evidence.Marshal(rec)
+	if err != nil {
+		return domain.Decision{}, nil, problem.Internal
+	}
+	return decision, raw, ""
 }
 
 // keyring is the OS keyring the store key falls back to. Tests replace it
@@ -58,7 +142,7 @@ func newStore() *pseudonymstore.FileStore {
 // hostProfile is one host veil can answer: how it handles an event and
 // which exit code fails closed on it.
 type hostProfile struct {
-	handle      func(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) (exitCode int, failure problem.Code)
+	handle      func(e *engine, raw []byte, stdout, stderr io.Writer) (exitCode int, failure problem.Code)
 	failureExit int
 }
 
@@ -103,26 +187,30 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return host.fail(stderr, problem.InputInvalid)
 	}
 
-	policy, err := newPolicy()
+	e, err := newEngine()
 	if err != nil {
 		return host.fail(stderr, classifyPolicyError(err))
 	}
 
-	exitCode, failure := host.handle(policy, raw, stdout, stderr)
+	exitCode, failure := host.handle(e, raw, stdout, stderr)
 	if failure != "" {
 		return host.fail(stderr, failure)
 	}
 	return exitCode
 }
 
-// classifyPolicyError maps a newPolicy error to its problem code by error
+// classifyPolicyError maps a newEngine error to its problem code by error
 // type: a *policy.Error carries its own code (policy or catalog).
 func classifyPolicyError(err error) problem.Code {
 	var perr *policy.Error
-	if errors.As(err, &perr) {
+	switch {
+	case errors.As(err, &perr):
 		return perr.Code
+	case errors.Is(err, evidence.ErrRevisionInvalid):
+		return problem.CatalogRevisionInvalid
+	default:
+		return problem.Internal
 	}
-	return problem.Internal
 }
 
 // classifyEvaluateError maps a Policy.Evaluate error to its problem code
@@ -171,15 +259,18 @@ func classifyStoreError(err error) (problem.Code, bool) {
 	return "", false
 }
 
-func runClaudeCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) (int, problem.Code) {
+// runClaudeCode answers a Claude Code hook. Its stdout stays exactly the
+// hook protocol: evidence goes only to the evidence file, because it is
+// unverified whether Claude Code tolerates unknown members.
+func runClaudeCode(e *engine, raw []byte, stdout, stderr io.Writer) (int, problem.Code) {
 	event, err := claudecode.Decode(raw)
 	if err != nil {
 		return 0, problem.InputInvalid
 	}
 
-	decision, err := policy.Evaluate(event)
-	if err != nil {
-		return 0, classifyEvaluateError(err)
+	decision, _, failure := e.decide(domain.HostClaudeCode, event)
+	if failure != "" {
+		return 0, failure
 	}
 
 	result, err := claudecode.Encode(event, decision)
@@ -192,18 +283,20 @@ func runClaudeCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) 
 	return result.ExitCode, ""
 }
 
-func runOpenCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) (int, problem.Code) {
+// runOpenCode answers the OpenCode shim, with the evidence record as an
+// additive evidence member of its answer.
+func runOpenCode(e *engine, raw []byte, stdout, stderr io.Writer) (int, problem.Code) {
 	event, err := opencode.Decode(raw)
 	if err != nil {
 		return 0, problem.InputInvalid
 	}
 
-	decision, err := policy.Evaluate(event)
-	if err != nil {
-		return 0, classifyEvaluateError(err)
+	decision, record, failure := e.decide(domain.HostOpenCode, event)
+	if failure != "" {
+		return 0, failure
 	}
 
-	result, err := opencode.Encode(event, decision)
+	result, err := opencode.EncodeWithEvidence(event, decision, record)
 	if err != nil {
 		return 0, problem.Internal
 	}

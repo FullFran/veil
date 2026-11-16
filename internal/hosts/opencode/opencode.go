@@ -135,11 +135,13 @@ func flattenFields(fields map[string]string) string {
 	return b.String()
 }
 
-// output is the JSON shape the OpenCode shim expects on stdout.
+// output is the JSON shape the OpenCode shim expects on stdout. Evidence
+// is additive and last: the shim reads only action, reason and args.
 type output struct {
-	Action string         `json:"action"`
-	Reason string         `json:"reason,omitempty"`
-	Args   map[string]any `json:"args,omitempty"`
+	Action   string          `json:"action"`
+	Reason   string          `json:"reason,omitempty"`
+	Args     map[string]any  `json:"args,omitempty"`
+	Evidence json.RawMessage `json:"evidence,omitempty"`
 }
 
 // EncodeResult is what the caller needs to actually respond to the shim:
@@ -159,21 +161,28 @@ const FailureExitCode = problem.ExitFailedClosed
 // problem.ExitDecision; the shim acts on the stdout action, and a nonzero
 // exit is reserved for failures.
 func Encode(event domain.Event, decision domain.Decision) (EncodeResult, error) {
+	return EncodeWithEvidence(event, decision, nil)
+}
+
+// EncodeWithEvidence is Encode with the decision's evidence record (one
+// JSON object, see internal/evidence) added as the evidence member. A nil
+// evidence omits the member.
+func EncodeWithEvidence(event domain.Event, decision domain.Decision, evidence json.RawMessage) (EncodeResult, error) {
 	switch decision.Kind {
 	case domain.Allow:
-		b, err := json.Marshal(output{Action: "allow"})
+		b, err := json.Marshal(output{Action: "allow", Evidence: evidence})
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("opencode: encode allow: %w", err)
 		}
 		return EncodeResult{Stdout: b, ExitCode: 0}, nil
 	case domain.Deny:
-		b, err := json.Marshal(output{Action: "deny", Reason: decision.Reason})
+		b, err := json.Marshal(output{Action: "deny", Reason: decision.Reason, Evidence: evidence})
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("opencode: encode deny: %w", err)
 		}
 		return EncodeResult{Stdout: b, ExitCode: problem.ExitDecision}, nil
 	case domain.Rewrite:
-		b, err := json.Marshal(output{Action: "rewrite", Args: rewriteArgs(event, decision)})
+		b, err := json.Marshal(output{Action: "rewrite", Args: rewriteArgs(event, decision), Evidence: evidence})
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("opencode: encode rewrite: %w", err)
 		}

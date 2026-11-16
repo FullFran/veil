@@ -7,6 +7,7 @@ import (
 	"flag"
 	"os"
 	"path/filepath"
+	"strings"
 	"testing"
 
 	"github.com/FullFran/veil/internal/policy"
@@ -50,10 +51,13 @@ func loadEquivalenceEvents(t *testing.T) []equivalenceEvent {
 }
 
 // runEvent runs one event through the CLI with a fresh pseudonym store,
-// so token numbering never depends on what ran before it.
+// so token numbering never depends on what ran before it. Its stdout is
+// recorded without the additive evidence member (see withoutEvidence).
 func runEvent(t *testing.T, e equivalenceEvent, policyPath string) runResult {
 	t.Helper()
 	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	t.Setenv("VEIL_EVIDENCE_FILE", "")
+	t.Setenv("VEIL_CATALOG_REVISION", "")
 	t.Setenv("VEIL_CATALOG", filepath.Join("testdata", "equivalence", "catalog.json"))
 	t.Setenv("VEIL_POLICY", policyPath)
 	if policyPath == "" {
@@ -61,7 +65,18 @@ func runEvent(t *testing.T, e equivalenceEvent, policyPath string) runResult {
 	}
 	var stdout, stderr bytes.Buffer
 	code := run([]string{e.Host}, bytes.NewReader(e.Payload), &stdout, &stderr)
-	return runResult{ExitCode: code, Stdout: stdout.String(), Stderr: stderr.String()}
+	return runResult{ExitCode: code, Stdout: withoutEvidence(stdout.String()), Stderr: stderr.String()}
+}
+
+// withoutEvidence cuts the opencode answer's evidence member, which is
+// always the last member and differs per run (id, time). Inside a JSON
+// string a quote is escaped, so the first `,"evidence":{` is the
+// top-level member. Everything before it must stay byte-identical.
+func withoutEvidence(stdout string) string {
+	if i := strings.Index(stdout, `,"evidence":{`); i >= 0 {
+		return stdout[:i] + "}"
+	}
+	return stdout
 }
 
 // TestRun_DefaultPolicy_Equivalence proves the embedded default policy is
