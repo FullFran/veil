@@ -1,0 +1,141 @@
+package main
+
+import (
+	"bytes"
+	"errors"
+	"os"
+	"path/filepath"
+	"strings"
+	"sync"
+	"testing"
+
+	"filippo.io/age"
+
+	"github.com/FullFran/veil/internal/problem"
+	"github.com/FullFran/veil/internal/pseudonymstore"
+)
+
+// TestMain swaps the OS keyring for an in-memory fake before any test
+// runs, so the suite never reads or writes the real keyring.
+func TestMain(m *testing.M) {
+	keyring = newFakeKeyring()
+	os.Exit(m.Run())
+}
+
+type fakeKeyring struct {
+	mu      sync.Mutex
+	secrets map[string]string
+	err     error
+}
+
+func newFakeKeyring() *fakeKeyring { return &fakeKeyring{secrets: map[string]string{}} }
+
+func (f *fakeKeyring) Get(service, account string) (string, error) {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.err != nil {
+		return "", f.err
+	}
+	s, ok := f.secrets[service+"/"+account]
+	if !ok {
+		return "", pseudonymstore.ErrKeyringNotFound
+	}
+	return s, nil
+}
+
+func (f *fakeKeyring) Set(service, account, secret string) error {
+	f.mu.Lock()
+	defer f.mu.Unlock()
+	if f.err != nil {
+		return f.err
+	}
+	f.secrets[service+"/"+account] = secret
+	return nil
+}
+
+// useKeyring gives one test its own keyring and restores the shared fake.
+func useKeyring(t *testing.T, kr pseudonymstore.Keyring) {
+	t.Helper()
+	previous := keyring
+	keyring = kr
+	t.Cleanup(func() { keyring = previous })
+}
+
+func sessionsDir() string {
+	return filepath.Join(os.Getenv("XDG_STATE_HOME"), "veil", "sessions")
+}
+
+// foreignSession writes sess-1 encrypted to a key no source will give.
+func foreignSession(t *testing.T) {
+	t.Helper()
+	id, err := age.GenerateX25519Identity()
+	if err != nil {
+		t.Fatal(err)
+	}
+	other := newFakeKeyring()
+	other.secrets[pseudonymstore.KeyringService+"/"+pseudonymstore.KeyringAccount] = id.String()
+	dir := sessionsDir()
+	store := pseudonymstore.NewFileStore(dir, &pseudonymstore.KeyChain{Keyring: other, LockPath: filepath.Join(dir, "key.lock")})
+	if _, err := store.Token("sess-1", "DNI", "12345678Z"); err != nil {
+		t.Fatal(err)
+	}
+}
+
+// TestRun_StoreFailures_ReportTheirCode covers each store failure the
+// binary raises from a hook call: each fails closed with its own code.
+func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
+	cases := []struct {
+		name     string
+		setup    func(t *testing.T)
+		wantCode problem.Code
+	}{
+		{"store locked", func(t *testing.T) {
+			if err := os.MkdirAll(sessionsDir(), 0o700); err != nil {
+				t.Fatal(err)
+			}
+			if err := os.WriteFile(filepath.Join(sessionsDir(), "sess-1.json.lock"), nil, 0o600); err != nil {
+				t.Fatal(err)
+			}
+		}, problem.StoreLocked},
+		{"key missing for an existing store", func(t *testing.T) {
+			useKeyring(t, newFakeKeyring())
+			foreignSession(t)
+			useKeyring(t, newFakeKeyring())
+		}, problem.StoreKeyMissing},
+		{"wrong key", func(t *testing.T) {
+			kr := newFakeKeyring()
+			useKeyring(t, kr)
+			foreignSession(t)
+			id, _ := age.GenerateX25519Identity()
+			kr.secrets[pseudonymstore.KeyringService+"/"+pseudonymstore.KeyringAccount] = id.String()
+		}, problem.StoreKeyInvalid},
+		{"malformed systemd credential", func(t *testing.T) {
+			creds := t.TempDir()
+			if err := os.WriteFile(filepath.Join(creds, pseudonymstore.CredentialName), []byte("hunter2"), 0o400); err != nil {
+				t.Fatal(err)
+			}
+			t.Setenv("CREDENTIALS_DIRECTORY", creds)
+		}, problem.StoreKeyInvalid},
+		{"host fd not a descriptor", func(t *testing.T) { t.Setenv(pseudonymstore.KeyFDEnv, "x") }, problem.StoreKeyMissing},
+		{"no keyring", func(t *testing.T) {
+			useKeyring(t, &fakeKeyring{secrets: map[string]string{}, err: errors.New("no D-Bus session")})
+		}, problem.StoreKeyringUnavailable},
+	}
+	for _, tc := range cases {
+		t.Run(tc.name, func(t *testing.T) {
+			t.Setenv("XDG_STATE_HOME", t.TempDir())
+			tc.setup(t)
+			var stdout, stderr bytes.Buffer
+
+			exitCode := run([]string{"opencode"}, strings.NewReader(dniTool), &stdout, &stderr)
+
+			if exitCode != ocFailed {
+				t.Fatalf("exitCode = %d, want %d", exitCode, ocFailed)
+			}
+			if stdout.Len() != 0 {
+				t.Fatalf("stdout = %q, want nothing on a failure", stdout.String())
+			}
+			assertProblem(t, stderr.String(), tc.wantCode)
+		})
+	}
+}

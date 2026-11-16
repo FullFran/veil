@@ -153,19 +153,121 @@ using it, not a clean reason the way Claude Code's exit-code-2 does.
   base64-alphabet characters) on a tool's output and denies it outright:
   there is no safe rewrite for content that cannot be inspected.
 - The pseudonym mapping (`internal/pseudonymstore`) is per-session, on
-  disk, in a 0600 file under `XDG_STATE_HOME/veil/sessions` (or the OS
-  temp dir). It exists because OpenCode's shim spawns a fresh `veil`
-  process per hook call, so an in-memory mapping could not survive
-  between calls. Losing that directory (e.g. a temp-dir cleanup mid
-  session) means veil mints fresh tokens from `-001` again for anything
-  seen again — it will not reuse a stale numbering, but it also will not
-  remember that `[DNI-001]` used to mean a specific DNI in an
-  already-completed conversation.
+  disk, encrypted, in a 0600 file under `XDG_STATE_HOME/veil/sessions` (or
+  the OS temp dir); see [The pseudonym store](#the-pseudonym-store). It
+  exists because OpenCode's shim spawns a fresh `veil` process per hook
+  call, so an in-memory mapping could not survive between calls. Losing
+  that directory (e.g. a temp-dir cleanup mid session) means veil mints
+  fresh tokens from `-001` again for anything seen again — it will not
+  reuse a stale numbering, but it also will not remember that `[DNI-001]`
+  used to mean a specific DNI in an already-completed conversation.
 - veil ships detectors for Spanish DNI/NIE (mod-23 checksum), IBAN
   (mod-97 checksum), email, Spanish phone numbers, a sensitive-file-path
   detector (`.env`, SSH private keys, and similar), a client name catalog
   (optional, see below), and unscannable binary/base64 tool output. It is
   not a general-purpose PII scanner.
+
+## The pseudonym store
+
+This is **pseudonymisation** in the sense of GDPR art. 4(5) and ISO/IEC
+20889, not anonymisation: the text the model sees is still personal data,
+and the store is the "additional information" that has to be kept
+separately, under technical measures. veil keeps it encrypted at rest.
+
+### Format
+
+Each session is one [age v1](https://c2sp.org/age) file
+(`age-encryption.org/v1`, Go library `filippo.io/age`) at
+`<state>/veil/sessions/<session>.age`, mode 0600, encrypted to one X25519
+recipient. The plaintext inside is a JSON mapping (`"version": 2`). No real
+value and no `category:original` key is on disk in clear. Writes go
+through a new temp file (created with `O_EXCL`, mode 0600, after removing
+any leftover or planted link), `fsync`, a rename and an `fsync` of the
+directory, so a write is durable when it returns, even across a power
+loss. A sibling `<session>.json.lock` (created with `O_EXCL`, 2 s
+deadline) serializes writers across processes.
+
+The sessions directory must be private: veil creates it 0700, tightens an
+existing one that group or others can reach to 0700, and fails closed
+with `VEIL_STORE_IO` if it belongs to another user (the OS temp-dir
+fallback is shared).
+
+### Key sources
+
+veil takes the store key, an age X25519 identity (`AGE-SECRET-KEY-1…`, the
+format `age-keygen` writes; comments allowed), from the first source that
+applies:
+
+1. **Host, by descriptor.** `VEIL_KEY_FD=<n>` names an inherited file
+   descriptor the host writes the identity to. Only the number travels in
+   the environment, never the key (`/proc/<pid>/environ` is readable by the
+   same user). The descriptor must be 3 or higher: 0, 1 and 2 are veil's
+   stdin (the hook event), stdout and stderr, and are rejected with
+   `VEIL_STORE_KEY_INVALID`. A host key always wins. If `VEIL_KEY_FD` is
+   set but gives no usable key, veil fails closed; it never falls back to
+   another source.
+2. **systemd credential.** `$CREDENTIALS_DIRECTORY/veil-store-key`, when
+   veil runs under a unit with `LoadCredential=veil-store-key:…` or
+   `LoadCredentialEncrypted=` (Linux). If the unit has credentials but not
+   this one, veil goes on to the keyring.
+3. **OS keyring** (Secret Service on Linux, Keychain on macOS, Credential
+   Manager on Windows; service `veil`, account `pseudonym-store-key`). veil
+   generates a key there on the first write, so standalone use (the Claude
+   Code hook) needs no setup. Reads never generate a key.
+4. **None of these** (for example a headless box with no D-Bus session):
+   veil fails closed and mints no marker.
+
+Every key failure denies the event with a typed problem
+([Failures](#failures)); none falls back to plaintext.
+
+| Failure | Code |
+| --- | --- |
+| No key for an existing store, or `VEIL_KEY_FD` unusable | `VEIL_STORE_KEY_MISSING` |
+| Key is not an age X25519 identity, does not open the file, or `VEIL_KEY_FD` is below 3 | `VEIL_STORE_KEY_INVALID` |
+| Session file fails to decrypt, authenticate or parse | `VEIL_STORE_CORRUPT` |
+| OS keyring unreachable | `VEIL_STORE_KEYRING_UNAVAILABLE` |
+| Lock held past the deadline | `VEIL_STORE_LOCKED` |
+
+### Commands
+
+Hosts read and delete a session's pseudonyms through veil, not by parsing
+or removing its files:
+
+```sh
+veil store reveal <session>   # stdout: {"markers":[{"marker":"[DNI-001]","category":"DNI","value":"12345678Z"}]}
+veil store forget <session>   # removes the session's store and its lock
+```
+
+- `reveal` prints every marker of the session and the real value it
+  stands for, sorted by category and number, for a host's own "what veil
+  hid" view. It needs the key, like any read. An unknown session prints
+  `{"markers":[]}`.
+- `forget` removes the session's age file, any v1 file, any interrupted
+  write (v1 or v2 temp file) and its lock,
+  holding the lock while it deletes. It needs no key. An unknown session
+  succeeds.
+- Both exit 0 on success, 1 with a problem line on a store failure, 2 on
+  bad arguments. Retention and TTL are not part of these commands yet.
+
+### Migration from v1
+
+veil before this format kept `<session>.json` in clear. On the first
+access to such a session veil reads it, writes it as `<session>.age`, and
+removes the plaintext file only once the encrypted file is durable; token numbers carry on where they were. A v1
+file that cannot be parsed fails closed with `VEIL_STORE_CORRUPT` and is
+left in place.
+
+### Threat model
+
+- **Protects against** reading the store files: an agent's own file or
+  shell tools, backups, sync clients, other applications, a copied
+  profile. Without the key, a session file reveals neither the values nor
+  which categories map to them.
+- **Does not protect against** a process of the same user that obtains the
+  key: one that asks the OS keyring for it, or reads the host's or veil's
+  memory. Real separation needs the host to keep the run's processes away
+  from both the key and the keyring (for HagaHarness, its sandbox), and to
+  pass the key by descriptor only to veil.
 
 ## Configuring the name catalog
 
@@ -390,6 +492,8 @@ Environment variables the plugin and binary read:
 | `VEIL_CATALOG`  | the `veil` binary (`cmd/veil`)     | Path to a name catalog file (JSON array or one-name-per-line). Optional.  |
 | `VEIL_POLICY`   | the `veil` binary (`cmd/veil`)     | Path to a policy file (see [Policy](#policy)). Optional; unset means the embedded default policy. |
 | `XDG_STATE_HOME`| the `veil` binary (`cmd/veil`)     | Base directory for the per-session pseudonym store. Falls back to the OS temp dir. |
+| `VEIL_KEY_FD`   | the `veil` binary (`cmd/veil`)     | Number of an inherited descriptor holding the store key (an age identity). Set by a host; wins over every other key source. See [Key sources](#key-sources). |
+| `CREDENTIALS_DIRECTORY` | the `veil` binary (`cmd/veil`) | Set by systemd; veil reads its `veil-store-key` credential. |
 | `VEIL_TIMEOUT_MS` | `adapters/opencode/veil-plugin.js` | Milliseconds to wait for one `veil` answer before failing closed. Defaults to 30000. |
 
 The plugin reads answers up to 64 MiB and never waits forever. When it
@@ -449,11 +553,11 @@ line on stderr is what tells a failure apart.
 | `VEIL_POLICY_UNREADABLE` | `policy-unreadable` | `VEIL_POLICY` set but the file cannot be read |
 | `VEIL_POLICY_INVALID` | `policy-invalid` | The policy is not one JSON document, breaks the schema, or is ambiguous |
 | `VEIL_CAPABILITY_UNSUPPORTED` | `capability-unsupported` | The host cannot enforce the decision (e.g. Claude Code tool-output redaction) |
-| `VEIL_STORE_KEY_MISSING` | `store-key-missing` | Pseudonym store key not configured (reserved for #5) |
-| `VEIL_STORE_KEY_INVALID` | `store-key-invalid` | Pseudonym store key malformed or wrong (reserved for #5) |
-| `VEIL_STORE_CORRUPT` | `store-corrupt` | A pseudonym session file cannot be parsed |
-| `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable (reserved for #5) |
-| `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline (reserved for #5; today reported as `VEIL_INTERNAL`) |
+| `VEIL_STORE_KEY_MISSING` | `store-key-missing` | No store key for an existing store, or `VEIL_KEY_FD` unusable |
+| `VEIL_STORE_KEY_INVALID` | `store-key-invalid` | Store key is not an age X25519 identity, or does not open the file |
+| `VEIL_STORE_CORRUPT` | `store-corrupt` | A session file cannot be decrypted, authenticated or parsed |
+| `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable |
+| `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline |
 | `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
 | `VEIL_EVIDENCE_WRITE` | `evidence-write` | Evidence sink unwritable (reserved for #6) |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
@@ -593,6 +697,14 @@ fail before the corresponding implementation was written. See
 can actually go red, including the capability-error test for Claude
 Code's tool-output-redaction gap, which is the most important test in the
 repository.
+
+No test touches the real OS keyring: the store's keyring is an interface
+and every test injects a fake. The one test against the real keyring is
+opt-in and skips when none is reachable:
+
+```bash
+VEIL_TEST_REAL_KEYRING=1 go test -run OSKeyring ./internal/pseudonymstore/
+```
 
 `test/e2e/opencode` is a separate, scripted acceptance test that drives a
 real, installed OpenCode CLI against a local mock model provider, since

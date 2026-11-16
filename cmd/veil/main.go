@@ -3,7 +3,8 @@
 // it against veil's privacy policy, and writes the host's expected
 // response to stdout/stderr with the matching exit code. A failure is one
 // RFC 9457 problem details line on stderr; the exit code carries only its
-// class (see internal/problem and the README).
+// class (see internal/problem and the README). `veil store reveal|forget
+// <session>` serves a host the pseudonym store instead (see store.go).
 package main
 
 import (
@@ -40,8 +41,18 @@ func newPolicy() (*domain.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := pseudonymstore.NewFileStore(pseudonymstore.DefaultDir())
-	return domain.NewPolicy(registry, store), nil
+	return domain.NewPolicy(registry, newStore()), nil
+}
+
+// keyring is the OS keyring the store key falls back to. Tests replace it
+// with a fake so they never touch the real keyring.
+var keyring pseudonymstore.Keyring = pseudonymstore.OSKeyring{}
+
+// newStore builds the pseudonym store under DefaultDir, with its key from
+// VEIL_KEY_FD, then $CREDENTIALS_DIRECTORY, then the OS keyring.
+func newStore() *pseudonymstore.FileStore {
+	dir := pseudonymstore.DefaultDir()
+	return pseudonymstore.NewFileStore(dir, pseudonymstore.NewKeyChainFromEnv(dir, keyring))
 }
 
 // hostProfile is one host veil can answer: how it handles an event and
@@ -63,7 +74,9 @@ var hostsByName = map[string]hostProfile{
 	"opencode":    {handle: runOpenCode, failureExit: opencode.FailureExitCode},
 }
 
-// run implements the CLI: it reads exactly one JSON event from stdin,
+// run implements the CLI: `policy` and `store` subcommands go to their
+// runners; otherwise
+// it reads exactly one JSON event from stdin,
 // dispatches on the requested host, and returns the process exit code.
 // Every failure is one RFC 9457 problem line on stderr (see
 // internal/problem) and nothing on stdout. It is split out from main so
@@ -71,6 +84,9 @@ var hostsByName = map[string]hostProfile{
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) >= 1 && args[0] == "policy" {
 		return runPolicy(args[1:], stdout, stderr)
+	}
+	if len(args) >= 1 && args[0] == "store" {
+		return runStore(args[1:], stdout, stderr)
 	}
 	if len(args) != 1 {
 		problem.Write(stderr, problem.New(problem.Usage))
@@ -117,6 +133,9 @@ func classifyEvaluateError(err error) problem.Code {
 	var syntax *json.SyntaxError
 	var mistyped *json.UnmarshalTypeError
 	var pathErr *fs.PathError
+	if code, ok := classifyStoreError(err); ok {
+		return code
+	}
 	switch {
 	case errors.As(err, &unsupported):
 		return problem.CapabilityUnsupported
@@ -127,6 +146,29 @@ func classifyEvaluateError(err error) problem.Code {
 	default:
 		return problem.Internal
 	}
+}
+
+// storeErrors maps each pseudonym store sentinel to its problem code.
+var storeErrors = []struct {
+	err  error
+	code problem.Code
+}{
+	{pseudonymstore.ErrLocked, problem.StoreLocked},
+	{pseudonymstore.ErrKeyMissing, problem.StoreKeyMissing},
+	{pseudonymstore.ErrKeyInvalid, problem.StoreKeyInvalid},
+	{pseudonymstore.ErrKeyringUnavailable, problem.StoreKeyringUnavailable},
+	{pseudonymstore.ErrCorrupt, problem.StoreCorrupt},
+}
+
+// classifyStoreError maps a pseudonym store failure to its problem code
+// by sentinel (errors.Is), never by message.
+func classifyStoreError(err error) (problem.Code, bool) {
+	for _, e := range storeErrors {
+		if errors.Is(err, e.err) {
+			return e.code, true
+		}
+	}
+	return "", false
 }
 
 func runClaudeCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) (int, problem.Code) {
