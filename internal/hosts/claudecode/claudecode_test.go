@@ -11,6 +11,7 @@ import (
 
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/hosts/claudecode"
+	"github.com/FullFran/veil/internal/problem"
 )
 
 func evaluate(t *testing.T, raw []byte) claudecode.EncodeResult {
@@ -237,5 +238,16 @@ func TestRoundTrip_PreToolUse_NestedInput_KeepsShape(t *testing.T) {
 	edit := edits[0].(map[string]any)
 	if edit["replace_all"] != true || edit["old_string"] != "x" {
 		t.Errorf("edit = %#v, want replace_all true and old_string kept", edit)
+	}
+}
+
+// TestFailureExitCode_BlocksTheEvent pins the exit code this host must
+// see for veil to fail closed: Claude Code treats every nonzero exit except 2 as non-blocking, so only 2 fails closed.
+func TestFailureExitCode_BlocksTheEvent(t *testing.T) {
+	if claudecode.FailureExitCode != 2 {
+		t.Fatalf("FailureExitCode = %d, want %d", claudecode.FailureExitCode, 2)
+	}
+	if claudecode.FailureExitCode == problem.ExitDecision {
+		t.Fatal("a failure must never exit with the decision class")
 	}
 }

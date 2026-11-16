@@ -3,7 +3,8 @@
 //
 // Unlike Claude Code, OpenCode plugins are in-process JS/TS modules: the
 // shim spawns the veil binary per tool call and communicates over
-// stdin/stdout, with the exit code signaling allow versus deny.
+// stdin/stdout: the decision is the stdout action, and a nonzero exit
+// code signals a failure (one problem line on stderr).
 //
 // This package intentionally has no decoder for a prompt-level event.
 // OpenCode exposes no hook that reaches the user's typed prompt at all
@@ -21,6 +22,7 @@ import (
 	"strings"
 
 	"github.com/FullFran/veil/internal/domain"
+	"github.com/FullFran/veil/internal/problem"
 )
 
 // rawInput mirrors the JSON the OpenCode shim sends on stdin. Args
@@ -147,9 +149,15 @@ type EncodeResult struct {
 	ExitCode int
 }
 
+// FailureExitCode is the exit code veil uses when it fails on this host:
+// the generic failed-closed class. The shim treats any nonzero exit as a
+// failure, reads the problem line from stderr and blocks the event.
+const FailureExitCode = problem.ExitFailedClosed
+
 // Encode turns a Decision into the exact bytes and exit code the OpenCode
-// shim expects. Exit code 0 means the tool call may proceed (allow or
-// rewrite); a non-zero exit code means the shim must throw to block it.
+// shim expects. Every decision (allow, deny or rewrite) exits with
+// problem.ExitDecision; the shim acts on the stdout action, and a nonzero
+// exit is reserved for failures.
 func Encode(event domain.Event, decision domain.Decision) (EncodeResult, error) {
 	switch decision.Kind {
 	case domain.Allow:
@@ -163,7 +171,7 @@ func Encode(event domain.Event, decision domain.Decision) (EncodeResult, error) 
 		if err != nil {
 			return EncodeResult{}, fmt.Errorf("opencode: encode deny: %w", err)
 		}
-		return EncodeResult{Stdout: b, ExitCode: 1}, nil
+		return EncodeResult{Stdout: b, ExitCode: problem.ExitDecision}, nil
 	case domain.Rewrite:
 		b, err := json.Marshal(output{Action: "rewrite", Args: rewriteArgs(event, decision)})
 		if err != nil {
