@@ -503,6 +503,102 @@ fails closed it throws an `Error` carrying the problem's `code` and `type`
 unchanged. On `tool.execute.after`, where throwing blocks nothing, it
 replaces the tool output with a notice naming the code instead.
 
+## Decision evidence
+
+Every decision (allow, deny or rewrite) produces one **evidence record**:
+what veil decided, under which policy, and which kinds of personal data
+it found, never what that data was. A host turns it into its own
+decision record (under HCS, HCS-0005-R010 requires one for every
+permission decision). Failures (see [Failures](#failures)) are not
+decisions and produce no record.
+
+### Channels
+
+| Channel | Host mode | How |
+| --- | --- | --- |
+| `evidence` member | `veil opencode` | An additive member of the answer on stdout: `{"action": …, "evidence": {…}}`. The OpenCode plugin reads only `action`, `reason` and `args`, so existing shims ignore it. |
+| JSONL file | both | Set `VEIL_EVIDENCE_FILE` to a file path: each record is appended as one JSON line (file created `0600`, one `O_APPEND` write per record, flushed before veil answers). |
+
+`veil claude-code` keeps its stdout exactly the hook protocol: it is
+unverified whether Claude Code tolerates unknown members, so on that host
+evidence is only written to `VEIL_EVIDENCE_FILE`.
+
+The record is written **before** veil answers. If `VEIL_EVIDENCE_FILE` is
+set and the record cannot be appended, veil writes nothing on stdout and
+fails closed with `VEIL_EVIDENCE_WRITE`: no decision is acted on without
+its record (mirrors HCS-0005-R012).
+
+### Format
+
+The record is a [CloudEvents 1.0.2](https://github.com/cloudevents/spec/blob/v1.0.2/cloudevents/spec.md)
+event in structured JSON mode whose `data` is an
+[OCSF 1.9.0](https://schema.ocsf.io/1.9.0/classes/data_security_finding)
+**Data Security Finding** (`class_uid` 2006):
+
+```json
+{
+  "specversion": "1.0",
+  "id": "3b57cbde-9b9f-44a5-bda4-ba8b9dc839f8",
+  "source": "tag:fullfran.github.io,2026:veil",
+  "type": "io.github.fullfran.veil.decision.v1",
+  "time": "2026-11-16T22:50:51.097751852Z",
+  "datacontenttype": "application/json",
+  "dataschema": "https://schema.ocsf.io/1.9.0/classes/data_security_finding",
+  "data": {
+    "category_uid": 2, "class_uid": 2006, "activity_id": 1, "type_uid": 200601,
+    "severity_id": 2, "time": 1794869451097,
+    "metadata": {"version": "1.9.0", "uid": "3b57cbde-…", "profiles": ["security_control"],
+                 "product": {"name": "veil", "vendor_name": "FullFran", "version": "(devel)"}},
+    "finding_info": {"uid": "3b57cbde-…", "title": "veil privacy decision"},
+    "action_id": 4, "action": "Modified", "disposition_id": 99, "disposition": "Pseudonymized",
+    "actor": {"app_name": "opencode", "session": {"uid": "ses_123"}},
+    "data_security": {
+      "detection_system_id": 10, "data_lifecycle_state_id": 2, "category_id": 1,
+      "policy": {"uid": "sha256:cc0a…", "name": "veil policy", "version": "1.0", "is_applied": true},
+      "discovery_details": [
+        {"type": "https://w3id.org/dpv/pd#OfficialID", "count": 2, "rule": {"uid": "dni", "name": "DNI"}}
+      ]
+    },
+    "duration": 0,
+    "unmapped": {"veil": {"schema": "1", "event": "ToolArgs", "tool": "bash", "catalog_revision": "clients:r42"}}
+  }
+}
+```
+
+| Member | Meaning |
+| --- | --- |
+| `action_id` / `disposition_id` | allow: 1 Allowed / 1 Allowed; deny: 2 Denied / 2 Blocked; rewrite: 4 Modified / 99 Other (`disposition` `Pseudonymized`) |
+| `severity_id` | 1 Informational (allow), 2 Low (rewrite), 3 Medium (deny): a fixed mapping, veil has no severity model |
+| `actor` | `app_name` is the host mode; `session.uid` the host's session id, when it sent one |
+| `data_security.policy.uid` | The policy digest (see [Policy](#policy)) |
+| `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
+| `data_security.category_id` | 1 Personal when any personal data detector fired, 6 Security when only `secret-path`/`binary-content` did, absent otherwise |
+| `duration` | Evaluation time in milliseconds |
+| `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision` |
+
+DPV 2.3 is a W3C Community Group report, not a W3C Standard, and has no
+DNI/NIE-specific concept: `rule.name` keeps veil's own label next to the
+DPV IRI.
+
+### Never included
+
+A record never contains a detected value (in clear, compacted, lowercased
+or masked), a pseudonym token, a hash or HMAC of a value, a field name or
+path, a deny reason, or any prompt, argument, output, history or system
+prompt text (HCS-0005-R011). `TestCorpus_NoEvidenceLeaks` checks this over
+every case of the Spanish evaluation corpus, and
+`TestRun_Evidence_NeverCarriesInput` over every host mode and event kind.
+
+### Catalog changes
+
+The policy digest covers the policy document and the catalog's *path*,
+never its names: a hash of a short list of client names can be reversed
+by trying candidate names, so veil never records one. A host that needs
+catalog changes in its records sets `VEIL_CATALOG_REVISION` to its own
+opaque revision of the catalog (1 to 128 characters from `A-Z a-z 0-9 . _
+: -`); veil records it as-is in `unmapped.veil.catalog_revision`. An
+invalid value blocks every event with `VEIL_CATALOG_REVISION_INVALID`.
+
 ## Failures
 
 When veil cannot make a decision it fails closed and reports why as one
@@ -559,7 +655,8 @@ line on stderr is what tells a failure apart.
 | `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable |
 | `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline |
 | `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
-| `VEIL_EVIDENCE_WRITE` | `evidence-write` | Evidence sink unwritable (reserved for #6) |
+| `VEIL_EVIDENCE_WRITE` | `evidence-write` | `VEIL_EVIDENCE_FILE` is set and the evidence record cannot be appended |
+| `VEIL_CATALOG_REVISION_INVALID` | `catalog-revision-invalid` | `VEIL_CATALOG_REVISION` is not an opaque token (`[A-Za-z0-9._:-]{1,128}`) |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
 | `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
 | `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |

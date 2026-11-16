@@ -16,9 +16,14 @@ import (
 )
 
 // TestMain swaps the OS keyring for an in-memory fake before any test
-// runs, so the suite never reads or writes the real keyring.
+// runs, so the suite never reads or writes the real keyring, and clears
+// the evidence variables a developer machine may set, so no test writes
+// evidence into a real file or fails on an ambient revision (tests that
+// need them use t.Setenv).
 func TestMain(m *testing.M) {
 	keyring = newFakeKeyring()
+	os.Unsetenv(evidenceFileEnv)
+	os.Unsetenv(catalogRevisionEnv)
 	os.Exit(m.Run())
 }
 
