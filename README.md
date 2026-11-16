@@ -91,15 +91,16 @@ to enforce a guarantee a host cannot provide returns an explicit
 
 | Capability                                       | Claude Code | OpenCode | ACS |
 | ------------------------------------------------- | :---------: | :------: | :-: |
-| Block or rewrite the typed prompt                 |     Yes     |   Yes    | No  |
+| Block or rewrite the typed prompt                 |     Yes     |   Yes    | Yes |
 | Block or rewrite a tool call's arguments          |     Yes     |   Yes    | Yes |
 | Redact or block a tool call's output               |     No      |   Yes    | Yes |
 | Rewrite conversation history resent to the model   |     No      |   Yes    | No  |
 | Rewrite the system prompt                          |     No      |   Yes    | No  |
 
-The ACS column covers only the hooks veil maps (see
-[Serving the Agent Control Standard](#serving-the-agent-control-standard-acs)):
-ACS has prompt and history hooks, but veil does not evaluate them yet.
+The ACS column covers the hooks veil maps (see
+[Serving the Agent Control Standard](#serving-the-agent-control-standard-acs)).
+No ACS 0.1.0 hook carries the history or system prompt resent to the
+model, so those rows stay No.
 
 This table changed from an earlier version of this README, which claimed
 OpenCode had no prompt-level hook at all and treated
@@ -658,9 +659,10 @@ replaces the tool output with a notice naming the code instead.
 
 `veil acs` makes veil a Guardian Agent for any agent framework that speaks
 the [OWASP Agent Control Standard](https://github.com/GenAI-Security-Project/agent-control-standard)
-(ACS) over stdio: the framework (the Observed Agent) asks veil before each
-tool call and after each tool result, and veil answers allow, deny or
-modify. It speaks ACS **0.1.0**, pinned to an upstream commit with every
+(ACS) over stdio: the framework (the Observed Agent) asks veil before
+any text from outside the model enters its context (a user message, an
+inbound trigger, a retrieval, a tool result) and before each tool call,
+and veil answers allow, deny or modify. It speaks ACS **0.1.0**, pinned to an upstream commit with every
 vendored file's sha256 (`internal/hosts/acs/v0_1/spec/`, see its
 `SOURCE.md`).
 
@@ -679,15 +681,19 @@ every vendored example).
 
 | ACS | veil |
 | --- | --- |
+| `steps/agentTrigger` | `PromptSubmit` event over `trigger_source` and `intent.raw` |
+| `steps/userMessage` | `PromptSubmit` event over the content values, keyed `content.<index>` |
+| `steps/knowledgeRetrieval` | `ToolOutput` event (tool `knowledgeRetrieval`) over the result values, keyed `results.<index>` |
+| `steps/memoryContextRetrieval` | `ToolOutput` event (tool `memoryContextRetrieval`) over the result values, keyed `results.<index>` |
 | `steps/toolCallRequest` | `ToolArgs` event over the unwrapped argument values (`arguments.<name>.value`) |
 | `steps/toolCallResult` | `ToolOutput` event over the output values, keyed `outputs.<index>` |
 | `metadata.session_id` | the pseudonym session |
 | Allow | `allow` |
 | Deny | `deny`, the policy's reason in `reasoning` |
 | Rewrite of arguments | `modify` with `parameter_overrides` for each top-level argument that changed |
-| Rewrite of output | `modify` with `redactions`, one JSON pointer per changed value (`/outputs/<i>/value/...`) |
+| Rewrite of anything else | `modify` with `redactions`, one JSON pointer into the payload per changed value (`/content/<i>/value`, `/results/<i>/value/...`, `/outputs/<i>/value/...`, `/trigger_source/...`, `/intent/raw`) |
 | Decision evidence | `policy_data.veil.evidence`, the same record as [Decision evidence](#decision-evidence) |
-| `handshake/hello` | `ServerHello`: `negotiated_version` `0.1.0`, `methods_evaluated` = the two hooks above the client implements, `on_decision_failure` `deny`, `skew_window_ms` 300000 |
+| `handshake/hello` | `ServerHello`: `negotiated_version` `0.1.0`, `methods_evaluated` = the six hooks above that the client implements, in that order, `on_decision_failure` `deny`, `skew_window_ms` 300000 |
 | `system/ping` | always `allow` with `payload.status` `ok`, never a signature requirement |
 | Any other method | error -32003 `VEIL_ACS_METHOD_UNSUPPORTED` |
 
@@ -759,19 +765,73 @@ the specification's own example.
 - **No session chain.** veil keeps no `chain_hash` and needs no prior
   handshake; replays are detected only within one `veil acs` process, so
   a bare one-message invocation cannot detect them.
-- **Two hooks.** Only `steps/toolCallRequest` and `steps/toolCallResult`
-  are evaluated; ACS lets the Observed Agent treat a method missing from
-  `methods_evaluated` as allowed, so the other hooks are outside veil's
-  guarantee.
+- **Six hooks.** veil evaluates every 0.1.0 hook whose payload carries
+  text that enters the model's context from outside it, plus the tool
+  call. ACS lets the Observed Agent treat a method missing from
+  `methods_evaluated` as allowed, so the hooks left out are outside veil's
+  guarantee, each for a reason:
+  - `steps/agentResponse`: model output on its way to the user. It has
+    already left the provider, so redacting it protects nothing from the
+    provider; giving the user back the real values behind veil's
+    pseudonyms is a separate feature, not a redaction.
+  - `steps/sessionStart`: `user_identity` and `platform_context` describe
+    the session to the Guardian and are not model input; its `intent` is
+    carried again on `steps/agentTrigger`, the first content-bearing hook,
+    which veil evaluates.
+  - `steps/turnStart`, `steps/skillLoad`, `steps/preCompact`,
+    `steps/subagentStop`, `steps/turnEnd`, `steps/sessionEnd`: identifiers,
+    enums, digests and counts, no free text (the `summary` of the last
+    three is audit only, model-generated, and decision-ineligible).
+  - `steps/subagentStart`: `subagent_intent` is governance metadata for
+    intent-based access control; the subagent's task reaches it through the
+    delegating `steps/toolCallRequest` and its own session's hooks, which
+    veil evaluates (an inference from the hook descriptions, not stated by
+    the specification).
+  - `steps/skillRegister`: the skill body is an author-supplied artifact,
+    not user data, and its approval is bound to its digest, which a
+    redaction would break.
+  - `steps/postCompact`: the summary is model-generated from steps veil
+    already evaluated.
+  - `steps/memoryStore`: a write to the agent's memory, not the model; it
+    reaches the model only through `steps/memoryContextRetrieval`.
+  - The `query` of the two retrieval hooks: generated by the agent from its
+    context and sent to the knowledge source, not to the model.
+  - `agbom/*`: component inventory, not model input.
+  
+  The acs-provenance variants of the evaluated hook schemas only make
+  `provenance` required; the payload is the same, so veil validates every
+  request against the base schema, which accepts both.
+- **Non-text content.** Image, audio and file items of a user message are
+  scanned only as the JSON value the client sends (a URL or encoded
+  bytes); veil does not read text inside images or audio.
+- **Redactions with the reference adapters.** The Python reference
+  adapters at the pinned commit (Claude Code, Cursor, NVIDIA NAT) turn a
+  `modify` carrying `redactions` into a deny because their hosts cannot
+  apply one, so with them a veil rewrite blocks the step instead of
+  pseudonymizing it. It never lets the value through.
 - **HMAC only.** No asymmetric or post-quantum algorithms.
 - **stdio only.** No HTTP transport.
+- **OCSF trace mapping.** `trace/ocsf-mapping.json` is normative for a
+  deployment that emits OCSF for the ACS Trace pillar: decisions as
+  Detection Finding (2004), allows as Application Lifecycle (6002), joined
+  by `unmapped.acs`. veil does not claim the Trace pillar. Its evidence in
+  `policy_data.veil.evidence` is veil's own record, a Data Security
+  Finding (2006), shared with every host. It agrees with the ACS mapping on
+  `action_id` (allow 1, deny 2, modify 4) and `disposition_id` (allow 1,
+  deny 2, modify 99) and on the severity of allow (1) and modify (2). It
+  differs on the class, on the severity of deny (3, High, where ACS uses
+  4), on the `disposition` caption of a rewrite (`Pseudonymized`, where
+  ACS uses the disposition name), and it carries no `unmapped.acs` join
+  fields. A Trace emitter can derive the ACS events from the response,
+  which holds the `request_id`, decision and reasoning.
 - **Integers.** Like the `rfc8785` reference, integer literals of
   magnitude 2^53 or more cannot be signed; such a signed request is
   refused.
 
 Unverified: which document a `redactions` pointer is relative to is not
 normative in 0.1.0. veil follows the reference AGT adapter, where pointers
-on a tool result address the payload (`/outputs/0/value`).
+on a tool result address the payload (`/outputs/0/value`), and applies the
+same rule to every hook.
 
 ### Pinning a new ACS version
 
