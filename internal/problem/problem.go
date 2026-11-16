@@ -64,6 +64,29 @@ const (
 	// CatalogRevisionInvalid: VEIL_CATALOG_REVISION is set but is not an
 	// opaque token ([A-Za-z0-9._:-]{1,128}).
 	CatalogRevisionInvalid Code = "VEIL_CATALOG_REVISION_INVALID"
+	// ACSVersionUnsupported: an ACS message declares an acs_version veil
+	// has no adapter for (JSON-RPC -32001 UNSUPPORTED_VERSION).
+	ACSVersionUnsupported Code = "VEIL_ACS_VERSION_UNSUPPORTED"
+	// ACSRequestInvalid: an ACS message is a batch or does not validate
+	// against the vendored ACS schema for its envelope or its method's
+	// payload (JSON-RPC -32600 or -32602).
+	ACSRequestInvalid Code = "VEIL_ACS_REQUEST_INVALID"
+	// ACSMethodUnsupported: an ACS method veil does not evaluate
+	// (JSON-RPC -32003 CAPABILITY_NOT_NEGOTIATED).
+	ACSMethodUnsupported Code = "VEIL_ACS_METHOD_UNSUPPORTED"
+	// ACSSignatureInvalid: an ACS request's signature is missing while a
+	// secret is configured, names an unknown key_id or algorithm, or does
+	// not verify (JSON-RPC -32004 SIGNATURE_INVALID).
+	ACSSignatureInvalid Code = "VEIL_ACS_SIGNATURE_INVALID"
+	// ACSReplay: an ACS request_id was already seen in the session
+	// (JSON-RPC -32005 REPLAY_DETECTED).
+	ACSReplay Code = "VEIL_ACS_REPLAY"
+	// ACSTimestampOutOfWindow: an ACS request's timestamp is outside the
+	// skew window (JSON-RPC -32006 TIMESTAMP_OUT_OF_WINDOW).
+	ACSTimestampOutOfWindow Code = "VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW"
+	// ACSKeyInvalid: the ACS HMAC secret configuration is incomplete,
+	// unreadable or too short.
+	ACSKeyInvalid Code = "VEIL_ACS_KEY_INVALID"
 	// Timeout: raised by the OpenCode plugin when the binary does not
 	// answer in time.
 	Timeout Code = "VEIL_TIMEOUT"
@@ -116,6 +139,13 @@ var titles = map[Code]string{
 	StoreIO:                 "Pseudonym store cannot be read or written",
 	EvidenceWrite:           "Evidence cannot be written",
 	CatalogRevisionInvalid:  "Catalog revision is invalid",
+	ACSVersionUnsupported:   "ACS version is not supported",
+	ACSRequestInvalid:       "ACS request is invalid",
+	ACSMethodUnsupported:    "ACS method is not evaluated",
+	ACSSignatureInvalid:     "ACS signature is invalid",
+	ACSReplay:               "ACS request was replayed",
+	ACSTimestampOutOfWindow: "ACS timestamp is out of window",
+	ACSKeyInvalid:           "ACS secret is invalid",
 	Timeout:                 "veil did not answer in time",
 	OutputTooLarge:          "veil answer is too large",
 	Unavailable:             "veil is unavailable",
@@ -123,7 +153,7 @@ var titles = map[Code]string{
 }
 
 var details = map[Code]string{
-	Usage:                   "Run veil with exactly one host argument (claude-code or opencode), or as veil policy [file].",
+	Usage:                   "Run veil with exactly one host argument (claude-code, opencode or acs), or as veil policy [file] or veil store reveal|forget <session>.",
 	InputInvalid:            "stdin must hold exactly one JSON event of a kind the host adapter supports.",
 	CatalogUnreadable:       "The name catalog (VEIL_CATALOG or the policy's catalog.path) cannot be read or parsed.",
 	PolicyUnreadable:        "VEIL_POLICY is set but the file cannot be read.",
@@ -138,6 +168,13 @@ var details = map[Code]string{
 	StoreIO:                 "The pseudonym store directory or a session file cannot be read or written.",
 	EvidenceWrite:           "The evidence sink cannot be written, so veil fails closed.",
 	CatalogRevisionInvalid:  "VEIL_CATALOG_REVISION must be an opaque token of 1 to 128 characters from A-Z, a-z, 0-9, '.', '_', ':' and '-'.",
+	ACSVersionUnsupported:   "The message's acs_version has no veil adapter; data.supported_versions lists the versions veil speaks.",
+	ACSRequestInvalid:       "The message is a batch or does not validate against the vendored ACS schema for its envelope or its method's payload.",
+	ACSMethodUnsupported:    "veil does not evaluate this ACS method, so it fails closed instead of allowing it.",
+	ACSSignatureInvalid:     "The ACS signature is missing while a secret is configured, names an unknown key_id or algorithm, or does not verify.",
+	ACSReplay:               "This request_id was already seen in the session.",
+	ACSTimestampOutOfWindow: "The request timestamp is outside the skew window; data.skew_window_ms carries the window.",
+	ACSKeyInvalid:           "VEIL_ACS_KEY_ID and a secret of at least 32 bytes (base64, from VEIL_ACS_KEY_FD or the veil-acs-key credential) must be set together.",
 	Timeout:                 "The veil binary did not answer before the deadline.",
 	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
 	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
@@ -149,6 +186,8 @@ var all = []Code{
 	Usage, InputInvalid, CatalogUnreadable, PolicyUnreadable, PolicyInvalid, CapabilityUnsupported,
 	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, SessionRetired, StoreIO,
 	EvidenceWrite, CatalogRevisionInvalid,
+	ACSVersionUnsupported, ACSRequestInvalid, ACSMethodUnsupported, ACSSignatureInvalid,
+	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,
 }
