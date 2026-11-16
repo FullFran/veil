@@ -2,6 +2,9 @@
 
 # veil
 
+[![ci](https://github.com/FullFran/veil/actions/workflows/ci.yml/badge.svg)](https://github.com/FullFran/veil/actions/workflows/ci.yml)
+[![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/FullFran/veil/badge)](https://scorecard.dev/viewer/?uri=github.com/FullFran/veil)
+
 A host-agnostic privacy guard for AI coding agents. It inspects what an
 agent is about to do and blocks or redacts personal data before it leaves
 the machine.
@@ -236,6 +239,59 @@ The workflow runs on every `v*` tag push. To publish assets for a tag that
 already exists, run it by hand (`gh workflow run release.yml -f tag=v0.1.0`);
 it builds that tag's sources and does not move the tag.
 
+### Verifying a release
+
+Releases built by the current workflow also publish two supply-chain files.
+They are not listed in `SHA256SUMS`, so the digests of the other assets stay
+the same:
+
+- `veil.intoto.jsonl`: [SLSA](https://slsa.dev/spec/v1.0/provenance)
+  build provenance v1 for every asset in `SHA256SUMS`, as an in-toto
+  statement in a [Sigstore](https://www.sigstore.dev/) bundle signed with the
+  release workflow's GitHub identity. The same attestation is stored in the
+  repository's [attestations](https://github.com/FullFran/veil/attestations).
+  It is generated in the same job as the build, which is SLSA Build Level 2.
+- `SHA256SUMS.sigstore.json`: a keyless Sigstore (cosign) signature of
+  `SHA256SUMS`.
+
+Releases published before this workflow change (such as v0.1.0) have
+neither file.
+
+A host checks provenance before it pins an asset's sha256. With the
+[GitHub CLI](https://cli.github.com/) (a release with `gh attestation`):
+
+```bash
+TAG=v0.3.0   # the release you are pinning
+gh release download "$TAG" --repo FullFran/veil \
+  --pattern veil-linux-amd64 --pattern veil.intoto.jsonl
+gh attestation verify veil-linux-amd64 \
+  --repo FullFran/veil \
+  --bundle veil.intoto.jsonl \
+  --signer-workflow FullFran/veil/.github/workflows/release.yml \
+  --source-ref "refs/tags/$TAG" \
+  --deny-self-hosted-runners
+sha256sum veil-linux-amd64   # the digest to pin
+```
+
+Leave out `--bundle veil.intoto.jsonl` to fetch the attestation from GitHub
+instead of the release. `--source-ref` holds for releases built by a tag
+push; a release rebuilt by hand runs from `main`, so use
+`--source-ref refs/heads/main` for it.
+
+To check every asset with [cosign](https://docs.sigstore.dev/cosign/) (v3, the
+version that signs it) and the checksum file alone:
+
+```bash
+gh release download "$TAG" --repo FullFran/veil
+cosign verify-blob SHA256SUMS \
+  --bundle SHA256SUMS.sigstore.json \
+  --certificate-identity-regexp '^https://github\.com/FullFran/veil/\.github/workflows/release\.yml@refs/(tags/v[0-9].*|heads/main)$' \
+  --certificate-oidc-issuer https://token.actions.githubusercontent.com
+sha256sum --check SHA256SUMS
+```
+
+The release workflow runs both checks on the files before it publishes them.
+
 ## Installing on OpenCode
 
 Build the binary (or download a prebuilt one, above), then wire the shim
@@ -352,6 +408,27 @@ the model provider (HCS-0008-R020) and the operation is denied
 (HCS-0005-R014).
 
 ## Development
+
+Every pull request runs `.github/workflows/ci.yml`: `gofmt -l`, `go vet`,
+`go test` (which includes `TestDomainImportsNoHostAdapter`, failing if
+`internal/domain` depends on any `internal/hosts/...` package), the plugin
+test, and an architecture gate: an [archsieve](https://github.com/FullFran/archsieve)
+snapshot of the base and of the head, compared with
+`archsieve diff --fail-on error`. The diff is in the job summary and the
+snapshots are uploaded as an artifact. The
+[OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/FullFran/veil)
+runs weekly and on every push to `main`. To report a vulnerability, see
+[`.github/SECURITY.md`](.github/SECURITY.md).
+
+To run the architecture gate locally (archsieve is not on npm; Node.js 22+):
+
+```bash
+git clone --depth 1 --branch v0.6.0 https://github.com/FullFran/archsieve /tmp/archsieve
+(cd /tmp/archsieve && npm ci --omit=dev --ignore-scripts)
+node /tmp/archsieve/bin/archsieve.mjs scan . --ref origin/main -o /tmp/base.json
+node /tmp/archsieve/bin/archsieve.mjs scan . --ref HEAD -o /tmp/head.json
+node /tmp/archsieve/bin/archsieve.mjs diff /tmp/base.json /tmp/head.json --format md --fail-on error
+```
 
 ```bash
 go test ./...

@@ -1,0 +1,122 @@
+# Pull request checks: formatting, vet, Go tests (including the domain import
+# rule in internal/domain/imports_test.go), the OpenCode plugin test, and an
+# architecture gate that compares archsieve snapshots of the base and the head.
+name: ci
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: ci-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  go:
+    name: go (gofmt, vet, test)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: gofmt
+        run: |
+          unformatted="$(gofmt -l .)"
+          if [ -n "$unformatted" ]; then
+            echo "These files need gofmt:" >&2
+            echo "$unformatted" >&2
+            exit 1
+          fi
+
+      - name: go vet
+        run: go vet ./...
+
+      - name: go test
+        run: go test -count=1 ./...
+
+  plugin:
+    name: opencode plugin test
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: node --test
+        run: node --test adapters/opencode/veil-plugin.test.mjs
+
+  architecture:
+    name: architecture gate (archsieve)
+    if: github.event_name == 'pull_request'
+    runs-on: ubuntu-latest
+    env:
+      # archsieve is not published on npm; it is checked out from git at the
+      # commit of its v0.6.0 tag, and its dependencies come from its lockfile.
+      ARCHSIEVE_REF: 41a2bf85b866ae0765c11c46c5b86d031b5d9860 # v0.6.0
+      BASE_SHA: ${{ github.event.pull_request.base.sha }}
+      HEAD_SHA: ${{ github.event.pull_request.head.sha }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          path: veil
+          fetch-depth: 0
+          persist-credentials: false
+
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          repository: FullFran/archsieve
+          ref: ${{ env.ARCHSIEVE_REF }}
+          path: archsieve
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: veil/go.mod
+          cache: false
+
+      - uses: actions/setup-node@949feb2413d6458794dcd2491c4babbbce0c15c1 # v7.1.0
+        with:
+          node-version: "22"
+
+      - name: Install archsieve
+        working-directory: archsieve
+        run: npm ci --omit=dev --ignore-scripts --no-audit --no-fund
+
+      - name: Snapshot base and head
+        run: |
+          mkdir -p snapshots
+          node archsieve/bin/archsieve.mjs scan veil --ref "$BASE_SHA" -o snapshots/base.json
+          node archsieve/bin/archsieve.mjs scan veil --ref "$HEAD_SHA" -o snapshots/head.json
+
+      - name: Diff (fails on new error findings)
+        run: |
+          set +e
+          node archsieve/bin/archsieve.mjs diff snapshots/base.json snapshots/head.json \
+            --format md -o snapshots/diff.md --fail-on error
+          status=$?
+          set -e
+          cat snapshots/diff.md >> "$GITHUB_STEP_SUMMARY"
+          exit "$status"
+
+      - name: Upload snapshots
+        if: always()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: archsieve-snapshots
+          path: snapshots/
+          retention-days: 14
+          if-no-files-found: ignore
