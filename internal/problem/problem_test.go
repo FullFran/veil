@@ -16,6 +16,8 @@ var wantCodes = []Code{
 	Usage,
 	InputInvalid,
 	CatalogUnreadable,
+	PolicyUnreadable,
+	PolicyInvalid,
 	CapabilityUnsupported,
 	StoreKeyMissing,
 	StoreKeyInvalid,

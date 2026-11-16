@@ -28,8 +28,15 @@ const (
 	Usage Code = "VEIL_USAGE"
 	// InputInvalid: stdin is not exactly one valid event for the host.
 	InputInvalid Code = "VEIL_INPUT_INVALID"
-	// CatalogUnreadable: VEIL_CATALOG is set but cannot be read or parsed.
+	// CatalogUnreadable: the name catalog (VEIL_CATALOG or the policy's
+	// catalog.path) cannot be read or parsed.
 	CatalogUnreadable Code = "VEIL_CATALOG_UNREADABLE"
+	// PolicyUnreadable: VEIL_POLICY is set but the file cannot be read.
+	PolicyUnreadable Code = "VEIL_POLICY_UNREADABLE"
+	// PolicyInvalid: the policy is not one JSON document, does not
+	// validate against the policy schema, or is ambiguous (for example
+	// VEIL_CATALOG and the policy's catalog.path are both set).
+	PolicyInvalid Code = "VEIL_POLICY_INVALID"
 	// CapabilityUnsupported: the host cannot enforce the decision veil
 	// would have to make (for example tool-output redaction on Claude Code).
 	CapabilityUnsupported Code = "VEIL_CAPABILITY_UNSUPPORTED"
@@ -90,6 +97,8 @@ var titles = map[Code]string{
 	Usage:                   "Invalid command-line usage",
 	InputInvalid:            "Input is not one valid event",
 	CatalogUnreadable:       "Name catalog cannot be loaded",
+	PolicyUnreadable:        "Policy file cannot be read",
+	PolicyInvalid:           "Policy is invalid",
 	CapabilityUnsupported:   "Host cannot enforce the decision",
 	StoreKeyMissing:         "Pseudonym store key is missing",
 	StoreKeyInvalid:         "Pseudonym store key is invalid",
@@ -105,9 +114,11 @@ var titles = map[Code]string{
 }
 
 var details = map[Code]string{
-	Usage:                   "Run veil with exactly one host argument: claude-code or opencode.",
+	Usage:                   "Run veil with exactly one host argument (claude-code or opencode), or as veil policy [file].",
 	InputInvalid:            "stdin must hold exactly one JSON event of a kind the host adapter supports.",
-	CatalogUnreadable:       "VEIL_CATALOG is set but the file cannot be read or parsed.",
+	CatalogUnreadable:       "The name catalog (VEIL_CATALOG or the policy's catalog.path) cannot be read or parsed.",
+	PolicyUnreadable:        "VEIL_POLICY is set but the file cannot be read.",
+	PolicyInvalid:           "The policy does not validate against the veil policy schema or is ambiguous; veil does not fall back to the default policy.",
 	CapabilityUnsupported:   "This host cannot enforce a deny or rewrite for this event, so veil fails closed.",
 	StoreKeyMissing:         "The pseudonym store needs an encryption key and none is configured.",
 	StoreKeyInvalid:         "The configured pseudonym store key is malformed or does not open the store.",
@@ -124,7 +135,7 @@ var details = map[Code]string{
 
 // all fixes the order All returns.
 var all = []Code{
-	Usage, InputInvalid, CatalogUnreadable, CapabilityUnsupported,
+	Usage, InputInvalid, CatalogUnreadable, PolicyUnreadable, PolicyInvalid, CapabilityUnsupported,
 	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, StoreIO,
 	EvidenceWrite,
 	Timeout, OutputTooLarge, Unavailable,

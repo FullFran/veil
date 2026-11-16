@@ -1,0 +1,12 @@
+{
+  "version": "1.0",
+  "detectors": {
+    "dni": { "action": "rewrite" },
+    "iban": { "action": "rewrite" },
+    "email": { "action": "rewrite" },
+    "phone": { "action": "rewrite" },
+    "secret-path": { "action": "deny" },
+    "binary-content": { "action": "deny" },
+    "name-catalog": { "action": "rewrite" }
+  }
+}

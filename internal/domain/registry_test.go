@@ -50,3 +50,13 @@ func TestRegistry_Register_AddsDetector(t *testing.T) {
 		t.Fatalf("findings = %+v, want a single finding with reason %q", findings, "z")
 	}
 }
+
+func TestRegistry_Detectors_InRegistrationOrder(t *testing.T) {
+	registry := domain.NewRegistry(stubDetector{name: "a"}, stubDetector{name: "b"})
+	registry.Register(stubDetector{name: "c"})
+
+	got := registry.Detectors()
+	if len(got) != 3 || got[0].Name() != "a" || got[1].Name() != "b" || got[2].Name() != "c" {
+		t.Fatalf("Detectors() = %v, want a, b, c", got)
+	}
+}
