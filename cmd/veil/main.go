@@ -3,7 +3,8 @@
 // it against veil's privacy policy, and writes the host's expected
 // response to stdout/stderr with the matching exit code. A failure is one
 // RFC 9457 problem details line on stderr; the exit code carries only its
-// class (see internal/problem and the README).
+// class (see internal/problem and the README). `veil store reveal|forget
+// <session>` serves a host the pseudonym store instead (see store.go).
 package main
 
 import (
@@ -73,7 +74,9 @@ var hostsByName = map[string]hostProfile{
 	"opencode":    {handle: runOpenCode, failureExit: opencode.FailureExitCode},
 }
 
-// run implements the CLI: it reads exactly one JSON event from stdin,
+// run implements the CLI: `policy` and `store` subcommands go to their
+// runners; otherwise
+// it reads exactly one JSON event from stdin,
 // dispatches on the requested host, and returns the process exit code.
 // Every failure is one RFC 9457 problem line on stderr (see
 // internal/problem) and nothing on stdout. It is split out from main so
@@ -81,6 +84,9 @@ var hostsByName = map[string]hostProfile{
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) >= 1 && args[0] == "policy" {
 		return runPolicy(args[1:], stdout, stderr)
+	}
+	if len(args) >= 1 && args[0] == "store" {
+		return runStore(args[1:], stdout, stderr)
 	}
 	if len(args) != 1 {
 		problem.Write(stderr, problem.New(problem.Usage))
