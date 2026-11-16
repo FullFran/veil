@@ -29,6 +29,7 @@
 {"id": "iban-010", "tags": ["invalid-checksum", "separated"], "text": "Comprueba ES12 2100 0418 4502 0005 1332, falla el dígito."}
 {"id": "iban-011", "tags": ["near-miss"], "text": "Código de producto AB12CDEFGHIJ0123 en el catálogo."}
 {"id": "iban-012", "tags": ["near-miss"], "text": "Expediente ES-2024-000123-ADM pendiente."}
+{"id": "iban-013", "tags": ["foreign", "separated"], "text": "Payee in London: [[IBAN:GB82 WEST 1234 5698 7654 32]], reference 7."}
 {"id": "email-001", "tags": ["valid"], "text": "Escríbeme a [[EMAIL:lucia.martin@example.com]]."}
 {"id": "email-002", "tags": ["valid"], "text": "CC: [[EMAIL:rrhh+nominas@empresa.example.es]], [[EMAIL:j_ortiz@correo.example.org]]"}
 {"id": "email-003", "tags": ["valid", "unicode"], "text": "Contacto → [[EMAIL:soporte@ejemplo.example]] 📧"}
@@ -36,6 +37,7 @@
 {"id": "email-005", "tags": ["near-miss"], "text": "Versión paquete@1.2.3 publicada."}
 {"id": "email-006", "tags": ["valid", "angle"], "text": "De: Gestoría <[[EMAIL:info@gestoria.example.com]]>"}
 {"id": "email-007", "tags": ["idn"], "text": "Correo [[EMAIL:josé@dominio.example.es]] con tilde."}
+{"id": "email-008", "tags": ["idn", "smtputf8"], "text": "Escribe a [[EMAIL:ñandú.pérez@bücher.example.de]] mañana."}
 {"id": "tel-001", "tags": ["valid"], "text": "Llámame al [[TEL:612345678]]."}
 {"id": "tel-002", "tags": ["valid", "prefix"], "text": "Móvil [[TEL:+34612345679]] de guardia."}
 {"id": "tel-003", "tags": ["separated", "prefix"], "text": "Teléfono: [[TEL:+34 600 123 456]]"}
@@ -51,6 +53,8 @@
 {"id": "tel-013", "tags": ["near-miss", "digit-run"], "text": "Lote 600 123 456 789 012 en el inventario."}
 {"id": "tel-014", "tags": ["near-miss"], "text": "Código postal 41001 y portal 6."}
 {"id": "tel-015", "tags": ["near-miss", "timestamp"], "text": "Marca de tiempo 1700000000 en el log."}
+{"id": "tel-016", "tags": ["parenthesized", "prefix-0034"], "text": "Llamar al [[TEL:(0034) 699-123-458]] por la tarde."}
+{"id": "tel-017", "tags": ["near-miss", "dot-grouped-count"], "text": "Población estimada: 712.345.678 habitantes."}
 {"id": "nombre-001", "tags": ["catalog"], "text": "Reunión con [[NOMBRE:María Pérez]] el lunes."}
 {"id": "nombre-002", "tags": ["catalog", "case"], "text": "ESCRIBE A [[NOMBRE:JUAN GARCIA]] HOY"}
 {"id": "nombre-003", "tags": ["catalog", "unicode"], "text": "¿Has hablado con [[NOMBRE:José Ángel Núñez]]? 👍"}
@@ -61,6 +65,7 @@
 {"id": "nombre-008", "tags": ["near-miss", "compound"], "text": "La empresa Juan Garcíazar S.L. no es una persona."}
 {"id": "nombre-009", "tags": ["catalog", "compound-surname"], "text": "Habla con [[NOMBRE:Juan García-López]]."}
 {"id": "nombre-010", "tags": ["near-miss"], "text": "Calle María Pérez de la Rosa no aplica: es una calle."}
+{"id": "nombre-011", "tags": ["catalog", "compound-surname", "overlap"], "text": "[[NOMBRE:Juan García]] no es [[NOMBRE:Juan García-López]] ni [[NOMBRE:Ana-María Pérez]]."}
 {"id": "mix-001", "tags": ["multi"], "text": "[[NOMBRE:María Pérez]], DNI [[DNI:51515151G]], IBAN [[IBAN:ES91 2100 0418 4502 0005 1332]], tel [[TEL:+34 600 123 456]], [[EMAIL:maria.perez@example.com]]"}
 {"id": "mix-002", "tags": ["multi", "unicode"], "text": "→ [[NOMBRE:Juan García]] ([[EMAIL:jgarcia@example.org]]) — móvil [[TEL:655443322]] ✓"}
 {"id": "clean-001", "tags": ["clean"], "text": "Refactoriza la función parseArgs y añade tests."}
