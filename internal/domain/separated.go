@@ -20,11 +20,20 @@ import (
 // retries one byte later, as a regex lookbehind would.
 
 var (
-	ibanSeparatedPattern  = regexp.MustCompile(`(?i)ES[0-9]{2}(?:[ .-]?[0-9]{4}){5}`)
-	dniSeparatedPattern   = regexp.MustCompile(`[0-9]{2}\.[0-9]{3}\.[0-9]{3}[ .-]?[A-Za-z]|[0-9]{2} [0-9]{3} [0-9]{3}[ .-]?[A-Za-z]|[0-9]{8}[ .-]?[A-Za-z]`)
-	nieSeparatedPattern   = regexp.MustCompile(`[XYZxyz][ .-]?[0-9]{7}[ .-]?[A-Za-z]`)
+	// ibanSeparatedPattern is the ISO 13616 paper format of any country:
+	// country code, check digits, then alphanumeric groups of four and an
+	// optional shorter last group. The country's registry length and
+	// mod-97 decide; the pattern only narrows candidates.
+	ibanSeparatedPattern = regexp.MustCompile(`(?i)[A-Z]{2}[0-9]{2}(?:[ .-]?[A-Z0-9]{4}){2,7}(?:[ .-]?[A-Z0-9]{1,3})?`)
+	dniSeparatedPattern  = regexp.MustCompile(`[0-9]{2}\.[0-9]{3}\.[0-9]{3}[ .-]?[A-Za-z]|[0-9]{2} [0-9]{3} [0-9]{3}[ .-]?[A-Za-z]|[0-9]{8}[ .-]?[A-Za-z]`)
+	nieSeparatedPattern  = regexp.MustCompile(`[XYZxyz][ .-]?[0-9]{7}[ .-]?[A-Za-z]`)
+	// phoneSeparatedPattern also takes the prefix in parentheses, "(+34)"
+	// or "(0034)", and the dot grouping "NNN.NNN.NNN". Dots collide with
+	// thousands separators, so the dot form relies on the same guards as
+	// the others: no digit group before, and no decimal, digit group or
+	// currency after ("612.345.678,00 €" stays an amount).
 	phoneSeparatedPattern = regexp.MustCompile(
-		`(?:(\+34|0034)[ -]?)?[6789][0-9]{2}(?: [0-9]{3} [0-9]{3}|-[0-9]{3}-[0-9]{3}| [0-9]{2} [0-9]{2} [0-9]{2}|-[0-9]{2}-[0-9]{2}-[0-9]{2})`)
+		`(?:(\+34|0034|\(\+34\)|\(0034\))[ -]?)?[6789][0-9]{2}(?: [0-9]{3} [0-9]{3}|-[0-9]{3}-[0-9]{3}|\.[0-9]{3}\.[0-9]{3}| [0-9]{2} [0-9]{2} [0-9]{2}|-[0-9]{2}-[0-9]{2}-[0-9]{2})`)
 )
 
 // currencies are checked longest first, so "euros" is not read as "eur"
@@ -79,18 +88,50 @@ func asciiWordBoundaries(text string, start, end int, extraBefore string) bool {
 
 func separatedIBANFindings(text string) []Finding {
 	var findings []Finding
-	spans := findSeparated(text, ibanSeparatedPattern, func(start, end int) bool {
-		return asciiWordBoundaries(text, start, end, "")
-	})
-	for _, s := range spans {
-		match := text[s[0]:s[1]]
-		key := compactOf(match)
-		if match == key || !validIBANChecksum(key) {
-			continue // the compact uppercase form is the IBAN detector's own
+	for pos := 0; pos < len(text); {
+		loc := ibanSeparatedPattern.FindStringIndex(text[pos:])
+		if loc == nil {
+			break
 		}
-		findings = append(findings, Finding{Detector: "iban", Reason: "IBAN detected", Redacted: key[:4] + "************", Match: match, Category: "IBAN", Key: key})
+		start, end := pos+loc[0], pos+loc[1]
+		cut, key, ok := separatedIBANAt(text, start, end)
+		if !ok {
+			pos = start + 1
+			continue
+		}
+		findings = append(findings, Finding{Detector: "iban", Reason: "IBAN detected", Redacted: key[:4] + "************", Match: text[start:cut], Category: "IBAN", Key: key})
+		pos = cut
 	}
 	return findings
+}
+
+// separatedIBANAt checks the candidate text[start:end]. The pattern may
+// run past the IBAN into a following group ("… 1332 7777"), so the
+// candidate is cut at the group boundary that gives the country's
+// registry length, and the boundaries and mod-97 are checked on that cut.
+func separatedIBANAt(text string, start, end int) (cut int, key string, ok bool) {
+	if start > 0 && isASCIIWord(text[start-1]) {
+		return 0, "", false
+	}
+	want, known := ibanLengths[strings.ToUpper(text[start:start+2])]
+	if !known {
+		return 0, "", false
+	}
+	for cut = end; cut > start+4; cut-- {
+		if cut < end && strings.IndexByte(" .-", text[cut]) < 0 {
+			continue
+		}
+		match := text[start:cut]
+		key = compactOf(match)
+		if len(key) != want {
+			continue
+		}
+		if match == key || (cut < len(text) && isASCIIWord(text[cut])) || !validIBANChecksum(key) {
+			return 0, "", false // the compact uppercase form is the IBAN detector's own
+		}
+		return cut, key, true
+	}
+	return 0, "", false
 }
 
 func separatedDNIFindings(text string) []Finding {
@@ -122,21 +163,29 @@ func separatedPhoneFindings(text string) []Finding {
 	})
 	for _, s := range spans {
 		match := text[s[0]:s[1]]
-		body, prefix := match, ""
-		if strings.HasPrefix(body, "+34") || strings.HasPrefix(body, "0034") {
-			prefix = "+34"
-			body = strings.TrimPrefix(strings.TrimPrefix(body, "+34"), "0034")
-		}
-		key := prefix + strings.Map(func(r rune) rune {
-			if r >= '0' && r <= '9' {
-				return r
-			}
-			return -1
-		}, body)
 		findings = append(findings, phoneFinding(match))
-		findings[len(findings)-1].Key = key
+		findings[len(findings)-1].Key = phoneKey(match)
 	}
 	return findings
+}
+
+// phoneKey is the E.164 form of a written Spanish phone ("+34NNNNNNNNN")
+// when it carries the country code, in any of "+34", "0034", "(+34)" or
+// "(0034)", and its bare nine digits otherwise.
+func phoneKey(match string) string {
+	body, prefix := match, ""
+	for _, p := range []string{"(+34)", "(0034)", "+34", "0034"} {
+		if strings.HasPrefix(body, p) {
+			prefix, body = "+34", body[len(p):]
+			break
+		}
+	}
+	return prefix + strings.Map(func(r rune) rune {
+		if r >= '0' && r <= '9' {
+			return r
+		}
+		return -1
+	}, body)
 }
 
 // phoneBefore: not glued to a letter, digit, "_" or "+"; not the tail of a

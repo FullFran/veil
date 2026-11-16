@@ -42,11 +42,16 @@ of finding:
   machine. The same original value always gets the same token within one
   session, and a different session never reuses another session's
   numbering. IBAN, DNI/NIE and phone numbers are also found when written
-  with spaces, dots or dashes (`ES91 2100 0418 …`, `12.345.678-Z`,
-  `600 12 34 56`, `+34 600 123 456`), only in those strict shapes, with
-  the checksum checked, and never as part of a date, an amount or a longer
-  run of digit groups. A value written two ways shares one token, and
-  rehydration gives back its compact form (`12345678Z`).
+  with spaces, dots or dashes (`ES91 2100 0418 …`, `FR14 2004 1010 … 606`,
+  `12.345.678-Z`, `600 12 34 56`, `699.123.457`, `+34 600 123 456`,
+  `(+34) 612 345 670`), only in those strict shapes, with the checksum
+  checked, and never as part of a date, an amount or a longer run of digit
+  groups. A separated IBAN of any country must also have that country's
+  length in the SWIFT IBAN Registry (ISO 13616). A value written two ways
+  shares one token, and rehydration gives back its compact form
+  (`12345678Z`, `+34612345670`). Email addresses may carry non-ASCII
+  letters in the local part and the domain (`josé@bücher.example.de`,
+  RFC 6531).
 - **Hard-deny** (a tool call targeting a known secrets-bearing file, or
   tool output veil cannot scan at all — see "Attachments and binary
   content" below): there is no safe rewrite, so the event is blocked
@@ -397,7 +402,11 @@ JSON array of strings, or one name per line:
 
 Matching is whole-word, and both case- and accent-insensitive (`MARIA
 PEREZ`, `maria perez`, and `María Pérez` all match the same catalog
-entry). A name is cut from the original text at its exact position,
+entry). A catalog name joined to another name part by a hyphen or an
+apostrophe is replaced whole: `Juan García-López` and `Ana-María Pérez`
+are one token each, keyed by the whole written name, so no part of the
+surname stays in clear and they never share a token with `Juan García`
+or `María Pérez`. A name is cut from the original text at its exact position,
 whatever other characters (`¿`, `€`, `«`, emoji) the text holds. If
 `VEIL_CATALOG` is set but cannot be read or parsed, veil fails
 closed at startup: every event is blocked with a
@@ -852,21 +861,34 @@ How to read it:
   in-memory pseudonym store), over every repeat of every event: p50, p95
   and max in microseconds. Process start-up and disk I/O are not included.
 
-The baseline at the time of writing (73 cases, default policy):
+The baseline at the time of writing (78 cases, default policy):
 
 | label | tp | fp | fn | precision | recall | f1 |
 | --- | --: | --: | --: | --: | --: | --: |
 | DNI | 20 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| IBAN | 10 | 0 | 1 | 1.0000 | 0.9091 | 0.9524 |
-| EMAIL | 8 | 0 | 1 | 1.0000 | 0.8889 | 0.9412 |
-| TEL | 12 | 3 | 2 | 0.8000 | 0.8571 | 0.8276 |
-| NOMBRE | 9 | 2 | 3 | 0.8182 | 0.7500 | 0.7826 |
-| micro | 59 | 5 | 7 | 0.9219 | 0.8939 | 0.9077 |
+| IBAN | 12 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| EMAIL | 10 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| TEL | 15 | 3 | 0 | 0.8333 | 1.0000 | 0.9091 |
+| NOMBRE | 13 | 1 | 2 | 0.9286 | 0.8667 | 0.8966 |
+| micro | 70 | 4 | 2 | 0.9459 | 0.9722 | 0.9589 |
 
-Known misses, kept on purpose so the numbers stay honest: a separated
-foreign IBAN, an email with a non-ASCII local part, a dot-separated phone,
-`(+34)` in parentheses, names outside the catalog, and a catalog name
-inside a longer compound surname or a street name.
+Known misses, kept on purpose so the numbers stay honest. They need
+context or named-entity recognition (#3), not a pattern:
+
+- Names outside the catalog (`nombre-006`, `nombre-007`): missed.
+- A catalog name inside a street name (`nombre-010`, `Calle María Pérez
+  de la Rosa`): replaced although it is a street. Particles such as `de
+  la` are not joined to a name for the same reason: `Juan García de la
+  oficina` would be swallowed too.
+- Nine bare digits starting with 6-9 that are not a phone, such as an
+  invoice number (`tel-012`) or a CLI count (`args-005`): replaced.
+- A dot-grouped nine-digit count with no currency (`tel-017`, `712.345.678
+  habitantes`): replaced. This is the price of finding `699.123.457`
+  (`tel-005`): on the corpus the dot form adds one true positive and one
+  false positive, while amounts with decimals or a currency
+  (`612.345.678,00 €`, `tel-011`) stay untouched.
+
+The false positives fail in the safe direction (over-redaction).
 
 **Gate.** `TestCorpus_MeetsBaseline` (in `go test ./...`, so CI runs it)
 fails when recall on any label drops below `baseline.json`, or when p95

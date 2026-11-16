@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"regexp"
+	"sort"
 	"strings"
 )
 
@@ -161,12 +162,30 @@ func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
 }
 
 // substituteAll replaces every occurrence of each substitutions key in s
-// with its mapped token.
+// with its mapped token, in one left-to-right pass that prefers the
+// longest key at each position. A key that is part of a longer one
+// ("Juan García" inside "Juan García-López") therefore never cuts the
+// longer match apart, which would leave the rest in clear, and a token
+// already written is never scanned again.
 func substituteAll(s string, substitutions map[string]string) string {
-	for original, token := range substitutions {
-		s = strings.ReplaceAll(s, original, token)
+	if len(substitutions) == 0 {
+		return s
 	}
-	return s
+	originals := make([]string, 0, len(substitutions))
+	for original := range substitutions {
+		originals = append(originals, original)
+	}
+	sort.Slice(originals, func(i, j int) bool {
+		if len(originals[i]) != len(originals[j]) {
+			return len(originals[i]) > len(originals[j])
+		}
+		return originals[i] < originals[j]
+	})
+	pairs := make([]string, 0, 2*len(originals))
+	for _, original := range originals {
+		pairs = append(pairs, original, substitutions[original])
+	}
+	return strings.NewReplacer(pairs...).Replace(s)
 }
 
 // rehydrate reverses every pseudonym token in decision's effective fields

@@ -96,30 +96,54 @@ func Run(c *Corpus, p *policy.Policy, opts Options) (Report, error) {
 	}, nil
 }
 
-// predict turns findings into spans: every occurrence of a rewritable
-// finding's Match in every unit, which is exactly what domain.Policy
-// replaces with a pseudonym token.
+// predict turns findings into spans: exactly what domain.Policy replaces
+// with a pseudonym token. Like its substitution, the scan is one
+// left-to-right pass over each unit that prefers the longest match at
+// each position, so a match inside a longer one ("Juan García" inside
+// "Juan García-López") is not counted on its own.
 func predict(findings []domain.Finding, units map[string]string) []Span {
-	var spans []Span
+	label := map[string]string{}
+	var matches []string
 	for _, f := range findings {
 		if f.Category == "" || f.Match == "" {
 			continue
 		}
-		for unit, text := range units {
-			offset := 0
-			for {
-				i := strings.Index(text[offset:], f.Match)
-				if i < 0 {
-					break
-				}
-				startByte := offset + i
-				start := utf8.RuneCountInString(text[:startByte])
-				spans = append(spans, Span{Unit: unit, Start: start, End: start + utf8.RuneCountInString(f.Match), Label: f.Category})
-				offset = startByte + len(f.Match)
+		if _, seen := label[f.Match]; !seen {
+			label[f.Match] = f.Category
+			matches = append(matches, f.Match)
+		}
+	}
+	sort.Slice(matches, func(i, j int) bool {
+		if len(matches[i]) != len(matches[j]) {
+			return len(matches[i]) > len(matches[j])
+		}
+		return matches[i] < matches[j]
+	})
+	var spans []Span
+	for unit, text := range units {
+		for i := 0; i < len(text); {
+			match := longestAt(text[i:], matches)
+			if match == "" {
+				i++
+				continue
 			}
+			start := utf8.RuneCountInString(text[:i])
+			spans = append(spans, Span{Unit: unit, Start: start, End: start + utf8.RuneCountInString(match), Label: label[match]})
+			i += len(match)
 		}
 	}
 	return spans
+}
+
+// longestAt returns the first of matches (sorted longest first) that s
+// starts with, or "".
+func longestAt(s string, matches []string) string {
+	for _, m := range matches {
+		if strings.HasPrefix(s, m) {
+			return m
+		}
+	}
+	return ""
 }
 
 // Baseline is the committed reference a run must not fall below.
