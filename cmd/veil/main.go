@@ -166,9 +166,11 @@ type hostProfile struct {
 }
 
 // fail reports code as one problem line on w and returns the host's
-// failed-closed exit code.
+// failed-closed exit code. The exit code carries the failure class, so a
+// problem line that cannot be written is dropped (here and in every other
+// problem.Write call): the host still sees a failure.
 func (h hostProfile) fail(w io.Writer, code problem.Code) int {
-	problem.Write(w, problem.New(code))
+	_ = problem.Write(w, problem.New(code))
 	return h.failureExit
 }
 
@@ -192,12 +194,12 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runStore(args[1:], stdin, stdout, stderr)
 	}
 	if len(args) != 1 {
-		problem.Write(stderr, problem.New(problem.Usage))
+		_ = problem.Write(stderr, problem.New(problem.Usage))
 		return problem.ExitUsage
 	}
 	host, known := hostsByName[args[0]]
 	if !known {
-		problem.Write(stderr, problem.New(problem.Usage))
+		_ = problem.Write(stderr, problem.New(problem.Usage))
 		return problem.ExitUsage
 	}
 
@@ -298,8 +300,13 @@ func runClaudeCode(e *engine, raw []byte, stdout, stderr io.Writer) (int, proble
 		return 0, problem.Internal
 	}
 
-	stdout.Write(result.Stdout)
-	stderr.Write(result.Stderr)
+	// An answer that does not reach Claude Code must fail closed: exit 0 with
+	// no stdout would let the original input proceed.
+	if _, err := stdout.Write(result.Stdout); err != nil {
+		return 0, problem.Internal
+	}
+	// The exit code alone carries a block, so a lost reason does not fail open.
+	_, _ = stderr.Write(result.Stderr)
 	return result.ExitCode, ""
 }
 
@@ -321,7 +328,9 @@ func runOpenCode(e *engine, raw []byte, stdout, stderr io.Writer) (int, problem.
 		return 0, problem.Internal
 	}
 
-	stdout.Write(result.Stdout)
+	if _, err := stdout.Write(result.Stdout); err != nil {
+		return 0, problem.Internal
+	}
 	return result.ExitCode, ""
 }
 
@@ -338,11 +347,11 @@ func runPolicy(args []string, stdout, stderr io.Writer) int {
 	)
 	switch {
 	case len(args) > 1:
-		problem.Write(stderr, problem.New(problem.Usage))
+		_ = problem.Write(stderr, problem.New(problem.Usage))
 		return problem.ExitUsage
 	case len(args) == 1:
-		source = args[0]
-		p, err = policy.Load(args[0])
+		source = args[0] // #nosec G602 -- guarded by len(args) == 1
+		p, err = policy.Load(source)
 	case os.Getenv(policy.EnvVar) != "":
 		source = os.Getenv(policy.EnvVar)
 		p, err = policy.FromEnv()
@@ -351,7 +360,7 @@ func runPolicy(args []string, stdout, stderr io.Writer) int {
 		p = policy.Default()
 	}
 	if err != nil {
-		problem.Write(stderr, problem.New(classifyPolicyError(err)))
+		_ = problem.Write(stderr, problem.New(classifyPolicyError(err)))
 		return problem.ExitFailedClosed
 	}
 	out, err := json.Marshal(struct {
@@ -360,9 +369,12 @@ func runPolicy(args []string, stdout, stderr io.Writer) int {
 		Digest  string `json:"digest"`
 	}{source, p.Version, p.Digest()})
 	if err != nil {
-		problem.Write(stderr, problem.New(problem.Internal))
+		_ = problem.Write(stderr, problem.New(problem.Internal))
 		return problem.ExitFailedClosed
 	}
-	fmt.Fprintln(stdout, string(out))
+	if _, err := fmt.Fprintln(stdout, string(out)); err != nil {
+		_ = problem.Write(stderr, problem.New(problem.Internal))
+		return problem.ExitFailedClosed
+	}
 	return problem.ExitDecision
 }

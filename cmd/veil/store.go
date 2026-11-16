@@ -78,7 +78,7 @@ func runStore(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		}
 		p, err := policy.FromEnv()
 		if err != nil {
-			problem.Write(stderr, problem.New(classifyPolicyError(err)))
+			_ = problem.Write(stderr, problem.New(classifyPolicyError(err)))
 			return problem.ExitFailedClosed
 		}
 		result := pseudonymstore.SweepResult{Forgotten: []string{}, Skipped: []string{}, Failed: []string{}}
@@ -148,18 +148,21 @@ func answer(stdout, stderr io.Writer, v any) int {
 	var line bytes.Buffer
 	line.Write(raw)
 	line.WriteByte('\n')
-	stdout.Write(line.Bytes())
+	if _, err := stdout.Write(line.Bytes()); err != nil {
+		_ = problem.Write(stderr, problem.New(problem.Internal))
+		return problem.ExitFailedClosed
+	}
 	return problem.ExitDecision
 }
 
 func usage(stderr io.Writer) int {
-	problem.Write(stderr, problem.New(problem.Usage))
+	_ = problem.Write(stderr, problem.New(problem.Usage))
 	return problem.ExitUsage
 }
 
 // failStore reports a store command failure: the store's own code, an
 // I/O failure, or VEIL_INTERNAL.
 func failStore(stderr io.Writer, err error) int {
-	problem.Write(stderr, problem.New(classifyEvaluateError(err)))
+	_ = problem.Write(stderr, problem.New(classifyEvaluateError(err)))
 	return problem.ExitFailedClosed
 }
