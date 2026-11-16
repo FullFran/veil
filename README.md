@@ -191,9 +191,10 @@ on Windows), so the kernel releases it when its holder dies: a crash never
 leaves a session locked forever, and a lock file with no holder (left by a
 crash, or by an older veil) is taken over. The holder unlinks the file
 before releasing it, and a process that locked a file no longer at the
-path retries, so two writers are never let in. Upgrade every veil binary
-of a host together: an older veil (create-exclusive lock file) and a newer
-one do not exclude each other. On Windows the empty lock file stays after
+path retries, so two writers are never let in. **Hosts must not run two veil
+versions on the same store concurrently:** an older veil (v0.x,
+create-exclusive lock file) and this one (kernel lock) do not exclude each
+other, so stop every old veil before the first new one runs. On Windows the empty lock file stays after
 use.
 
 The sessions directory must be private: veil creates it 0700, tightens an
@@ -255,7 +256,9 @@ veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped"
   `{"markers":[]}`.
 - `forget` removes each named session's age file, any v1 file, any
   interrupted write (v1 or v2 temp file) and its lock, holding the lock
-  while it deletes. It needs no key, on purpose: a lost key must never
+  while it deletes. It keeps the session's counters file, which holds no
+  personal data, so the session id never reuses a marker number (see
+  [Retention](#retention-and-data-subject-requests)). It needs no key, on purpose: a lost key must never
   block an erasure, and without the key the file is unreadable anyway. An
   unknown session succeeds.
 - `find` lists the sessions whose store holds a value, and the categories
@@ -302,10 +305,22 @@ which is the default, so upgrading never removes anyone's data.
   media sanitization (NIST SP 800-88 Rev. 2): on SSDs and journaling
   filesystems the old blocks may survive, but they hold age ciphertext. To
   make *every* session unreadable, destroy the store key.
-- A session swept and then resumed by its host starts its markers again at
-  `-001`, so an old `[DNI-001]` in the host's history and a new one can
-  stand for different values. Choose a TTL longer than any idle period
-  after which a session may still be resumed.
+- **Marker numbers are never reused within a session id.** The host's
+  history of a resumed session still holds the markers veil sent; if a new
+  value got an old `[DNI-001]`, the model would see two people as one and
+  rehydrating that marker in a write would put the wrong value on disk. So
+  every session keeps a counters file, `<session>.ctr`, which sweep and
+  `forget` leave in place: a resumed session carries on at `[DNI-002]`,
+  and an old marker is simply unknown (left as it is, never rehydrated to
+  a new value). The file holds only how many values of each category the
+  session has seen (for example `{"version":1,"counters":{"DNI":1}}`): no
+  value, no marker, no mapping, so it is not personal data and not the
+  pseudonymisation key. It is plaintext so keyless removal can keep it,
+  and it is never swept, since deleting it would reopen the reuse.
+  Sessions written by a veil before counters files existed get one on
+  their next write, or at removal when the key (or a v1 file) is at hand;
+  one removed without the key before that restarts at `-001`, so such a
+  host should not reuse that session id.
 
 **Access and erasure requests.** Find, then forget:
 

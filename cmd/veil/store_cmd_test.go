@@ -6,6 +6,7 @@ import (
 	"fmt"
 	"io"
 	"os"
+	"path/filepath"
 	"strings"
 	"testing"
 
@@ -98,7 +99,15 @@ func TestRun_StoreForget_RemovesTheSession(t *testing.T) {
 		t.Fatal(err)
 	}
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), "sess-1.") {
+		switch {
+		case e.Name() == "sess-1.ctr":
+			// The counters survive so the session never reuses a marker;
+			// they must hold no value.
+			raw, err := os.ReadFile(filepath.Join(sessionsDir(), e.Name()))
+			if err != nil || strings.Contains(string(raw), "12345678Z") {
+				t.Errorf("sess-1.ctr = (%q, %v), want counters only", raw, err)
+			}
+		case strings.HasPrefix(e.Name(), "sess-1."):
 			t.Errorf("%s still exists after forget", e.Name())
 		}
 	}

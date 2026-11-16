@@ -62,8 +62,8 @@ func TestSweep_RemovesExpiredSession_KeepsUnexpiredOne(t *testing.T) {
 	if !reflect.DeepEqual(got.Forgotten, []string{"old"}) || len(got.Skipped) != 0 {
 		t.Fatalf("Sweep = %+v, want forgotten [old], nothing skipped", got)
 	}
-	if left := sessionFiles(t, dir, "old"); len(left) != 0 {
-		t.Fatalf("expired session left %v behind", left)
+	if left := sessionFiles(t, dir, "old"); !reflect.DeepEqual(left, []string{"old.ctr"}) {
+		t.Fatalf("expired session left %v behind, want only its counters", left)
 	}
 	if len(sessionFiles(t, dir, "recent")) == 0 {
 		t.Fatal("unexpired session was removed")
@@ -252,4 +252,81 @@ func TestHelperHoldLock(t *testing.T) {
 	pseudonymstore.HoldLock(t, path)
 	fmt.Println("held")
 	time.Sleep(time.Minute)
+}
+
+// TestRemovedSession_NeverReusesATokenNumber: the host's history of a
+// resumed session still holds the old markers, so a session that was
+// swept or forgotten and is then resumed must never mint an old marker
+// for a new value, and rehydrating an old marker must never give the new
+// value (it would write the wrong person's data to disk).
+func TestRemovedSession_NeverReusesATokenNumber(t *testing.T) {
+	remove := map[string]func(t *testing.T, dir string, kr *fakeKeyring){
+		"sweep": func(t *testing.T, dir string, kr *fakeKeyring) {
+			got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl)
+			if err != nil || len(got.Forgotten) != 1 {
+				t.Fatalf("Sweep = (%+v, %v), want s forgotten", got, err)
+			}
+		},
+		"forget": func(t *testing.T, dir string, kr *fakeKeyring) {
+			if err := newStore(t, dir, kr).Forget("s"); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"forget without the key": func(t *testing.T, dir string, kr *fakeKeyring) {
+			if err := newStore(t, dir, newFakeKeyring()).Forget("s"); err != nil {
+				t.Fatal(err)
+			}
+		},
+	}
+	for name, removeSession := range remove {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			kr := newFakeKeyring()
+			if tok := mint(t, clockAt(t, dir, kr, t0), "s", "DNI", "12345678A"); tok != "[DNI-001]" {
+				t.Fatalf("first token = %s, want [DNI-001]", tok)
+			}
+
+			removeSession(t, dir, kr)
+
+			resumed := clockAt(t, dir, kr, t0.Add(3*ttl))
+			if tok := mint(t, resumed, "s", "DNI", "87654321B"); tok == "[DNI-001]" {
+				t.Fatalf("value B got %s, the marker value A had before removal", tok)
+			}
+			if original, ok, err := resumed.Original("s", "[DNI-001]"); err != nil || (ok && original == "87654321B") {
+				t.Fatalf("Original([DNI-001]) = (%q, %v, %v), must never be value B", original, ok, err)
+			}
+		})
+	}
+}
+
+// TestRemovedSession_KeepsOnlyCounters: what survives removal holds no
+// value, is no session to find or reveal, and is not swept as one.
+func TestRemovedSession_KeepsOnlyCounters(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	mint(t, clockAt(t, dir, kr, t0), "s", "DNI", "12345678Z")
+	mint(t, clockAt(t, dir, kr, t0), "s", "EMAIL", "ana@example.com")
+	if err := newStore(t, dir, kr).Forget("s"); err != nil {
+		t.Fatal(err)
+	}
+
+	left := sessionFiles(t, dir, "s")
+	if !reflect.DeepEqual(left, []string{"s.ctr"}) {
+		t.Fatalf("files left = %v, want only s.ctr", left)
+	}
+	raw, err := os.ReadFile(filepath.Join(dir, "s.ctr"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, value := range []string{"12345678Z", "ana@example.com", "[DNI-001]"} {
+		if strings.Contains(string(raw), value) {
+			t.Fatalf("s.ctr %q holds %q", raw, value)
+		}
+	}
+	if got, err := newStore(t, dir, kr).Find([]string{"12345678Z"}); err != nil || len(got) != 0 {
+		t.Fatalf("Find after forget = (%v, %v), want nothing", got, err)
+	}
+	if got, err := clockAt(t, dir, kr, t0.Add(100*ttl)).Sweep(ttl); err != nil || len(got.Forgotten) != 0 {
+		t.Fatalf("Sweep of a counters file = (%+v, %v), want nothing forgotten", got, err)
+	}
 }

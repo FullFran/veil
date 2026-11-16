@@ -21,7 +21,8 @@
 // Retention: a session file's mtime is its last use. Every write sets it,
 // and so does every token lookup and rehydration, without rewriting the
 // file. Sweep (retention.go) deletes sessions unused for longer than a TTL
-// through the same locked deletion as Forget.
+// through the same locked deletion as Forget, which keeps the session's
+// counters file (counters.go) so marker numbers are never reused.
 package pseudonymstore
 
 import (
@@ -113,8 +114,9 @@ func (s *FileStore) basePath(sessionID string) string {
 	return filepath.Join(s.dir, safe)
 }
 
-func (s *FileStore) agePath(sessionID string) string    { return s.basePath(sessionID) + ".age" }
-func (s *FileStore) legacyPath(sessionID string) string { return s.basePath(sessionID) + ".json" }
+func (s *FileStore) agePath(sessionID string) string      { return s.basePath(sessionID) + ".age" }
+func (s *FileStore) countersPath(sessionID string) string { return s.basePath(sessionID) + ".ctr" }
+func (s *FileStore) legacyPath(sessionID string) string   { return s.basePath(sessionID) + ".json" }
 
 // lockPath returns the process-mutex lock file path for sessionID. It
 // keeps the v1 name, so a v1 and a v2 binary running side by side during
@@ -227,7 +229,21 @@ func (s *FileStore) Forget(sessionID string) error {
 // removeLocked deletes every file of the session's store. The caller holds
 // the session lock. It is the one deletion path: Forget and Sweep both
 // use it.
+//
+// It keeps the session's counters file (see countersFile), so a session
+// resumed after removal never mints a marker number it used before. A
+// session written before counters files existed has none yet: its
+// counters are saved from the store first when the key or a v1 file is at
+// hand; without either, removal still goes ahead, since erasure must never
+// be blocked.
 func (s *FileStore) removeLocked(sessionID string) error {
+	if !exists(s.countersPath(sessionID)) {
+		if data, err := s.readForCounters(sessionID); err == nil && len(data.Counters) > 0 {
+			if err := s.writeCounters(sessionID, data.Counters); err != nil {
+				return err
+			}
+		}
+	}
 	paths := []string{
 		s.agePath(sessionID), s.agePath(sessionID) + ".tmp",
 		// v1 files, including an interrupted v1 write: both hold plaintext.
@@ -298,20 +314,24 @@ func (s *FileStore) open(sessionID string) (*sessionFile, error) {
 		if err := removeIfExists(s.legacyPath(sessionID)); err != nil {
 			return nil, err
 		}
-		return data, nil
+		return data, s.raiseCounters(sessionID, data)
 	case !errors.Is(err, fs.ErrNotExist):
 		return nil, fmt.Errorf("pseudonymstore: read: %w", err)
 	}
 
 	legacy, err := os.ReadFile(s.legacyPath(sessionID))
 	if errors.Is(err, fs.ErrNotExist) {
-		return emptySession(), nil
+		data := emptySession()
+		return data, s.raiseCounters(sessionID, data)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("pseudonymstore: read v1: %w", err)
 	}
 	data, err := parse(legacy)
 	if err != nil {
+		return nil, err
+	}
+	if err := s.raiseCounters(sessionID, data); err != nil {
 		return nil, err
 	}
 	if err := s.save(sessionID, data); err != nil {
@@ -381,6 +401,12 @@ func parse(raw []byte) (*sessionFile, error) {
 func (s *FileStore) save(sessionID string, data *sessionFile) error {
 	id, err := s.keys.Identity(true)
 	if err != nil {
+		return err
+	}
+
+	// The counters file is durable before the session file that uses its
+	// numbers, so a crash can skip a number but never reuse one.
+	if err := s.writeCounters(sessionID, data.Counters); err != nil {
 		return err
 	}
 

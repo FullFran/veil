@@ -35,11 +35,13 @@ func seed(t *testing.T, session, category, value string) {
 	}
 }
 
+// hasSession reports whether the session still has a store (its counters
+// file, which outlives removal and holds no value, does not count).
 func hasSession(t *testing.T, session string) bool {
 	t.Helper()
 	entries, _ := os.ReadDir(sessionsDir())
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), session+".") {
+		if strings.HasPrefix(e.Name(), session+".") && e.Name() != session+".ctr" {
 			return true
 		}
 	}
