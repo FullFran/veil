@@ -492,7 +492,7 @@ func writeSynced(path string, data []byte) error {
 	if err := removeIfExists(path); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600) // #nosec G304 -- path is built from the sessions directory and a sanitized session id (basePath)
 	if err != nil {
 		return fmt.Errorf("pseudonymstore: write: %w", err)
 	}
@@ -504,7 +504,7 @@ func writeSynced(path string, data []byte) error {
 		err = closeErr
 	}
 	if err != nil {
-		os.Remove(path)
+		_ = os.Remove(path) // best effort; the write error is the one to report
 		return fmt.Errorf("pseudonymstore: write: %w", err)
 	}
 	return nil

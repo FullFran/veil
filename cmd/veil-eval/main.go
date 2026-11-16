@@ -86,7 +86,7 @@ func run(args []string, stdout, stderr io.Writer) int {
 			}
 		}
 		b, _ := json.MarshalIndent(eval.BaselineFrom(report, *budget), "", "  ")
-		if err := os.WriteFile(*baselinePath, append(b, '\n'), 0o644); err != nil {
+		if err := os.WriteFile(*baselinePath, append(b, '\n'), 0o644); err != nil { // #nosec G306 -- the baseline is a public, committed file
 			fmt.Fprintf(stderr, "veil-eval: %v\n", err)
 			return exitUsage
 		}
@@ -120,7 +120,7 @@ func printTable(w io.Writer, r eval.Report) {
 		row(label, r.Labels[label])
 	}
 	row("micro", r.Micro)
-	tw.Flush()
+	_ = tw.Flush() // a short report on stdout; the exit code does not depend on it
 	fmt.Fprintf(w, "\nlatency per event (Evaluate, %d samples): p50 %.1f µs, p95 %.1f µs, max %.1f µs\n",
 		r.Latency.Samples, r.Latency.P50Micro, r.Latency.P95Micro, r.Latency.MaxMicro)
 }

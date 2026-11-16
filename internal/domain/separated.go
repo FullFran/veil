@@ -235,7 +235,7 @@ func phoneAfter(after string) bool {
 	lower := strings.ToLower(rest)
 	for _, c := range currencies {
 		if strings.HasPrefix(lower, c) {
-			if tail := lower[len(c):]; tail == "" || !(tail[0] >= 'a' && tail[0] <= 'z') {
+			if tail := lower[len(c):]; tail == "" || tail[0] < 'a' || tail[0] > 'z' {
 				return false
 			}
 		}

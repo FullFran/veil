@@ -26,7 +26,7 @@ func securePrivateDir(dir string) error {
 		return &fs.PathError{Op: "check sessions dir owner", Path: dir, Err: fs.ErrPermission}
 	}
 	if info.Mode().Perm()&0o077 != 0 {
-		if err := os.Chmod(dir, 0o700); err != nil {
+		if err := os.Chmod(dir, 0o700); err != nil { // #nosec G302 -- a directory needs the search bit; 0700 is owner-only
 			return fmt.Errorf("pseudonymstore: tighten dir: %w", err)
 		}
 	}

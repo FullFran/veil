@@ -154,7 +154,7 @@ func escapeKey(key string) string {
 
 // LoadCorpus reads dir/corpus.jsonl and dir/catalog.json.
 func LoadCorpus(dir string) (*Corpus, error) {
-	raw, err := os.ReadFile(filepath.Join(dir, "corpus.jsonl"))
+	raw, err := os.ReadFile(filepath.Join(dir, "corpus.jsonl")) // #nosec G304 -- corpus directory chosen by the developer running veil-eval
 	if err != nil {
 		return nil, err
 	}
@@ -223,7 +223,7 @@ func buildCase(r record) (Case, error) {
 // LoadBaseline reads a committed baseline file.
 func LoadBaseline(path string) (Baseline, error) {
 	var b Baseline
-	raw, err := os.ReadFile(path)
+	raw, err := os.ReadFile(path) // #nosec G304 -- baseline file chosen by the developer running veil-eval
 	if err != nil {
 		return b, err
 	}

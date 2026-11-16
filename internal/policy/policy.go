@@ -187,7 +187,7 @@ func Parse(raw []byte) (*Policy, error) {
 // Load reads and validates the policy file at path. A read failure is
 // problem.PolicyUnreadable; anything else wrong with the file is problem.PolicyInvalid.
 func Load(path string) (*Policy, error) {
-	f, err := os.Open(path)
+	f, err := os.Open(path) // #nosec G304 G703 -- the operator chooses the policy file (VEIL_POLICY or `veil policy <file>`)
 	if err != nil {
 		return nil, &Error{Code: problem.PolicyUnreadable, Err: err}
 	}

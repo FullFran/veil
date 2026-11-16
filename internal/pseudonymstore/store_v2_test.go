@@ -41,11 +41,13 @@ func keyFD(t *testing.T, content string) string {
 	if err != nil {
 		t.Fatalf("Pipe failed: %v", err)
 	}
-	t.Cleanup(func() { r.Close() })
+	t.Cleanup(func() { _ = r.Close() })
 	if _, err := w.WriteString(content); err != nil {
 		t.Fatalf("write key: %v", err)
 	}
-	w.Close()
+	if err := w.Close(); err != nil {
+		t.Fatalf("close pipe: %v", err)
+	}
 	fd, err := syscall.Dup(int(r.Fd()))
 	if err != nil {
 		t.Fatalf("Dup failed: %v", err)
