@@ -18,10 +18,12 @@
 //
 // FAIL-CLOSED CONTRACT (do not weaken this): runVeil() below only ever
 // returns a decision whose `action` is exactly "allow", "deny", or
-// "rewrite". Any other outcome -- the binary missing, a non-JSON stdout,
-// a missing or unrecognized `action` field, or an exit code that does not
-// match what a real decision of that kind would produce -- is a thrown
-// error, not a fallback "allow". An earlier version of this file did not
+// "rewrite", read from stdout of a binary that exited 0. Any other
+// outcome -- the binary missing, a nonzero exit, a non-JSON stdout, a
+// missing or unrecognized `action` field -- is a thrown error carrying a
+// stable `code` and problem `type` (see failure() below), not a fallback
+// "allow". A nonzero exit forwards the binary's own RFC 9457 problem
+// (its stderr line) unchanged. An earlier version of this file did not
 // validate `action` at all: if the veil binary crashed and produced no
 // output, `JSON.parse("" || "{}")` silently returned `{}`, and the
 // `decision.action === "allow"` code path below fell through by default,
@@ -51,12 +53,39 @@ const VEIL_MAX_BUFFER = 64 * 1024 * 1024;
 // host process forever. VEIL_TIMEOUT_MS overrides the default.
 const VEIL_DEFAULT_TIMEOUT_MS = 30_000;
 
-// failure is a thrown error with a stable code a host can map to its own
-// message: VEIL_OUTPUT_TOO_LARGE, VEIL_TIMEOUT, or VEIL_UNAVAILABLE.
-function failure(code, message) {
+// Problem type URIs share one base with the Go binary (internal/problem):
+// an RFC 4151 tag URI, followed by the code without VEIL_, lowercased, "_"
+// as "-".
+const TYPE_BASE = "tag:fullfran.github.io,2026:veil/problems/";
+
+function typeOf(code) {
+  return TYPE_BASE + code.replace(/^VEIL_/, "").toLowerCase().replaceAll("_", "-");
+}
+
+// failure is a thrown error with a stable `code` and problem `type` a host
+// branches on (never on the message). The plugin raises VEIL_TIMEOUT,
+// VEIL_OUTPUT_TOO_LARGE and VEIL_UNAVAILABLE itself; every other code is
+// forwarded from the binary's problem line.
+function failure(code, message, type = typeOf(code)) {
   const err = new Error(message);
   err.code = code;
+  err.type = type;
   return err;
+}
+
+// binaryProblem reads the RFC 9457 problem line a failing veil binary
+// writes on stderr: the last non-empty line, when it is a JSON object
+// with a string `type` and `code`. Anything else is not a problem veil
+// reported, and the caller fails closed with VEIL_UNAVAILABLE.
+function binaryProblem(stderr) {
+  const line = (stderr || "").trim().split("\n").pop();
+  try {
+    const parsed = JSON.parse(line);
+    if (parsed && typeof parsed.type === "string" && typeof parsed.code === "string") return parsed;
+  } catch {
+    // not a problem line
+  }
+  return null;
 }
 
 function runVeil(payload) {
@@ -78,19 +107,25 @@ function runVeil(payload) {
     throw failure("VEIL_UNAVAILABLE", `veil: failed to invoke binary "${VEIL_BINARY}": ${result.error.message}`);
   }
 
+  // Every decision exits 0; a nonzero exit (or a kill) is a failure,
+  // reported by the binary as one problem line on stderr.
+  if (result.status !== 0) {
+    const problem = binaryProblem(result.stderr);
+    if (problem) {
+      throw failure(problem.code, `veil: ${problem.title || problem.code}, failing closed`, problem.type);
+    }
+    throw failure("VEIL_UNAVAILABLE", `veil: binary failed without a problem report (exit ${result.status}), failing closed`);
+  }
+
   let parsed;
   try {
     parsed = JSON.parse(result.stdout);
-  } catch (err) {
-    throw new Error(
-      `veil: could not parse veil output as JSON, failing closed (exit ${result.status}, stderr: ${result.stderr || "<empty>"})`
-    );
+  } catch {
+    throw failure("VEIL_UNAVAILABLE", "veil: could not parse veil output as JSON, failing closed");
   }
 
   if (!parsed || (parsed.action !== "allow" && parsed.action !== "deny" && parsed.action !== "rewrite")) {
-    throw new Error(
-      `veil: malformed or unrecognized response from binary, failing closed: ${JSON.stringify(parsed)}`
-    );
+    throw failure("VEIL_UNAVAILABLE", "veil: malformed or unrecognized response from binary, failing closed");
   }
 
   return parsed;
@@ -101,6 +136,13 @@ function runVeil(payload) {
 // capability note above).
 function blockingNotice(reason) {
   return `[veil blocked this tool output: ${reason || "policy violation"}]`;
+}
+
+// failureNotice replaces a tool output veil could not check. Throwing in
+// tool.execute.after does not block anything (see the capability note
+// above), so a failure there must withhold the output instead.
+function failureNotice(err) {
+  return `[veil could not check this tool output and withheld it (${err.code || "VEIL_UNAVAILABLE"})]`;
 }
 
 export const veil = async ({ directory }) => ({
@@ -169,15 +211,22 @@ export const veil = async ({ directory }) => ({
   "tool.execute.after": async (input, output) => {
     if (typeof output.output !== "string") return;
 
-    const decision = runVeil({
-      event: "tool.execute.after",
-      sessionID: input.sessionID,
-      tool: input.tool,
-      fields: { output: output.output },
-    });
+    let decision;
+    try {
+      decision = runVeil({
+        event: "tool.execute.after",
+        sessionID: input.sessionID,
+        tool: input.tool,
+        fields: { output: output.output },
+      });
+    } catch (err) {
+      decision = { action: "withhold", err };
+    }
 
     let newOutput = null;
-    if (decision.action === "deny") {
+    if (decision.action === "withhold") {
+      newOutput = failureNotice(decision.err);
+    } else if (decision.action === "deny") {
       newOutput = blockingNotice(decision.reason);
     } else if (decision.action === "rewrite" && decision.args && typeof decision.args.output === "string") {
       newOutput = decision.args.output;

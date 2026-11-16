@@ -18,6 +18,7 @@ import (
 
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/hosts/opencode"
+	"github.com/FullFran/veil/internal/problem"
 )
 
 func evaluate(t *testing.T, raw []byte) opencode.EncodeResult {
@@ -94,8 +95,8 @@ func TestRoundTrip_ToolExecuteBefore_ReadEnvFile_IsDenied(t *testing.T) {
 
 	result := evaluate(t, raw)
 
-	if result.ExitCode != 1 {
-		t.Fatalf("ExitCode = %d, want 1", result.ExitCode)
+	if result.ExitCode != problem.ExitDecision {
+		t.Fatalf("ExitCode = %d, want %d (a deny is a decision; the action is in stdout)", result.ExitCode, problem.ExitDecision)
 	}
 
 	var out map[string]any
@@ -463,5 +464,16 @@ func TestRoundTrip_LargeInteger_KeepsItsDigits(t *testing.T) {
 		if !strings.Contains(stdout, want) {
 			t.Errorf("stdout %s lacks %s", stdout, want)
 		}
+	}
+}
+
+// TestFailureExitCode_BlocksTheEvent pins the exit code this host must
+// see for veil to fail closed: the shim blocks on any nonzero exit.
+func TestFailureExitCode_BlocksTheEvent(t *testing.T) {
+	if opencode.FailureExitCode != problem.ExitFailedClosed {
+		t.Fatalf("FailureExitCode = %d, want %d", opencode.FailureExitCode, problem.ExitFailedClosed)
+	}
+	if opencode.FailureExitCode == problem.ExitDecision {
+		t.Fatal("a failure must never exit with the decision class")
 	}
 }

@@ -69,6 +69,14 @@ type hookOutput struct {
 	HookSpecificOutput hookSpecificOutput `json:"hookSpecificOutput"`
 }
 
+// FailureExitCode is the exit code veil uses when it fails on this host.
+// Claude Code treats exit 2 as a blocking error and every other nonzero
+// exit as a non-blocking one (the prompt or tool call proceeds), so the
+// generic failed-closed class (1) would fail open here. 2 is the only
+// code that blocks; the problem line on stderr tells a failure apart from
+// a UserPromptSubmit deny, which also exits 2.
+const FailureExitCode = 2
+
 // EncodeResult is what the caller needs to actually respond to Claude
 // Code: bytes for stdout and stderr, and the process exit code.
 type EncodeResult struct {

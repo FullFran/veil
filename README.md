@@ -178,7 +178,8 @@ PEREZ`, `maria perez`, and `María Pérez` all match the same catalog
 entry). A name is cut from the original text at its exact position,
 whatever other characters (`¿`, `€`, `«`, emoji) the text holds. If
 `VEIL_CATALOG` is set but cannot be read or parsed, veil fails
-closed at startup: every event is blocked with an error rather than
+closed at startup: every event is blocked with a
+`VEIL_CATALOG_UNREADABLE` problem (see [Failures](#failures)) rather than
 silently running without the catalog. If `VEIL_CATALOG` is unset, the
 name-catalog detector is simply not registered.
 
@@ -265,8 +266,90 @@ Environment variables the plugin and binary read:
 | `VEIL_TIMEOUT_MS` | `adapters/opencode/veil-plugin.js` | Milliseconds to wait for one `veil` answer before failing closed. Defaults to 30000. |
 
 The plugin reads answers up to 64 MiB and never waits forever. When it
-fails closed it throws an `Error` whose `code` a host can map to its own
-message: `VEIL_OUTPUT_TOO_LARGE`, `VEIL_TIMEOUT` or `VEIL_UNAVAILABLE`.
+fails closed it throws an `Error` carrying the problem's `code` and `type`
+(see [Failures](#failures)): its own `VEIL_OUTPUT_TOO_LARGE`,
+`VEIL_TIMEOUT` or `VEIL_UNAVAILABLE`, or the binary's code forwarded
+unchanged. On `tool.execute.after`, where throwing blocks nothing, it
+replaces the tool output with a notice naming the code instead.
+
+## Failures
+
+When veil cannot make a decision it fails closed and reports why as one
+[RFC 9457](https://www.rfc-editor.org/rfc/rfc9457) problem details object,
+written as a single JSON line on stderr (nothing on stdout):
+
+```json
+{"type":"tag:fullfran.github.io,2026:veil/problems/store-corrupt","title":"Pseudonym store is corrupt","detail":"…","code":"VEIL_STORE_CORRUPT"}
+```
+
+This is a **non-HTTP profile** of RFC 9457 (Appendix C allows other
+carriers), not a claim of HTTP conformance:
+
+- `type` is the stable identifier: branch on it, or on `code`, which mirrors
+  it as a token. Never parse `title` or `detail`; they are human text.
+- `status` is omitted: it is an HTTP status code and veil is not HTTP.
+  `instance` is omitted: events carry no identifier.
+- `title` and `detail` are fixed text per type. They never contain input,
+  a detected value, a path or a session id.
+- Types are [RFC 4151](https://www.rfc-editor.org/rfc/rfc4151) `tag:` URIs
+  under `tag:fullfran.github.io,2026:veil/problems/`: globally unique
+  without a domain the project would have to own. They are identifiers,
+  not links. A type never changes once released.
+
+### Exit codes
+
+The exit code carries only the class; the detail is in the problem.
+
+| Exit | Class |
+| --- | --- |
+| 0 | A decision was made: allow, deny or rewrite (the decision is on stdout) |
+| 2 | Usage: bad arguments |
+| 1 | Failed closed: the event must not proceed |
+
+Claude Code is the one exception: it treats every nonzero exit other than
+2 as a non-blocking error and lets the prompt or tool call through, so on
+`veil claude-code` a failure exits **2**, the only code that blocks. Its
+`UserPromptSubmit` deny also exits 2 (Claude Code's contract); the problem
+line on stderr is what tells a failure apart.
+
+### Types
+
+| Code | Type suffix | When |
+| --- | --- | --- |
+| `VEIL_USAGE` | `usage` | Bad arguments |
+| `VEIL_INPUT_INVALID` | `input-invalid` | stdin is not one valid event for the host |
+| `VEIL_CATALOG_UNREADABLE` | `catalog-unreadable` | `VEIL_CATALOG` set but unreadable or unparsable |
+| `VEIL_CAPABILITY_UNSUPPORTED` | `capability-unsupported` | The host cannot enforce the decision (e.g. Claude Code tool-output redaction) |
+| `VEIL_STORE_KEY_MISSING` | `store-key-missing` | Pseudonym store key not configured (reserved for #5) |
+| `VEIL_STORE_KEY_INVALID` | `store-key-invalid` | Pseudonym store key malformed or wrong (reserved for #5) |
+| `VEIL_STORE_CORRUPT` | `store-corrupt` | A pseudonym session file cannot be parsed |
+| `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable (reserved for #5) |
+| `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline (reserved for #5; today reported as `VEIL_INTERNAL`) |
+| `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
+| `VEIL_EVIDENCE_WRITE` | `evidence-write` | Evidence sink unwritable (reserved for #6) |
+| `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
+| `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
+| `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |
+| `VEIL_INTERNAL` | `internal` | Anything no other type describes (still fails closed) |
+
+The codes and types are defined once, in `internal/problem`.
+
+### Mapping to HCS-0006 (HagaHarness and other HCS hosts)
+
+veil does not emit HCS-0006 codes: that set is closed and owned by the
+host (HCS-0006-R002), and a condition no HCS document defines is reported
+as a problem type the distribution owns, never as an HCS error
+(HCS-0006, section 3). A host that runs veil as a guard maps its problems
+itself. Suggested mapping:
+
+| veil | HCS-0006 `code` |
+| --- | --- |
+| `VEIL_TIMEOUT` | `timeout` |
+| everything else | `permission_denied` |
+
+Whatever the mapping, a guard that fails means the request must not reach
+the model provider (HCS-0008-R020) and the operation is denied
+(HCS-0005-R014).
 
 ## Development
 

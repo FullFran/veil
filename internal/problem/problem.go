@@ -1,0 +1,172 @@
+// Package problem defines how veil reports a failure: one RFC 9457
+// problem details object, written as a single JSON line on stderr.
+//
+// veil is not an HTTP API, so this is a non-HTTP profile of RFC 9457
+// (Appendix C allows other carriers): the object has type, title, detail
+// and the extension member code, and never status, which is an HTTP
+// status code. Consumers branch on type (or its mirror code), never on
+// title or detail.
+//
+// Every code veil raises, on the binary or the OpenCode plugin side, is
+// defined here so later changes reuse them instead of minting new ones.
+// A code and its type are stable once released: renaming one breaks
+// every host that branches on it.
+package problem
+
+import (
+	"encoding/json"
+	"io"
+	"strings"
+)
+
+// Code is a stable, machine-readable failure identifier. It mirrors the
+// problem type for hosts that prefer a token over a URI.
+type Code string
+
+const (
+	// Usage: bad command-line arguments.
+	Usage Code = "VEIL_USAGE"
+	// InputInvalid: stdin is not exactly one valid event for the host.
+	InputInvalid Code = "VEIL_INPUT_INVALID"
+	// CatalogUnreadable: VEIL_CATALOG is set but cannot be read or parsed.
+	CatalogUnreadable Code = "VEIL_CATALOG_UNREADABLE"
+	// CapabilityUnsupported: the host cannot enforce the decision veil
+	// would have to make (for example tool-output redaction on Claude Code).
+	CapabilityUnsupported Code = "VEIL_CAPABILITY_UNSUPPORTED"
+	// StoreKeyMissing: the pseudonym store's encryption key is not set.
+	StoreKeyMissing Code = "VEIL_STORE_KEY_MISSING"
+	// StoreKeyInvalid: the pseudonym store's encryption key is malformed
+	// or does not open the store.
+	StoreKeyInvalid Code = "VEIL_STORE_KEY_INVALID"
+	// StoreCorrupt: a pseudonym session file exists but cannot be parsed.
+	StoreCorrupt Code = "VEIL_STORE_CORRUPT"
+	// StoreKeyringUnavailable: the OS keyring holding the store key
+	// cannot be reached.
+	StoreKeyringUnavailable Code = "VEIL_STORE_KEYRING_UNAVAILABLE"
+	// StoreLocked: the pseudonym session file stayed locked by another
+	// process past the deadline.
+	StoreLocked Code = "VEIL_STORE_LOCKED"
+	// StoreIO: the pseudonym store cannot be read or written.
+	StoreIO Code = "VEIL_STORE_IO"
+	// EvidenceWrite: the evidence sink cannot be written.
+	EvidenceWrite Code = "VEIL_EVIDENCE_WRITE"
+	// Timeout: raised by the OpenCode plugin when the binary does not
+	// answer in time.
+	Timeout Code = "VEIL_TIMEOUT"
+	// OutputTooLarge: raised by the OpenCode plugin when the binary's
+	// answer exceeds its buffer.
+	OutputTooLarge Code = "VEIL_OUTPUT_TOO_LARGE"
+	// Unavailable: raised by the OpenCode plugin when the binary cannot be
+	// run or its answer cannot be understood.
+	Unavailable Code = "VEIL_UNAVAILABLE"
+	// Internal: a failure no other code classifies. It still fails closed.
+	Internal Code = "VEIL_INTERNAL"
+)
+
+// TypeBase prefixes every problem type URI. It is an RFC 4151 tag URI:
+// veil owns no DNS domain, and a tag URI is globally unique without one
+// as long as its authority (the GitHub Pages host of the project owner)
+// was assigned to the minter on its date. Type URIs are identifiers and
+// are not meant to be dereferenced.
+const TypeBase = "tag:fullfran.github.io,2026:veil/problems/"
+
+// Exit classes. The exit code carries only the class; the detail is in
+// the problem object. A host adapter may map ExitFailedClosed to the code
+// its host requires to block (see internal/hosts).
+const (
+	// ExitDecision: veil made a decision (allow, deny or rewrite).
+	ExitDecision = 0
+	// ExitFailedClosed: veil failed; the event must not proceed.
+	ExitFailedClosed = 1
+	// ExitUsage: veil was invoked with bad arguments.
+	ExitUsage = 2
+)
+
+// titles holds the fixed, human-readable summary of each code. Titles
+// and details are fixed text: they never interpolate input, an
+// underlying error, a path or a session id, so a problem can never carry
+// a detected value.
+var titles = map[Code]string{
+	Usage:                   "Invalid command-line usage",
+	InputInvalid:            "Input is not one valid event",
+	CatalogUnreadable:       "Name catalog cannot be loaded",
+	CapabilityUnsupported:   "Host cannot enforce the decision",
+	StoreKeyMissing:         "Pseudonym store key is missing",
+	StoreKeyInvalid:         "Pseudonym store key is invalid",
+	StoreCorrupt:            "Pseudonym store is corrupt",
+	StoreKeyringUnavailable: "Keyring is unavailable",
+	StoreLocked:             "Pseudonym store is locked",
+	StoreIO:                 "Pseudonym store cannot be read or written",
+	EvidenceWrite:           "Evidence cannot be written",
+	Timeout:                 "veil did not answer in time",
+	OutputTooLarge:          "veil answer is too large",
+	Unavailable:             "veil is unavailable",
+	Internal:                "Internal failure",
+}
+
+var details = map[Code]string{
+	Usage:                   "Run veil with exactly one host argument: claude-code or opencode.",
+	InputInvalid:            "stdin must hold exactly one JSON event of a kind the host adapter supports.",
+	CatalogUnreadable:       "VEIL_CATALOG is set but the file cannot be read or parsed.",
+	CapabilityUnsupported:   "This host cannot enforce a deny or rewrite for this event, so veil fails closed.",
+	StoreKeyMissing:         "The pseudonym store needs an encryption key and none is configured.",
+	StoreKeyInvalid:         "The configured pseudonym store key is malformed or does not open the store.",
+	StoreCorrupt:            "A pseudonym session file cannot be parsed; veil refuses to start over and reuse tokens.",
+	StoreKeyringUnavailable: "The OS keyring that holds the pseudonym store key cannot be reached.",
+	StoreLocked:             "Another veil process held the pseudonym session lock past the deadline.",
+	StoreIO:                 "The pseudonym store directory or a session file cannot be read or written.",
+	EvidenceWrite:           "The evidence sink cannot be written, so veil fails closed.",
+	Timeout:                 "The veil binary did not answer before the deadline.",
+	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
+	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
+	Internal:                "veil failed in a way no other problem type describes.",
+}
+
+// all fixes the order All returns.
+var all = []Code{
+	Usage, InputInvalid, CatalogUnreadable, CapabilityUnsupported,
+	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, StoreIO,
+	EvidenceWrite,
+	Timeout, OutputTooLarge, Unavailable,
+	Internal,
+}
+
+// All returns every code veil defines.
+func All() []Code {
+	return append([]Code(nil), all...)
+}
+
+// Type returns the code's stable problem type URI: TypeBase followed by
+// the code without its VEIL_ prefix, lowercased, with "_" as "-".
+func (c Code) Type() string {
+	slug := strings.ReplaceAll(strings.ToLower(strings.TrimPrefix(string(c), "VEIL_")), "_", "-")
+	return TypeBase + slug
+}
+
+// Title returns the code's fixed human-readable summary.
+func (c Code) Title() string {
+	return titles[c]
+}
+
+// Problem is the RFC 9457 problem details object veil emits.
+type Problem struct {
+	Type   string `json:"type"`
+	Title  string `json:"title"`
+	Detail string `json:"detail"`
+	Code   Code   `json:"code"`
+}
+
+// New builds the problem for code.
+func New(code Code) Problem {
+	return Problem{Type: code.Type(), Title: code.Title(), Detail: details[code], Code: code}
+}
+
+// Write writes p to w as one JSON line.
+func Write(w io.Writer, p Problem) error {
+	b, err := json.Marshal(p)
+	if err != nil {
+		return err
+	}
+	_, err = w.Write(append(b, '\n'))
+	return err
+}
