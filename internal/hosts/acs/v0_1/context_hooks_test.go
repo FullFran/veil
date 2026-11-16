@@ -32,12 +32,15 @@ func hookRequest(t *testing.T, method string, payload map[string]any) []byte {
 }
 
 // contextHook is one ACS hook whose payload carries text that enters the
-// model's context, with the event veil evaluates for it and where a
-// rewrite of its first field lands in the payload.
+// model's context, with the kind and tool of the event veil evaluates for
+// it, some of that event's fields, and where a rewrite of one field lands
+// in the payload.
 type contextHook struct {
 	method  string
 	payload map[string]any
-	event   domain.Event
+	kind    domain.EventKind
+	tool    string
+	fields  map[string]string
 	field   string // the field the rewrite changes
 	pointer string // where that rewrite lands in the payload
 }
@@ -50,12 +53,9 @@ func contextHooks() []contextHook {
 				map[string]any{"type": "text", "value": "My DNI is 12345678Z"},
 				map[string]any{"type": "text", "value": "thanks"},
 			}},
-			event: domain.Event{
-				Kind: domain.EventPromptSubmit, Host: domain.HostACS, SessionID: contextSession,
-				Text:   "content.0: My DNI is 12345678Z\ncontent.1: thanks\n",
-				Fields: map[string]string{"content.0": "My DNI is 12345678Z", "content.1": "thanks"},
-			},
-			field: "content.0", pointer: "/content/0/value",
+			kind:   domain.EventPromptSubmit,
+			fields: map[string]string{"/payload/content/0/value": "My DNI is 12345678Z", "/payload/content/1/value": "thanks", "/payload/content/0/type": "text"},
+			field:  "/payload/content/0/value", pointer: "/content/0/value",
 		},
 		{
 			method: "steps/agentTrigger",
@@ -64,16 +64,14 @@ func contextHooks() []contextHook {
 				"trigger_source": map[string]any{"peer": "agent-b", "message": "Call 600123456"},
 				"intent":         map[string]any{"raw": "book a table", "parsed": []any{map[string]any{"tool": "x"}}, "parser_provenance": map[string]any{"origin": "system", "provenance_id": "p-1"}},
 			},
-			event: domain.Event{
-				Kind: domain.EventPromptSubmit, Host: domain.HostACS, SessionID: contextSession,
-				Text: "intent.raw: book a table\ntrigger_source.message: Call 600123456\ntrigger_source.peer: agent-b\n",
-				Fields: map[string]string{
-					"intent.raw":             "book a table",
-					"trigger_source.message": "Call 600123456",
-					"trigger_source.peer":    "agent-b",
-				},
+			kind: domain.EventPromptSubmit,
+			fields: map[string]string{
+				"/payload/intent/raw":             "book a table",
+				"/payload/trigger_source/message": "Call 600123456",
+				"/payload/trigger_source/peer":    "agent-b",
+				"/payload/intent/parsed/0/tool":   "x",
 			},
-			field: "trigger_source.message", pointer: "/trigger_source/message",
+			field: "/payload/trigger_source/message", pointer: "/trigger_source/message",
 		},
 		{
 			method: "steps/knowledgeRetrieval",
@@ -82,12 +80,9 @@ func contextHooks() []contextHook {
 				"source":  map[string]any{"name": "crm", "type": "vector_db"},
 				"results": []any{map[string]any{"value": map[string]any{"name": "Ana", "dni": "12345678Z"}, "source_id": "doc-1", "score": 0.9}},
 			},
-			event: domain.Event{
-				Kind: domain.EventToolOutput, Host: domain.HostACS, SessionID: contextSession, ToolName: "knowledgeRetrieval",
-				Text:   "results.0.dni: 12345678Z\nresults.0.name: Ana\n",
-				Fields: map[string]string{"results.0.dni": "12345678Z", "results.0.name": "Ana"},
-			},
-			field: "results.0.dni", pointer: "/results/0/value/dni",
+			kind: domain.EventToolOutput, tool: "knowledgeRetrieval",
+			fields: map[string]string{"/payload/results/0/value/dni": "12345678Z", "/payload/results/0/value/name": "Ana", "/payload/query/value": "customer record", "/payload/results/0/source_id": "doc-1"},
+			field:  "/payload/results/0/value/dni", pointer: "/results/0/value/dni",
 		},
 		{
 			method: "steps/memoryContextRetrieval",
@@ -95,12 +90,9 @@ func contextHooks() []contextHook {
 				"query":   map[string]any{"value": "user preferences"},
 				"results": []any{map[string]any{"memory_id": "m-1", "value": "Lives at Calle Mayor 1"}},
 			},
-			event: domain.Event{
-				Kind: domain.EventToolOutput, Host: domain.HostACS, SessionID: contextSession, ToolName: "memoryContextRetrieval",
-				Text:   "results.0: Lives at Calle Mayor 1\n",
-				Fields: map[string]string{"results.0": "Lives at Calle Mayor 1"},
-			},
-			field: "results.0", pointer: "/results/0/value",
+			kind: domain.EventToolOutput, tool: "memoryContextRetrieval",
+			fields: map[string]string{"/payload/results/0/value": "Lives at Calle Mayor 1", "/payload/results/0/memory_id": "m-1", "/payload/query/value": "user preferences"},
+			field:  "/payload/results/0/value", pointer: "/results/0/value",
 		},
 	}
 }
@@ -122,8 +114,14 @@ func TestDecodeHook_ContextHooks(t *testing.T) {
 			if ref != nil {
 				t.Fatalf("decodeHook refused: %+v", ref)
 			}
-			if !reflect.DeepEqual(h.event, tc.event) {
-				t.Fatalf("event =\n%#v\nwant\n%#v", h.event, tc.event)
+			e := h.event
+			if e.Kind != tc.kind || e.Host != domain.HostACS || e.SessionID != contextSession || e.ToolName != tc.tool {
+				t.Fatalf("event = %s %s %s %q, want %s acs %s %q", e.Kind, e.Host, e.SessionID, e.ToolName, tc.kind, contextSession, tc.tool)
+			}
+			for name, want := range tc.fields {
+				if got, ok := e.Fields[name]; !ok || got != want {
+					t.Errorf("Fields[%q] = %q, %v, want %q", name, got, ok, want)
+				}
 			}
 		})
 	}
@@ -162,9 +160,9 @@ func TestAnswer_ContextHooks_EncodeEachDecision(t *testing.T) {
 	}
 }
 
-// TestAnswer_ContextHookOffItsSchema_IsInvalidParams validates the new
-// hooks' payloads against their pinned schemas.
-func TestAnswer_ContextHookOffItsSchema_IsInvalidParams(t *testing.T) {
+// TestAnswer_ContextHookOffItsSchema_IsDenied validates the hooks'
+// payloads against their pinned schemas and denies one that is off them.
+func TestAnswer_ContextHookOffItsSchema_IsDenied(t *testing.T) {
 	cases := map[string]map[string]any{
 		"steps/userMessage":            {"content": []any{}},
 		"steps/agentTrigger":           {"trigger_type": "telepathy"},
@@ -173,7 +171,7 @@ func TestAnswer_ContextHookOffItsSchema_IsInvalidParams(t *testing.T) {
 	}
 	for method, payload := range cases {
 		t.Run(method, func(t *testing.T) {
-			assertError(t, newAt(readmeTime, allowGuard, nil).Answer(hookRequest(t, method, payload)), -32602, problem.ACSRequestInvalid)
+			assertFailureDeny(t, newAt(readmeTime, allowGuard, nil).Answer(hookRequest(t, method, payload)).Body, problem.ACSRequestInvalid)
 		})
 	}
 }

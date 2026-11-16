@@ -67,6 +67,10 @@ func TestCanonicalize_RejectsInputWithNoCanonicalForm(t *testing.T) {
 		"negative integer of 2^53": `{"n":-9007199254740992}`,
 		"integer beyond 2^53":      `{"n":1000000000000000000000}`,
 		"invalid utf-8":            "{\"s\":\"\xff\"}",
+		"lone high surrogate":      `{"s":"\ud800"}`,
+		"lone low surrogate":       `{"s":"\udc00"}`,
+		"high surrogate then text": `{"s":"\ud800\u0041"}`,
+		"lone surrogate in a key":  `{"\udbff":1}`,
 		"trailing data":            `{} {}`,
 		"not json":                 `{`,
 	}
@@ -74,6 +78,18 @@ func TestCanonicalize_RejectsInputWithNoCanonicalForm(t *testing.T) {
 		if got, err := canonicalize([]byte(in), ""); err == nil {
 			t.Errorf("%s: canonicalize = %s, want an error", name, got)
 		}
+	}
+}
+
+// TestCanonicalize_KeepsSurrogatePairs decodes an escaped surrogate pair
+// to its code point, as RFC 8785 requires.
+func TestCanonicalize_KeepsSurrogatePairs(t *testing.T) {
+	got, err := canonicalize([]byte(`{"s":"\ud83d\ude00"}`), "")
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := "{\"s\":\"\U0001F600\"}"; string(got) != want {
+		t.Fatalf("canonicalize = %q, want %q", got, want)
 	}
 }
 

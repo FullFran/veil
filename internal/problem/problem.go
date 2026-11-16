@@ -87,6 +87,10 @@ const (
 	// ACSKeyInvalid: the ACS HMAC secret configuration is incomplete,
 	// unreadable or too short.
 	ACSKeyInvalid Code = "VEIL_ACS_KEY_INVALID"
+	// ACSUnredactable: an ACS step carries data veil would pseudonymize
+	// where no ACS modification can be trusted to replace it (a member
+	// name, metadata, the tool name, raw_command), so veil denies it.
+	ACSUnredactable Code = "VEIL_ACS_UNREDACTABLE"
 	// Timeout: raised by the OpenCode plugin when the binary does not
 	// answer in time.
 	Timeout Code = "VEIL_TIMEOUT"
@@ -146,6 +150,7 @@ var titles = map[Code]string{
 	ACSReplay:               "ACS request was replayed",
 	ACSTimestampOutOfWindow: "ACS timestamp is out of window",
 	ACSKeyInvalid:           "ACS secret is invalid",
+	ACSUnredactable:         "ACS step carries data veil cannot redact",
 	Timeout:                 "veil did not answer in time",
 	OutputTooLarge:          "veil answer is too large",
 	Unavailable:             "veil is unavailable",
@@ -175,6 +180,7 @@ var details = map[Code]string{
 	ACSReplay:               "This request_id was already seen in the session.",
 	ACSTimestampOutOfWindow: "The request timestamp is outside the skew window; data.skew_window_ms carries the window.",
 	ACSKeyInvalid:           "VEIL_ACS_KEY_ID and a secret of at least 32 bytes (base64, from VEIL_ACS_KEY_FD or the veil-acs-key credential) must be set together.",
+	ACSUnredactable:         "veil would pseudonymize data in a member name, metadata, the tool name or raw_command, which no ACS modification can be trusted to replace, so it denies the step.",
 	Timeout:                 "The veil binary did not answer before the deadline.",
 	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
 	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
@@ -187,7 +193,7 @@ var all = []Code{
 	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, SessionRetired, StoreIO,
 	EvidenceWrite, CatalogRevisionInvalid,
 	ACSVersionUnsupported, ACSRequestInvalid, ACSMethodUnsupported, ACSSignatureInvalid,
-	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid,
+	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid, ACSUnredactable,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,
 }

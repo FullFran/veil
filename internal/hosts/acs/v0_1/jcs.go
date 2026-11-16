@@ -1,11 +1,9 @@
 package v0_1
 
 import (
-	"bytes"
 	"encoding/json"
 	"errors"
 	"fmt"
-	"io"
 	"math"
 	"slices"
 	"strconv"
@@ -24,19 +22,22 @@ const maxExactInteger = 1 << 53
 // "signature" of the top-level member container (params in a request,
 // result in a response) is left out: the signature covers everything but
 // itself. Input without a single canonical meaning (duplicate member
-// names, invalid UTF-8, integers beyond 2^53, trailing data) is an error.
+// names, invalid UTF-8, lone surrogate escapes, integers beyond 2^53,
+// trailing data) is an error.
 func canonicalize(raw []byte, container string) ([]byte, error) {
 	if !utf8.Valid(raw) {
 		return nil, errors.New("jcs: invalid UTF-8")
 	}
-	dec := json.NewDecoder(bytes.NewReader(raw))
-	dec.UseNumber()
-	v, err := readValue(dec)
+	v, ambiguities, err := parseJSON(raw)
 	if err != nil {
-		return nil, err
+		return nil, fmt.Errorf("jcs: %w", err)
 	}
-	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
-		return nil, errors.New("jcs: unexpected data after the JSON value")
+	for _, a := range ambiguities {
+		// Case variants have one canonical form (JCS compares names
+		// exactly); decodeEnvelope refuses them for veil's own reading.
+		if a.kind != ambiguityCase {
+			return nil, fmt.Errorf("jcs: %s at %q", a.kind, a.pointer)
+		}
 	}
 	if container != "" {
 		if top, ok := v.(map[string]any); ok {
@@ -50,55 +51,6 @@ func canonicalize(raw []byte, container string) ([]byte, error) {
 		return nil, err
 	}
 	return []byte(b.String()), nil
-}
-
-func readValue(dec *json.Decoder) (any, error) {
-	tok, err := dec.Token()
-	if err != nil {
-		return nil, fmt.Errorf("jcs: %w", err)
-	}
-	switch t := tok.(type) {
-	case json.Delim:
-		switch t {
-		case '{':
-			obj := map[string]any{}
-			for dec.More() {
-				keyTok, err := dec.Token()
-				if err != nil {
-					return nil, fmt.Errorf("jcs: %w", err)
-				}
-				key := keyTok.(string)
-				if _, dup := obj[key]; dup {
-					return nil, fmt.Errorf("jcs: duplicate member %q", key)
-				}
-				val, err := readValue(dec)
-				if err != nil {
-					return nil, err
-				}
-				obj[key] = val
-			}
-			if _, err := dec.Token(); err != nil {
-				return nil, fmt.Errorf("jcs: %w", err)
-			}
-			return obj, nil
-		case '[':
-			arr := []any{}
-			for dec.More() {
-				val, err := readValue(dec)
-				if err != nil {
-					return nil, err
-				}
-				arr = append(arr, val)
-			}
-			if _, err := dec.Token(); err != nil {
-				return nil, fmt.Errorf("jcs: %w", err)
-			}
-			return arr, nil
-		}
-		return nil, fmt.Errorf("jcs: unexpected %v", t)
-	default:
-		return t, nil
-	}
 }
 
 func writeValue(b *strings.Builder, v any) error {

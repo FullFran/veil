@@ -160,8 +160,8 @@ func TestServe_ContentLengthFraming(t *testing.T) {
 			decisions = append(decisions, m.Result.Decision)
 		}
 	}
-	if got := strings.Join(decisions, ","); got != "allow,allow,-32005" {
-		t.Fatalf("answers = %s, want allow,allow,-32005 (the third replays the first)", got)
+	if got := strings.Join(decisions, ","); got != "allow,allow,deny" {
+		t.Fatalf("answers = %s, want allow,allow,deny (the third replays the first)", got)
 	}
 	if len(failures) != 1 || failures[0] != problem.ACSReplay {
 		t.Fatalf("failures = %v", failures)

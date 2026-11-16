@@ -4,6 +4,7 @@ import (
 	"crypto/hmac"
 	"encoding/base64"
 	"encoding/json"
+	"errors"
 	"slices"
 	"sync"
 	"time"
@@ -34,13 +35,14 @@ var evaluated = []string{
 type version struct {
 	cfg  port.Config
 	mu   sync.Mutex
-	seen map[string]map[string]struct{} // session_id -> request_ids
+	seen map[string]map[string]time.Time // session_id -> request_id -> when it can be forgotten
 }
 
 // New returns the ACS 0.1.0 answerer for cfg. It remembers request_ids
-// per session for its lifetime, to refuse replays.
+// per session to refuse replays, each until its timestamp leaves the skew
+// window: from then on checkTimestamp refuses the request anyway.
 func New(cfg port.Config) port.Version {
-	return &version{cfg: cfg, seen: map[string]map[string]struct{}{}}
+	return &version{cfg: cfg, seen: map[string]map[string]time.Time{}}
 }
 
 // Answer answers one JSON-RPC message. The checks run in this order, each
@@ -97,13 +99,38 @@ func (v *version) Answer(msg []byte) port.Reply {
 		return v.reply(env, failureDeny(env, code), verified, code)
 	}
 	r, err := encodeDecision(env, h, decision, evidence)
+	if errors.Is(err, errUnredactable) {
+		return v.reply(env, failureDeny(env, problem.ACSUnredactable), verified, problem.ACSUnredactable)
+	}
 	if err != nil {
 		return v.reply(env, failureDeny(env, problem.Internal), verified, problem.Internal)
 	}
 	return v.reply(env, r, verified, "")
 }
 
+// deniable are the refusals of an evaluated hook veil answers with a deny
+// decision instead of an error: ACS handshake.json makes the Observed
+// Agent apply on_decision_failure (default proceed) to an error, and veil
+// keeps no handshake state to know the host chose deny.
+var deniable = map[int]bool{
+	port.RPCInvalidRequest:  true,
+	port.RPCInvalidParams:   true,
+	rpcSignatureInvalid:     true,
+	rpcReplayDetected:       true,
+	rpcTimestampOutOfWindow: true,
+}
+
+// refuse answers a refusal. On an evaluated hook it is an unsigned deny
+// carrying the problem, when that deny is a valid ACS response (it needs
+// a string or number id and a uuid request_id); otherwise, and for every
+// other method, it is the JSON-RPC error.
 func (v *version) refuse(env envelope, r *refusal) port.Reply {
+	if !r.final && deniable[r.rpc] && slices.Contains(evaluated, env.method) {
+		reply := v.reply(env, failureDeny(env, r.code), false, r.code)
+		if validateResponse(reply.Body) == nil {
+			return reply
+		}
+	}
 	return port.ErrorReply(env.id, r.rpc, r.code, r.extra)
 }
 
@@ -155,18 +182,33 @@ func (v *version) checkTimestamp(env envelope) *refusal {
 }
 
 func (v *version) checkReplay(env envelope) *refusal {
+	ts, err := time.Parse(time.RFC3339Nano, env.params.Timestamp)
+	if err != nil {
+		return refuse(port.RPCInvalidRequest, problem.ACSRequestInvalid)
+	}
 	v.mu.Lock()
 	defer v.mu.Unlock()
+	now := v.cfg.Clock()
+	for session, ids := range v.seen {
+		for id, forget := range ids {
+			if now.After(forget) {
+				delete(ids, id)
+			}
+		}
+		if len(ids) == 0 {
+			delete(v.seen, session)
+		}
+	}
 	session := env.params.Metadata.SessionID
 	ids := v.seen[session]
 	if ids == nil {
-		ids = map[string]struct{}{}
+		ids = map[string]time.Time{}
 		v.seen[session] = ids
 	}
 	if _, dup := ids[env.params.RequestID]; dup {
 		return refuse(rpcReplayDetected, problem.ACSReplay)
 	}
-	ids[env.params.RequestID] = struct{}{}
+	ids[env.params.RequestID] = ts.Add(skewWindow)
 	return nil
 }
 
@@ -183,20 +225,25 @@ func (v *version) ping(env envelope) port.Reply {
 }
 
 func (v *version) hello(env envelope, verified bool) port.Reply {
-	var p struct {
-		Versions []string `json:"acs_versions_supported"`
-		Methods  []string `json:"methods_implemented"`
+	payload, _ := env.payload.(map[string]any)
+	strs := func(member string) []string {
+		items, _ := payload[member].([]any)
+		out := make([]string, 0, len(items))
+		for _, item := range items {
+			if s, ok := item.(string); ok {
+				out = append(out, s)
+			}
+		}
+		return out
 	}
-	if err := json.Unmarshal(env.params.Payload, &p); err != nil {
-		return v.refuse(env, refuse(port.RPCInvalidParams, problem.ACSRequestInvalid))
-	}
-	if !slices.Contains(p.Versions, Version) {
+	versions, implemented := strs("acs_versions_supported"), strs("methods_implemented")
+	if !slices.Contains(versions, Version) {
 		return v.refuse(env, &refusal{rpc: rpcUnsupportedVersion, code: problem.ACSVersionUnsupported,
 			extra: map[string]any{"supported_versions": []string{Version}}})
 	}
 	methods := []string{}
 	for _, m := range evaluated {
-		if slices.Contains(p.Methods, m) {
+		if slices.Contains(implemented, m) {
 			methods = append(methods, m)
 		}
 	}

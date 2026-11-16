@@ -4,7 +4,9 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"maps"
 	"reflect"
+	"slices"
 	"strings"
 	"testing"
 	"time"
@@ -134,9 +136,12 @@ func TestAnswer_VendoredHookExamples_EncodeEachDecisionToASchemaValidResponse(t 
 		for k, v := range e.Fields {
 			fields[k] = v
 		}
-		for k := range fields {
-			fields[k] = "<PSEUDONYM_1>"
-			break
+		names := slices.Sorted(maps.Keys(fields))
+		for _, k := range names {
+			if strings.HasPrefix(k, "/payload/arguments/") || strings.HasPrefix(k, "/payload/outputs/") {
+				fields[k] = "<PSEUDONYM_1>"
+				break
+			}
 		}
 		return domain.RewriteDecision("", fields), evidence, ""
 	}
@@ -195,7 +200,7 @@ func TestAnswer_RewriteOfArguments_OverridesOnlyTheChangedArguments(t *testing.T
 		for k, v := range e.Fields {
 			fields[k] = v
 		}
-		fields["recipient"] = "<EMAIL_1>"
+		fields["/payload/arguments/recipient/value"] = "<EMAIL_1>"
 		return domain.RewriteDecision("", fields), evidence, ""
 	}
 	r := result(t, newAt(time.Date(2026, 4, 30, 10, 30, 0, 0, time.UTC), guard, nil).Answer(readExample(t, "in-action-email-send.request.json")).Body)
@@ -216,7 +221,7 @@ func TestAnswer_RewriteOfArguments_OverridesOnlyTheChangedArguments(t *testing.T
 // changed output value in the payload.
 func TestAnswer_RewriteOfOutputs_RedactsByPointerIntoThePayload(t *testing.T) {
 	guard := func(e domain.Event) (domain.Decision, json.RawMessage, problem.Code) {
-		return domain.RewriteDecision("", map[string]string{"outputs.0": "<NAME_1>\n"}), evidence, ""
+		return domain.RewriteDecision("", map[string]string{"/payload/outputs/0/value": "<NAME_1>\n"}), evidence, ""
 	}
 	r := result(t, newAt(time.Date(2026, 11, 3, 9, 39, 8, 0, time.UTC), guard, nil).Answer(unsignedExample(t, "nat-tool-call-result.request.json")).Body)
 	want := map[string]any{"redactions": []any{map[string]any{"path": "/outputs/0/value", "replacement": "<NAME_1>\n"}}}
@@ -403,11 +408,17 @@ func TestAnswer_SignedKnownAnswer_VerifiesAndSignsTheResponse(t *testing.T) {
 
 // TestAnswer_FailsClosedWithItsCode covers every refusal: each is a
 // JSON-RPC error with the ACS code and veil's problem code, never a
-// decision.
+// TestAnswer_FailsClosedWithItsCode covers every refusal. On an evaluated
+// hook whose answer can still be formed (a usable id and request_id), the
+// refusal is a deny decision: an error carries no decision, and ACS
+// handshake.json lets the host apply on_decision_failure, whose default
+// is proceed. Elsewhere it stays a JSON-RPC error with its code.
 func TestAnswer_FailsClosedWithItsCode(t *testing.T) {
 	signed := string(readKAT(t, "readme-file-read.signed.json"))
 	unsigned := string(readExample(t, "readme-file-read.request.json"))
 	other := &port.Secret{KeyID: "2027-01", Bytes: katSecret}
+	value := `"value": "/reports/q3-summary.md"`
+	caseVariant := strings.Replace(unsigned, value, `"value": "mi dni 12345678Z", "VALUE": "hola"`, 1)
 	cases := []struct {
 		name   string
 		msg    string
@@ -415,25 +426,41 @@ func TestAnswer_FailsClosedWithItsCode(t *testing.T) {
 		now    time.Time
 		rpc    int
 		code   problem.Code
+		deny   bool
 	}{
-		{"unparseable JSON", `{"jsonrpc":`, nil, readmeTime, port.RPCParseError, problem.InputInvalid},
-		{"batch", "[" + unsigned + "]", nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid},
-		{"envelope off schema", strings.Replace(unsigned, `"jsonrpc": "2.0"`, `"jsonrpc": "1.0"`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid},
-		{"request_id not a uuid", strings.Replace(unsigned, `"b3e1c9f0-3b21-4b7a-9f2e-6a6d2e6a9a11"`, `"not-a-uuid"`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid},
-		{"payload off schema", strings.Replace(unsigned, `"tool": {`, `"tool": {"version": 3,`, 1), nil, readmeTime, port.RPCInvalidParams, problem.ACSRequestInvalid},
-		{"unmapped hook", strings.Replace(unsigned, `"steps/toolCallRequest"`, `"steps/sessionStart"`, 1), nil, readmeTime, rpcCapabilityNotNegotiated, problem.ACSMethodUnsupported},
-		{"unsigned while a secret is set", unsigned, katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid},
-		{"signed while no secret is set", signed, nil, readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid},
-		{"unknown key_id", signed, other, readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid},
-		{"wrong signature", strings.Replace(signed, "/reports/q3-summary.md", "/reports/q4-summary.md", 1), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid},
-		{"signature not base64", strings.Replace(signed, "odebtunpVzqFPUybfY19dBrj5u63etOvJYlADI4YHfI=", "!!!", 1), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid},
-		{"unsupported algorithm", strings.Replace(signed, `"HMAC-SHA256"`, `"ECDSA-P256"`, 1), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid},
-		{"timestamp too old", unsigned, nil, readmeTime.Add(5*time.Minute + time.Second), rpcTimestampOutOfWindow, problem.ACSTimestampOutOfWindow},
-		{"timestamp in the future", unsigned, nil, readmeTime.Add(-5*time.Minute - time.Second), rpcTimestampOutOfWindow, problem.ACSTimestampOutOfWindow},
+		{"unparseable JSON", `{"jsonrpc":`, nil, readmeTime, port.RPCParseError, problem.InputInvalid, false},
+		{"batch", "[" + unsigned + "]", nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, false},
+		{"envelope off schema", strings.Replace(unsigned, `"jsonrpc": "2.0"`, `"jsonrpc": "1.0"`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"request_id not a uuid", strings.Replace(unsigned, `"b3e1c9f0-3b21-4b7a-9f2e-6a6d2e6a9a11"`, `"not-a-uuid"`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, false},
+		{"payload off schema", strings.Replace(unsigned, `"tool": {`, `"tool": {"version": 3,`, 1), nil, readmeTime, port.RPCInvalidParams, problem.ACSRequestInvalid, true},
+		{"member differing only by case", caseVariant, nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"member differing only by case, signed", string(signWith(t, []byte(caseVariant), katSecret, katKeyID)), katSecretConfig(), readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"payload member next to its case variant", strings.Replace(unsigned, `"arguments": {`, `"ARGUMENTS": {"path": {"value": "x"}}, "arguments": {`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"duplicate member in the payload", strings.Replace(unsigned, value, value+`, "value": "hola"`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"duplicate member at the root", strings.Replace(unsigned, `"id": "1",`, `"id": "1", "id": "2",`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, false},
+		{"lone surrogate", strings.Replace(unsigned, "/reports/q3-summary.md", `\ud800`, 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"invalid UTF-8", strings.Replace(unsigned, "/reports/q3-summary.md", "\xff", 1), nil, readmeTime, port.RPCInvalidRequest, problem.ACSRequestInvalid, true},
+		{"unmapped hook", strings.Replace(unsigned, `"steps/toolCallRequest"`, `"steps/sessionStart"`, 1), nil, readmeTime, rpcCapabilityNotNegotiated, problem.ACSMethodUnsupported, false},
+		{"unsigned handshake while a secret is set", string(hello(t, []string{"0.1.0"})), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, false},
+		{"unsigned while a secret is set", unsigned, katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, true},
+		{"signed while no secret is set", signed, nil, readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, true},
+		{"unknown key_id", signed, other, readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, true},
+		{"wrong signature", strings.Replace(signed, "/reports/q3-summary.md", "/reports/q4-summary.md", 1), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, true},
+		{"signature not base64", strings.Replace(signed, "odebtunpVzqFPUybfY19dBrj5u63etOvJYlADI4YHfI=", "!!!", 1), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, true},
+		{"unsupported algorithm", strings.Replace(signed, `"HMAC-SHA256"`, `"ECDSA-P256"`, 1), katSecretConfig(), readmeTime, rpcSignatureInvalid, problem.ACSSignatureInvalid, true},
+		{"timestamp too old", unsigned, nil, readmeTime.Add(5*time.Minute + time.Second), rpcTimestampOutOfWindow, problem.ACSTimestampOutOfWindow, true},
+		{"timestamp in the future", unsigned, nil, readmeTime.Add(-5*time.Minute - time.Second), rpcTimestampOutOfWindow, problem.ACSTimestampOutOfWindow, true},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
 			reply := newAt(tc.now, allowGuard, tc.secret).Answer([]byte(tc.msg))
+			if tc.deny {
+				assertFailureDeny(t, reply.Body, tc.code)
+				if reply.Failure != tc.code {
+					t.Fatalf("Failure = %q, want %q", reply.Failure, tc.code)
+				}
+				return
+			}
 			data := assertError(t, reply, tc.rpc, tc.code)
 			if tc.code == problem.ACSTimestampOutOfWindow && data["skew_window_ms"] != float64(300000) {
 				t.Fatalf("data.skew_window_ms = %v, want 300000", data["skew_window_ms"])
@@ -458,7 +485,11 @@ func TestAnswer_ReplayedRequestID_IsRefused(t *testing.T) {
 			if first := v.Answer(tc.msg); first.Failure != "" {
 				t.Fatalf("first answer failed: %s", first.Body)
 			}
-			assertError(t, v.Answer(tc.msg), rpcReplayDetected, problem.ACSReplay)
+			replay := v.Answer(tc.msg)
+			assertFailureDeny(t, replay.Body, problem.ACSReplay)
+			if replay.Failure != problem.ACSReplay {
+				t.Fatalf("Failure = %q, want %q", replay.Failure, problem.ACSReplay)
+			}
 		})
 	}
 }
@@ -508,4 +539,36 @@ func TestAnswer_SignedHandshake_AdvertisesHMAC(t *testing.T) {
 	if _, ok := r["signature"].(map[string]any); !ok {
 		t.Fatalf("ServerHello to a verified request is unsigned: %v", r)
 	}
+}
+
+// TestAnswer_ForgetsRequestIDsPastTheSkewWindow keeps memory bounded: a
+// request_id older than the timestamp window can no longer be replayed
+// (its timestamp is refused first), so it is pruned.
+func TestAnswer_ForgetsRequestIDsPastTheSkewWindow(t *testing.T) {
+	now := readmeTime
+	v := New(port.Config{Guard: allowGuard, Now: func() time.Time { return now }}).(*version)
+	first := readExample(t, "readme-file-read.request.json")
+	if r := v.Answer(first); r.Failure != "" {
+		t.Fatalf("first answer failed: %s", r.Body)
+	}
+	now = readmeTime.Add(skewWindow + time.Minute)
+	second := bytes.Replace(first, []byte("b3e1c9f0-3b21-4b7a-9f2e-6a6d2e6a9a11"), []byte("c4f2d0a1-4c32-4c8b-8a3f-7b7e3f7b0b22"), 1)
+	second = bytes.Replace(second, []byte(readmeTime.Format(time.RFC3339)), []byte(now.Format(time.RFC3339)), 1)
+	if r := v.Answer(second); r.Failure != "" {
+		t.Fatalf("second answer failed: %s", r.Body)
+	}
+	if n := v.remembered(); n != 1 {
+		t.Fatalf("remembered request_ids = %d, want 1 (the first one pruned)", n)
+	}
+}
+
+// remembered is how many request_ids veil holds to refuse replays.
+func (v *version) remembered() int {
+	v.mu.Lock()
+	defer v.mu.Unlock()
+	n := 0
+	for _, ids := range v.seen {
+		n += len(ids)
+	}
+	return n
 }

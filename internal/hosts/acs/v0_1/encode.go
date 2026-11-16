@@ -4,7 +4,7 @@ import (
 	"encoding/json"
 	"errors"
 	"fmt"
-	"reflect"
+	"maps"
 	"slices"
 	"strconv"
 	"strings"
@@ -61,7 +61,7 @@ func encodeDecision(env envelope, h hook, d domain.Decision, evidence json.RawMe
 			r["reasoning"] = reasonDenied
 		}
 	case domain.Rewrite:
-		mods, err := modifications(h, d)
+		mods, err := modifications(env, h, d)
 		if err != nil {
 			return nil, err
 		}
@@ -77,90 +77,132 @@ func encodeDecision(env envelope, h hook, d domain.Decision, evidence json.RawMe
 	return r, nil
 }
 
-// modifications expresses a rewrite in the structured ACS form: for tool
-// arguments, parameter_overrides of each top-level argument that changed;
-// for every other hook, redactions whose JSON pointers address the changed
-// leaves in the payload (under /<member>/<i>/value for a wrapped member,
-// e.g. /outputs/0/value or /content/0/value). A rewrite that changes
-// nothing is an error, never a silent allow.
-func modifications(h hook, d domain.Decision) (map[string]any, error) {
-	switch {
-	case h.event.Kind == domain.EventToolArgs:
-		rebuilt := domain.RebuildArgs(h.args, d.RedactedFields)
-		overrides := map[string]any{}
-		for name, value := range rebuilt {
-			if !reflect.DeepEqual(value, h.args[name]) {
-				overrides[name] = value
-			}
-		}
-		if len(overrides) == 0 {
-			return nil, errors.New("acs v0.1: rewrite changes no argument")
-		}
-		return map[string]any{"parameter_overrides": overrides}, nil
-	case h.doc != nil:
-		rebuilt := domain.RebuildArgs(h.doc, d.RedactedFields)
-		members := make([]string, 0, len(h.doc))
-		for member := range h.doc {
-			members = append(members, member)
-		}
-		slices.Sort(members)
-		var redactions []map[string]any
-		for _, member := range members {
-			pointer := "/" + escapePointer(member)
-			if !h.wrapped[member] {
-				diffLeaves(h.doc[member], rebuilt[member], pointer, &redactions)
-				continue
-			}
-			original := h.doc[member].([]any)
-			items, _ := rebuilt[member].([]any)
-			for i := range original {
-				if i < len(items) {
-					diffLeaves(original[i], items[i], pointer+"/"+strconv.Itoa(i)+"/value", &redactions)
-				}
-			}
-		}
-		if len(redactions) == 0 {
-			return nil, errors.New("acs v0.1: rewrite changes nothing")
-		}
-		return map[string]any{"redactions": redactions}, nil
-	default:
-		return nil, fmt.Errorf("acs v0.1: no rewrite for %s", h.event.Kind)
+// errUnredactable is a rewrite ACS cannot carry to everything the agent
+// acts on: veil denies the step instead (problem.ACSUnredactable).
+var errUnredactable = errors.New("acs v0.1: rewrite reaches data no modification can redact")
+
+// unredactable are the payload members a modification cannot be trusted
+// to reach: the tool name selects what runs, and raw_command is the
+// shell-style form of the call, which a host may execute instead of the
+// structured arguments.
+var unredactable = map[string]bool{"/tool/name": true, "/raw_command": true}
+
+// modifications expresses a rewrite in the structured ACS form. Each
+// changed field is a pointer under params (see decodeHook):
+//   - under /payload/arguments/<name>/value of steps/toolCallRequest, it
+//     is parameter_overrides of that argument, its whole value rebuilt;
+//   - anywhere else in the payload, it is a redaction whose JSON pointer
+//     addresses the changed leaf in the payload;
+//   - a member name, anything outside the payload (metadata, extra params
+//     members), the tool name, raw_command, or an argument both overridden
+//     and redacted is errUnredactable.
+//
+// A rewrite that changes nothing is an error, never a silent allow.
+func modifications(env envelope, h hook, d domain.Decision) (map[string]any, error) {
+	if d.Kind != domain.Rewrite {
+		return nil, fmt.Errorf("acs v0.1: no rewrite for %s", d.Kind)
 	}
+	overrides := map[string]any{}
+	var redactions []map[string]any
+	for _, name := range slices.Sorted(maps.Keys(d.RedactedFields)) {
+		replacement := d.RedactedFields[name]
+		original, known := h.event.Fields[name]
+		if known && original == replacement {
+			continue
+		}
+		rel, inPayload := strings.CutPrefix(name, "/payload/")
+		if !known || !inPayload || unredactable["/"+rel] {
+			return nil, errUnredactable
+		}
+		rel = "/" + rel
+		if arg, sub, ok := argumentValue(env.method, rel); ok {
+			current, seen := overrides[arg]
+			if !seen {
+				current = h.args[arg]
+			}
+			rebuilt, ok := setLeaf(current, sub, replacement)
+			if !ok {
+				return nil, errUnredactable
+			}
+			overrides[arg] = rebuilt
+			continue
+		}
+		redactions = append(redactions, map[string]any{"path": rel, "replacement": replacement})
+	}
+	for _, r := range redactions {
+		for arg := range overrides {
+			if p := r["path"].(string); strings.HasPrefix(p, "/arguments/"+escapePointer(arg)+"/") {
+				return nil, errUnredactable
+			}
+		}
+	}
+	mods := map[string]any{}
+	if len(overrides) > 0 {
+		mods["parameter_overrides"] = overrides
+	}
+	if len(redactions) > 0 {
+		mods["redactions"] = redactions
+	}
+	if len(mods) == 0 {
+		return nil, errors.New("acs v0.1: rewrite changes nothing")
+	}
+	return mods, nil
 }
 
-// diffLeaves appends a redaction for every leaf of rebuilt that differs
-// from original, addressed by RFC 6901 JSON pointer, in a stable order.
-func diffLeaves(original, rebuilt any, pointer string, out *[]map[string]any) {
-	switch o := original.(type) {
-	case map[string]any:
-		r, _ := rebuilt.(map[string]any)
-		keys := make([]string, 0, len(o))
-		for k := range o {
-			keys = append(keys, k)
-		}
-		slices.Sort(keys)
-		for _, k := range keys {
-			diffLeaves(o[k], r[k], pointer+"/"+escapePointer(k), out)
-		}
-	case []any:
-		r, _ := rebuilt.([]any)
-		for i := range o {
-			if i < len(r) {
-				diffLeaves(o[i], r[i], pointer+"/"+strconv.Itoa(i), out)
-			}
-		}
-	default:
-		if reflect.DeepEqual(original, rebuilt) {
-			return
-		}
-		replacement, ok := rebuilt.(string)
-		if !ok {
-			replacement = fmt.Sprint(rebuilt)
-		}
-		*out = append(*out, map[string]any{"path": pointer, "replacement": replacement})
+// argumentValue splits a payload pointer of steps/toolCallRequest under
+// /arguments/<name>/value into the argument name and the tokens below
+// its value.
+func argumentValue(method, pointer string) (string, []string, bool) {
+	if method != methodToolRequest {
+		return "", nil, false
 	}
+	tokens := strings.Split(pointer, "/")[1:]
+	if len(tokens) < 3 || tokens[0] != "arguments" || tokens[2] != "value" {
+		return "", nil, false
+	}
+	return unescapePointer(tokens[1]), tokens[3:], true
+}
+
+// setLeaf returns a copy of v with the leaf at the pointer tokens set to
+// s, leaving v itself unchanged.
+func setLeaf(v any, tokens []string, s string) (any, bool) {
+	if len(tokens) == 0 {
+		return s, true
+	}
+	switch t := v.(type) {
+	case map[string]any:
+		key := unescapePointer(tokens[0])
+		child, ok := t[key]
+		if !ok {
+			return nil, false
+		}
+		rebuilt, ok := setLeaf(child, tokens[1:], s)
+		if !ok {
+			return nil, false
+		}
+		out := maps.Clone(t)
+		out[key] = rebuilt
+		return out, true
+	case []any:
+		i, err := strconv.Atoi(tokens[0])
+		if err != nil || i < 0 || i >= len(t) {
+			return nil, false
+		}
+		rebuilt, ok := setLeaf(t[i], tokens[1:], s)
+		if !ok {
+			return nil, false
+		}
+		out := slices.Clone(t)
+		out[i] = rebuilt
+		return out, true
+	}
+	return nil, false
 }
 
 func escapePointer(token string) string {
 	return strings.NewReplacer("~", "~0", "/", "~1").Replace(token)
+}
+
+func unescapePointer(token string) string {
+	return strings.NewReplacer("~1", "/", "~0", "~").Replace(token)
 }

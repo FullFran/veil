@@ -677,25 +677,50 @@ formats asserted) before reading it, and each response it writes
 validates against the pinned response schema (the tests check this on
 every vendored example).
 
+> [!IMPORTANT]
+> **Hosts must complete the handshake and set `on_decision_failure: deny`.**
+> ACS has the Observed Agent apply its `on_decision_failure` posture to any
+> JSON-RPC error, and that posture defaults to `proceed`. veil answers
+> every refusal it can as a deny decision (see
+> [Failing closed](#failing-closed)), but a few requests carry no id or
+> version a decision could answer, and those stay JSON-RPC errors. veil
+> keeps no handshake state, so it cannot see whether the host completed
+> `handshake/hello` or kept the default: a host that skips the handshake
+> or proceeds on failure lets those requests through.
+
 ### Mapping
 
 | ACS | veil |
 | --- | --- |
-| `steps/agentTrigger` | `PromptSubmit` event over `trigger_source` and `intent.raw` |
-| `steps/userMessage` | `PromptSubmit` event over the content values, keyed `content.<index>` |
-| `steps/knowledgeRetrieval` | `ToolOutput` event (tool `knowledgeRetrieval`) over the result values, keyed `results.<index>` |
-| `steps/memoryContextRetrieval` | `ToolOutput` event (tool `memoryContextRetrieval`) over the result values, keyed `results.<index>` |
-| `steps/toolCallRequest` | `ToolArgs` event over the unwrapped argument values (`arguments.<name>.value`) |
-| `steps/toolCallResult` | `ToolOutput` event over the output values, keyed `outputs.<index>` |
+| `steps/agentTrigger`, `steps/userMessage` | `PromptSubmit` event |
+| `steps/knowledgeRetrieval`, `steps/memoryContextRetrieval` | `ToolOutput` event, tool `knowledgeRetrieval` or `memoryContextRetrieval` |
+| `steps/toolCallRequest` | `ToolArgs` event, tool `tool.name`, arguments the unwrapped `arguments.<name>.value` |
+| `steps/toolCallResult` | `ToolOutput` event, tool `tool.name` |
 | `metadata.session_id` | the pseudonym session |
 | Allow | `allow` |
 | Deny | `deny`, the policy's reason in `reasoning` |
-| Rewrite of arguments | `modify` with `parameter_overrides` for each top-level argument that changed |
-| Rewrite of anything else | `modify` with `redactions`, one JSON pointer into the payload per changed value (`/content/<i>/value`, `/results/<i>/value/...`, `/outputs/<i>/value/...`, `/trigger_source/...`, `/intent/raw`) |
+| Rewrite of an argument value | `modify` with `parameter_overrides` of that argument, its whole value rebuilt |
+| Rewrite of anything else in the payload | `modify` with `redactions`, one JSON pointer into the payload per changed value (`/content/0/value`, `/query/value`, `/intent/goal`, `/arguments/a/provenance/...`) |
+| Rewrite veil cannot express | `deny` with `VEIL_ACS_UNREDACTABLE` (below) |
 | Decision evidence | `policy_data.veil.evidence`, the same record as [Decision evidence](#decision-evidence) |
 | `handshake/hello` | `ServerHello`: `negotiated_version` `0.1.0`, `methods_evaluated` = the six hooks above that the client implements, in that order, `on_decision_failure` `deny`, `skew_window_ms` 300000 |
 | `system/ping` | always `allow` with `payload.status` `ok`, never a signature requirement |
 | Any other method | error -32003 `VEIL_ACS_METHOD_UNSUPPORTED` |
+
+**What veil scans.** Whatever the hook, the event's fields are every
+string, number and boolean in `params` and every member name, each named
+by its JSON pointer under `params` (`/payload/arguments/path/value`,
+`/metadata/agent_id`; a member name as `key /payload/arguments/path`).
+Detectors see every piece of text the request carries, extra members
+included, not a list of fields. Only the members veil reads itself are
+left out: `acs_version`, `request_id`, `timestamp`, `signature` and
+`metadata.session_id`. When the policy would pseudonymize a value ACS
+cannot carry a replacement for, veil denies the step with
+`VEIL_ACS_UNREDACTABLE`: a member name, anything outside the payload
+(metadata, extra `params` members), `tool.name` (it selects what runs),
+`raw_command` (a host may execute it instead of the structured
+arguments), or an argument that would need both an override and a
+redaction.
 
 veil never answers `ask` or `defer`. It has no channel to a human approver,
 and only the host may collect an approval (HCS-0005-R014, R015); a
@@ -704,30 +729,43 @@ deny.
 
 ### Failing closed
 
-A request veil refuses is a JSON-RPC error whose `data` carries `reason`
-(the veil code), `message` (its title) and `problem` (the
-[RFC 9457 problem](#failures)):
+veil reads every request with a strict parser before anything else. A
+member name repeated in one object, a member name that differs from
+another in the same object only by case, or a string with invalid UTF-8
+or a lone surrogate escape (`\ud800`) is refused: those are documents two
+parsers read differently (a case-insensitive decoder merges `value` and
+`VALUE`), so the schema, the signature and veil must never see one and
+the host another.
 
-| Condition | JSON-RPC code | veil code |
-| --- | --- | --- |
-| Not JSON | -32700 | `VEIL_INPUT_INVALID` |
-| Batch, or envelope off the schema | -32600 | `VEIL_ACS_REQUEST_INVALID` |
-| Payload off its method's schema | -32602 | `VEIL_ACS_REQUEST_INVALID` |
-| `acs_version` veil has no package for (`data.supported_versions`) | -32001 | `VEIL_ACS_VERSION_UNSUPPORTED` |
-| Method veil does not evaluate | -32003 | `VEIL_ACS_METHOD_UNSUPPORTED` |
-| Signature missing, unexpected, of another algorithm or `key_id`, or wrong | -32004 | `VEIL_ACS_SIGNATURE_INVALID` |
-| `request_id` already seen in the session | -32005 | `VEIL_ACS_REPLAY` |
-| `timestamp` more than 5 minutes off (`data.skew_window_ms`) | -32006 | `VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW` |
-| veil cannot evaluate, on `handshake/hello` | -32000 | the cause (e.g. `VEIL_POLICY_INVALID`) |
+On an evaluated hook, a refusal is a **deny decision**, not an error: the
+code in `reason_codes`, the problem in `policy_data.veil.problem`,
+unsigned. An error carries no decision, and ACS section 6.4 has the
+Observed Agent apply `on_decision_failure` to it, whose default is to
+proceed; a decision is always honoured. The same holds for a valid hook
+veil cannot decide (invalid policy, store, evidence or secret
+configuration) and for `VEIL_ACS_UNREDACTABLE`.
 
-A valid hook request veil cannot decide (invalid policy, store, evidence
-or secret configuration) is not an error but a **deny**, with the code in
-`reason_codes` and the problem in `policy_data.veil.problem`. ACS section
-6.4 has the Observed Agent apply its `on_decision_failure` posture to an
-error, whose default is to proceed, while a decision is always honoured,
-so only a deny keeps veil from failing open.
+| Condition | Answer on an evaluated hook | JSON-RPC code otherwise | veil code |
+| --- | --- | --- | --- |
+| Not JSON | error | -32700 | `VEIL_INPUT_INVALID` |
+| Batch, or the root not an object | error | -32600 | `VEIL_ACS_REQUEST_INVALID` |
+| Ambiguous member or string outside `params.payload`, `params.metadata` and `params.signature` (the id or method cannot be trusted) | error, no id | -32600 | `VEIL_ACS_REQUEST_INVALID` |
+| Ambiguous member or string inside them, or envelope off the schema | deny | -32600 | `VEIL_ACS_REQUEST_INVALID` |
+| Payload off its method's schema | deny | -32602 | `VEIL_ACS_REQUEST_INVALID` |
+| No `acs_version`, or one veil has no package for (`data.supported_versions`) | error | -32600, -32001 | `VEIL_ACS_REQUEST_INVALID`, `VEIL_ACS_VERSION_UNSUPPORTED` |
+| Method veil does not evaluate | error | -32003 | `VEIL_ACS_METHOD_UNSUPPORTED` |
+| Signature missing, unexpected, of another algorithm or `key_id`, or wrong | deny | -32004 | `VEIL_ACS_SIGNATURE_INVALID` |
+| `request_id` already seen in the session | deny | -32005 | `VEIL_ACS_REPLAY` |
+| `timestamp` more than 5 minutes off (`data.skew_window_ms`) | deny | -32006 | `VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW` |
+| veil cannot evaluate, on `handshake/hello` | error | -32000 | the cause (e.g. `VEIL_POLICY_INVALID`) |
 
-In both cases veil also writes the problem line on stderr and exits 1
+A deny needs an `id` that is a string or a number and a `request_id`
+that is a uuid; when the request has neither, the refusal stays the
+error. An error's `data` carries `reason` (the veil code), `message` (its
+title) and `problem` (the [RFC 9457 problem](#failures)). Every row that
+stays an error is why the host must honour `on_decision_failure: deny`.
+
+In every case veil also writes the problem line on stderr and exits 1
 once the input ends; stdout holds the JSON-RPC answers.
 
 ### Signatures
@@ -764,7 +802,9 @@ the specification's own example.
   match the pinned files.
 - **No session chain.** veil keeps no `chain_hash` and needs no prior
   handshake; replays are detected only within one `veil acs` process, so
-  a bare one-message invocation cannot detect them.
+  a bare one-message invocation cannot detect them. A `request_id` is
+  remembered until its timestamp leaves the 5-minute window (the
+  timestamp check refuses it from then on), so memory stays bounded.
 - **Six hooks.** veil evaluates every 0.1.0 hook whose payload carries
   text that enters the model's context from outside it, plus the tool
   call. ACS lets the Observed Agent treat a method missing from
@@ -794,8 +834,6 @@ the specification's own example.
     already evaluated.
   - `steps/memoryStore`: a write to the agent's memory, not the model; it
     reaches the model only through `steps/memoryContextRetrieval`.
-  - The `query` of the two retrieval hooks: generated by the agent from its
-    context and sent to the knowledge source, not to the model.
   - `agbom/*`: component inventory, not model input.
   
   The acs-provenance variants of the evaluated hook schemas only make
@@ -824,6 +862,9 @@ the specification's own example.
   ACS uses the disposition name), and it carries no `unmapped.acs` join
   fields. A Trace emitter can derive the ACS events from the response,
   which holds the `request_id`, decision and reasoning.
+- **Strict JSON.** ACS does not forbid repeated or case-variant member
+  names or lone surrogates; veil refuses them (above), and its JCS
+  rejects lone surrogates as RFC 8785 requires.
 - **Integers.** Like the `rfc8785` reference, integer literals of
   magnitude 2^53 or more cannot be signed; such a signed request is
   refused.
@@ -1011,6 +1052,7 @@ line on stderr is what tells a failure apart.
 | `VEIL_ACS_REPLAY` | `acs-replay` | `veil acs`: `request_id` already seen in the session |
 | `VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW` | `acs-timestamp-out-of-window` | `veil acs`: `timestamp` outside the 5-minute window |
 | `VEIL_ACS_KEY_INVALID` | `acs-key-invalid` | `veil acs`: the secret configuration is incomplete, unreadable, not base64 or under 32 bytes |
+| `VEIL_ACS_UNREDACTABLE` | `acs-unredactable` | `veil acs`: data veil would pseudonymize sits where no ACS modification can be trusted to replace it (a member name, metadata, `tool.name`, `raw_command`), so the step is denied |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
 | `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
 | `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |

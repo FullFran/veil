@@ -201,7 +201,7 @@ func TestRun_ACS_FailsClosed(t *testing.T) {
 				t.Setenv("CREDENTIALS_DIRECTORY", dir)
 				t.Setenv(acsKeyIDEnv, "k1")
 			},
-			rpc: -32004, code: problem.ACSSignatureInvalid,
+			code: problem.ACSSignatureInvalid,
 		},
 		{
 			name:  "key id without a secret",

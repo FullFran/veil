@@ -35,6 +35,7 @@ var wantCodes = []Code{
 	ACSReplay,
 	ACSTimestampOutOfWindow,
 	ACSKeyInvalid,
+	ACSUnredactable,
 	Timeout,
 	OutputTooLarge,
 	Unavailable,
