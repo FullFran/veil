@@ -1,0 +1,24 @@
+# Dependency version updates.
+#
+# No npm entry yet: the repository has no package.json (the OpenCode plugin
+# and its tests have no dependencies) and Dependabot fails on an ecosystem
+# without a manifest. Add an npm entry together with the first package.json.
+version: 2
+updates:
+  - package-ecosystem: gomod
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build(deps)"
+    open-pull-requests-limit: 5
+
+  - package-ecosystem: github-actions
+    directory: /
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "ci(deps)"
+    groups:
+      github-actions:
+        patterns: ["*"]
