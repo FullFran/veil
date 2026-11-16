@@ -181,8 +181,16 @@ Each session is one [age v1](https://c2sp.org/age) file
 `<state>/veil/sessions/<session>.age`, mode 0600, encrypted to one X25519
 recipient. The plaintext inside is a JSON mapping (`"version": 2`). No real
 value and no `category:original` key is on disk in clear. Writes go
-through a temp file and a rename; a sibling `<session>.json.lock` (created
-with `O_EXCL`, 2 s deadline) serializes writers across processes.
+through a new temp file (created with `O_EXCL`, mode 0600, after removing
+any leftover or planted link), `fsync`, a rename and an `fsync` of the
+directory, so a write is durable when it returns, even across a power
+loss. A sibling `<session>.json.lock` (created with `O_EXCL`, 2 s
+deadline) serializes writers across processes.
+
+The sessions directory must be private: veil creates it 0700, tightens an
+existing one that group or others can reach to 0700, and fails closed
+with `VEIL_STORE_IO` if it belongs to another user (the OS temp-dir
+fallback is shared).
 
 ### Key sources
 
@@ -193,8 +201,11 @@ applies:
 1. **Host, by descriptor.** `VEIL_KEY_FD=<n>` names an inherited file
    descriptor the host writes the identity to. Only the number travels in
    the environment, never the key (`/proc/<pid>/environ` is readable by the
-   same user). A host key always wins. If `VEIL_KEY_FD` is set but gives no
-   usable key, veil fails closed; it never falls back to another source.
+   same user). The descriptor must be 3 or higher: 0, 1 and 2 are veil's
+   stdin (the hook event), stdout and stderr, and are rejected with
+   `VEIL_STORE_KEY_INVALID`. A host key always wins. If `VEIL_KEY_FD` is
+   set but gives no usable key, veil fails closed; it never falls back to
+   another source.
 2. **systemd credential.** `$CREDENTIALS_DIRECTORY/veil-store-key`, when
    veil runs under a unit with `LoadCredential=veil-store-key:…` or
    `LoadCredentialEncrypted=` (Linux). If the unit has credentials but not
@@ -212,7 +223,7 @@ Every key failure denies the event with a typed problem
 | Failure | Code |
 | --- | --- |
 | No key for an existing store, or `VEIL_KEY_FD` unusable | `VEIL_STORE_KEY_MISSING` |
-| Key is not an age X25519 identity, or does not open the file | `VEIL_STORE_KEY_INVALID` |
+| Key is not an age X25519 identity, does not open the file, or `VEIL_KEY_FD` is below 3 | `VEIL_STORE_KEY_INVALID` |
 | Session file fails to decrypt, authenticate or parse | `VEIL_STORE_CORRUPT` |
 | OS keyring unreachable | `VEIL_STORE_KEYRING_UNAVAILABLE` |
 | Lock held past the deadline | `VEIL_STORE_LOCKED` |
@@ -231,7 +242,8 @@ veil store forget <session>   # removes the session's store and its lock
   stands for, sorted by category and number, for a host's own "what veil
   hid" view. It needs the key, like any read. An unknown session prints
   `{"markers":[]}`.
-- `forget` removes the session's age file, any v1 file and its lock,
+- `forget` removes the session's age file, any v1 file, any interrupted
+  write (v1 or v2 temp file) and its lock,
   holding the lock while it deletes. It needs no key. An unknown session
   succeeds.
 - Both exit 0 on success, 1 with a problem line on a store failure, 2 on
@@ -240,8 +252,8 @@ veil store forget <session>   # removes the session's store and its lock
 ### Migration from v1
 
 veil before this format kept `<session>.json` in clear. On the first
-access to such a session veil reads it, writes it as `<session>.age` and
-removes the plaintext file; token numbers carry on where they were. A v1
+access to such a session veil reads it, writes it as `<session>.age`, and
+removes the plaintext file only once the encrypted file is durable; token numbers carry on where they were. A v1
 file that cannot be parsed fails closed with `VEIL_STORE_CORRUPT` and is
 left in place.
 

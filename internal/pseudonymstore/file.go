@@ -123,6 +123,9 @@ func (s *FileStore) Token(sessionID, category, original string) (string, error) 
 	if err := os.MkdirAll(s.dir, 0o700); err != nil {
 		return "", fmt.Errorf("pseudonymstore: create %s: %w", s.dir, err)
 	}
+	if err := securePrivateDir(s.dir); err != nil {
+		return "", err
+	}
 
 	unlock, err := acquireLock(s.lockPath(sessionID))
 	if err != nil {
@@ -197,6 +200,9 @@ func (s *FileStore) Forget(sessionID string) error {
 	if _, err := os.Stat(s.dir); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
+	if err := securePrivateDir(s.dir); err != nil {
+		return err
+	}
 
 	unlock, err := acquireLock(s.lockPath(sessionID))
 	if err != nil {
@@ -204,7 +210,12 @@ func (s *FileStore) Forget(sessionID string) error {
 	}
 	defer unlock()
 
-	for _, path := range []string{s.agePath(sessionID), s.legacyPath(sessionID), s.agePath(sessionID) + ".tmp"} {
+	paths := []string{
+		s.agePath(sessionID), s.agePath(sessionID) + ".tmp",
+		// v1 files, including an interrupted v1 write: both hold plaintext.
+		s.legacyPath(sessionID), s.legacyPath(sessionID) + ".tmp",
+	}
+	for _, path := range paths {
 		if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
 			return fmt.Errorf("pseudonymstore: remove: %w", err)
 		}
@@ -218,6 +229,9 @@ func (s *FileStore) Forget(sessionID string) error {
 func (s *FileStore) read(sessionID string) (*sessionFile, error) {
 	if !exists(s.agePath(sessionID)) && !exists(s.legacyPath(sessionID)) {
 		return emptySession(), nil
+	}
+	if err := securePrivateDir(s.dir); err != nil {
+		return nil, err
 	}
 
 	unlock, err := acquireLock(s.lockPath(sessionID))
@@ -322,9 +336,10 @@ func parse(raw []byte) (*sessionFile, error) {
 	return &data, nil
 }
 
-// save encrypts data and writes it with 0600 permissions via a temp-file-
-// plus-rename, so a crash mid-write can never leave a half-written,
-// corrupted session file behind. It may generate the store key (keyring
+// save encrypts data and writes it with 0600 permissions via a synced
+// temp file, a rename and a synced directory, so neither a crash nor a
+// power loss mid-write can leave a half-written session file behind, and
+// the new file is durable when save returns. It may generate the store key (keyring
 // first use): only a write, under the session lock, ever does.
 func (s *FileStore) save(sessionID string, data *sessionFile) error {
 	id, err := s.keys.Identity(true)
@@ -352,11 +367,45 @@ func (s *FileStore) save(sessionID string, data *sessionFile) error {
 
 	path := s.agePath(sessionID)
 	tmp := path + ".tmp"
-	if err := os.WriteFile(tmp, buf.Bytes(), 0o600); err != nil {
-		return fmt.Errorf("pseudonymstore: write: %w", err)
+	if err := writeSynced(tmp, buf.Bytes()); err != nil {
+		return err
 	}
 	if err := os.Rename(tmp, path); err != nil {
 		return fmt.Errorf("pseudonymstore: rename: %w", err)
+	}
+	// The rename is durable only once the directory entry is: until then
+	// a power loss can bring back the old file, so a caller must not
+	// remove a v1 plaintext file before this returns.
+	if err := syncDir(s.dir); err != nil {
+		return fmt.Errorf("pseudonymstore: sync dir: %w", err)
+	}
+	return nil
+}
+
+// writeSynced writes data to a new file at path with mode 0600 and flushes
+// it to stable storage. A leftover at path (an interrupted write, or a
+// symlink planted in a shared directory) is removed first, and the file
+// is created with O_EXCL, so veil never writes through a link or keeps a
+// stale file's mode. Callers hold the session lock, so no other veil
+// process is writing path.
+func writeSynced(path string, data []byte) error {
+	if err := removeIfExists(path); err != nil {
+		return err
+	}
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600)
+	if err != nil {
+		return fmt.Errorf("pseudonymstore: write: %w", err)
+	}
+	_, err = f.Write(data)
+	if err == nil {
+		err = syncFile(f)
+	}
+	if closeErr := f.Close(); err == nil {
+		err = closeErr
+	}
+	if err != nil {
+		os.Remove(path)
+		return fmt.Errorf("pseudonymstore: write: %w", err)
 	}
 	return nil
 }

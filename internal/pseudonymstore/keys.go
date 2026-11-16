@@ -126,8 +126,13 @@ func (k *KeyChain) resolve(create bool) (*age.X25519Identity, error) {
 
 func (k *KeyChain) fromFD() (*age.X25519Identity, error) {
 	fd, err := strconv.Atoi(k.FD)
-	if err != nil || fd < 0 {
+	if err != nil {
 		return nil, fmt.Errorf("%w: %s is not a descriptor number", ErrKeyMissing, KeyFDEnv)
+	}
+	if fd < 3 {
+		// 0, 1 and 2 are stdin, stdout and stderr: fd 0 would consume
+		// the hook event itself as the key.
+		return nil, fmt.Errorf("%w: %s must be 3 or higher", ErrKeyInvalid, KeyFDEnv)
 	}
 	f := os.NewFile(uintptr(fd), KeyFDEnv)
 	if f == nil {
