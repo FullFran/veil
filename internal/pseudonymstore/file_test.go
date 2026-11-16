@@ -8,9 +8,8 @@ import (
 	"os"
 	"path/filepath"
 	"runtime"
+	"strings"
 	"testing"
-
-	"github.com/FullFran/veil/internal/pseudonymstore"
 )
 
 // TestFileStore_PersistsAcrossSeparateInstances proves the whole point of
@@ -19,8 +18,9 @@ import (
 // *FileStore instance's lifetime by living on disk, not only in memory.
 func TestFileStore_PersistsAcrossSeparateInstances(t *testing.T) {
 	dir := t.TempDir()
+	kr := newFakeKeyring()
 
-	first := pseudonymstore.NewFileStore(dir)
+	first := newStore(t, dir, kr)
 	token, err := first.Token("session-1", "DNI", "12345678Z")
 	if err != nil {
 		t.Fatalf("Token returned unexpected error: %v", err)
@@ -31,7 +31,7 @@ func TestFileStore_PersistsAcrossSeparateInstances(t *testing.T) {
 
 	// A brand new instance, as a separate `veil` process invocation would
 	// construct, pointed at the same directory.
-	second := pseudonymstore.NewFileStore(dir)
+	second := newStore(t, dir, kr)
 	again, err := second.Token("session-1", "DNI", "12345678Z")
 	if err != nil {
 		t.Fatalf("Token returned unexpected error: %v", err)
@@ -59,7 +59,8 @@ func TestFileStore_DifferentSessions_UseSeparateFiles(t *testing.T) {
 	}
 
 	dir := t.TempDir()
-	store := pseudonymstore.NewFileStore(dir)
+	kr := newFakeKeyring()
+	store := newStore(t, dir, kr)
 
 	if _, err := store.Token("session-1", "DNI", "12345678Z"); err != nil {
 		t.Fatalf("Token returned unexpected error: %v", err)
@@ -97,14 +98,15 @@ func TestFileStore_DifferentSessions_UseSeparateFiles(t *testing.T) {
 // this (a fresh process per hook).
 func TestFileStore_Original_ReversesAMintedToken_AcrossInstances(t *testing.T) {
 	dir := t.TempDir()
+	kr := newFakeKeyring()
 
-	first := pseudonymstore.NewFileStore(dir)
+	first := newStore(t, dir, kr)
 	token, err := first.Token("session-1", "DNI", "12345678Z")
 	if err != nil {
 		t.Fatalf("Token returned unexpected error: %v", err)
 	}
 
-	second := pseudonymstore.NewFileStore(dir)
+	second := newStore(t, dir, kr)
 	original, found, err := second.Original("session-1", token)
 	if err != nil {
 		t.Fatalf("Original returned unexpected error: %v", err)
@@ -121,7 +123,8 @@ func TestFileStore_Original_ReversesAMintedToken_AcrossInstances(t *testing.T) {
 // unrecognized token reports not-found rather than erroring.
 func TestFileStore_Original_UnknownToken_ReportsNotFound(t *testing.T) {
 	dir := t.TempDir()
-	store := pseudonymstore.NewFileStore(dir)
+	kr := newFakeKeyring()
+	store := newStore(t, dir, kr)
 
 	if _, err := store.Token("session-1", "DNI", "12345678Z"); err != nil {
 		t.Fatalf("Token returned unexpected error: %v", err)
@@ -142,18 +145,47 @@ func TestFileStore_Original_UnknownToken_ReportsNotFound(t *testing.T) {
 // different original value).
 func TestFileStore_CorruptedSessionFile_FailsClosed(t *testing.T) {
 	dir := t.TempDir()
-	store := pseudonymstore.NewFileStore(dir)
+	kr := newFakeKeyring()
+	store := newStore(t, dir, kr)
 
 	if _, err := store.Token("session-1", "DNI", "12345678Z"); err != nil {
 		t.Fatalf("Token returned unexpected error: %v", err)
 	}
 
-	sessionFile := filepath.Join(dir, "session-1.json")
+	sessionFile := filepath.Join(dir, "session-1.age")
 	if err := os.WriteFile(sessionFile, []byte("not json"), 0o600); err != nil {
 		t.Fatalf("failed to corrupt fixture file: %v", err)
 	}
 
 	if _, err := store.Token("session-1", "DNI", "87654321X"); err == nil {
 		t.Fatal("Token returned no error against a corrupted session file, want a fail-closed error")
+	}
+}
+
+// TestFileStore_SessionFile_HoldsNoRealValueOrKey proves the store is
+// encrypted at rest: after a rewrite, neither the real value nor the
+// "category:original" mapping key appears anywhere in the bytes on disk.
+func TestFileStore_SessionFile_HoldsNoRealValueOrKey(t *testing.T) {
+	dir := t.TempDir()
+	store := newStore(t, dir, newFakeKeyring())
+
+	if _, err := store.Token("session-1", "EMAIL", "ana.garcia@example.com"); err != nil {
+		t.Fatalf("Token returned unexpected error: %v", err)
+	}
+
+	entries, err := os.ReadDir(dir)
+	if err != nil {
+		t.Fatalf("ReadDir failed: %v", err)
+	}
+	for _, entry := range entries {
+		raw, err := os.ReadFile(filepath.Join(dir, entry.Name()))
+		if err != nil {
+			t.Fatalf("ReadFile(%s) failed: %v", entry.Name(), err)
+		}
+		for _, secret := range []string{"ana.garcia@example.com", "EMAIL:ana", "example.com"} {
+			if strings.Contains(string(raw), secret) {
+				t.Errorf("%s holds %q in clear", entry.Name(), secret)
+			}
+		}
 	}
 }

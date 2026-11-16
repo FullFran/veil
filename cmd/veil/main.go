@@ -40,8 +40,18 @@ func newPolicy() (*domain.Policy, error) {
 	if err != nil {
 		return nil, err
 	}
-	store := pseudonymstore.NewFileStore(pseudonymstore.DefaultDir())
-	return domain.NewPolicy(registry, store), nil
+	return domain.NewPolicy(registry, newStore()), nil
+}
+
+// keyring is the OS keyring the store key falls back to. Tests replace it
+// with a fake so they never touch the real keyring.
+var keyring pseudonymstore.Keyring = pseudonymstore.OSKeyring{}
+
+// newStore builds the pseudonym store under DefaultDir, with its key from
+// VEIL_KEY_FD, then $CREDENTIALS_DIRECTORY, then the OS keyring.
+func newStore() *pseudonymstore.FileStore {
+	dir := pseudonymstore.DefaultDir()
+	return pseudonymstore.NewFileStore(dir, pseudonymstore.NewKeyChainFromEnv(dir, keyring))
 }
 
 // hostProfile is one host veil can answer: how it handles an event and
@@ -117,6 +127,9 @@ func classifyEvaluateError(err error) problem.Code {
 	var syntax *json.SyntaxError
 	var mistyped *json.UnmarshalTypeError
 	var pathErr *fs.PathError
+	if code, ok := classifyStoreError(err); ok {
+		return code
+	}
 	switch {
 	case errors.As(err, &unsupported):
 		return problem.CapabilityUnsupported
@@ -127,6 +140,29 @@ func classifyEvaluateError(err error) problem.Code {
 	default:
 		return problem.Internal
 	}
+}
+
+// storeErrors maps each pseudonym store sentinel to its problem code.
+var storeErrors = []struct {
+	err  error
+	code problem.Code
+}{
+	{pseudonymstore.ErrLocked, problem.StoreLocked},
+	{pseudonymstore.ErrKeyMissing, problem.StoreKeyMissing},
+	{pseudonymstore.ErrKeyInvalid, problem.StoreKeyInvalid},
+	{pseudonymstore.ErrKeyringUnavailable, problem.StoreKeyringUnavailable},
+	{pseudonymstore.ErrCorrupt, problem.StoreCorrupt},
+}
+
+// classifyStoreError maps a pseudonym store failure to its problem code
+// by sentinel (errors.Is), never by message.
+func classifyStoreError(err error) (problem.Code, bool) {
+	for _, e := range storeErrors {
+		if errors.Is(err, e.err) {
+			return e.code, true
+		}
+	}
+	return "", false
 }
 
 func runClaudeCode(policy *domain.Policy, raw []byte, stdout, stderr io.Writer) (int, problem.Code) {

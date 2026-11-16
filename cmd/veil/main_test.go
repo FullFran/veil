@@ -13,6 +13,7 @@ import (
 
 	"github.com/FullFran/veil/internal/domain"
 	"github.com/FullFran/veil/internal/problem"
+	"github.com/FullFran/veil/internal/pseudonymstore"
 )
 
 // Every test below that triggers a rewrite points the pseudonym store at
@@ -263,6 +264,11 @@ func TestClassifyEvaluateError(t *testing.T) {
 		{"unsupported capability", fmt.Errorf("wrap: %w", &domain.UnsupportedCapabilityError{Host: domain.HostClaudeCode, Capability: domain.CapabilityToolOutputRedact}), problem.CapabilityUnsupported},
 		{"corrupt session file", fmt.Errorf("pseudonymstore: parse: %w", json.Unmarshal([]byte("{"), &map[string]any{})), problem.StoreCorrupt},
 		{"store path error", fmt.Errorf("pseudonymstore: create: %w", &fs.PathError{Op: "mkdir", Path: "/x", Err: fs.ErrPermission}), problem.StoreIO},
+		{"lock timeout", fmt.Errorf("wrap: %w", pseudonymstore.ErrLocked), problem.StoreLocked},
+		{"key missing", fmt.Errorf("wrap: %w", pseudonymstore.ErrKeyMissing), problem.StoreKeyMissing},
+		{"key invalid", fmt.Errorf("wrap: %w", pseudonymstore.ErrKeyInvalid), problem.StoreKeyInvalid},
+		{"keyring unavailable", fmt.Errorf("wrap: %w", pseudonymstore.ErrKeyringUnavailable), problem.StoreKeyringUnavailable},
+		{"corrupt store", fmt.Errorf("wrap: %w", pseudonymstore.ErrCorrupt), problem.StoreCorrupt},
 		{"anything else", errors.New("boom"), problem.Internal},
 	}
 	for _, tc := range cases {
