@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 
 	"filippo.io/age"
@@ -98,9 +99,7 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 			if err := os.MkdirAll(sessionsDir(), 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(filepath.Join(sessionsDir(), "sess-1.json.lock"), nil, 0o600); err != nil {
-				t.Fatal(err)
-			}
+			holdLock(t, filepath.Join(sessionsDir(), "sess-1.json.lock"))
 		}, problem.StoreLocked},
 		{"key missing for an existing store", func(t *testing.T) {
 			useKeyring(t, newFakeKeyring())
@@ -142,5 +141,20 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 			}
 			assertProblem(t, stderr.String(), tc.wantCode)
 		})
+	}
+}
+
+// holdLock holds the session lock at path for the rest of the test, as
+// another veil process would: a flock on the lock file. A lock file
+// without a holder is stale and veil takes it over.
+func holdLock(t *testing.T, path string) {
+	t.Helper()
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { f.Close() })
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		t.Fatal(err)
 	}
 }

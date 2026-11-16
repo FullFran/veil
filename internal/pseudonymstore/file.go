@@ -124,8 +124,8 @@ func (s *FileStore) lockPath(sessionID string) string {
 }
 
 // Token implements domain.PseudonymStore. It takes the session lock (see
-// acquireLock) around the read-modify-write cycle, so two veil processes racing to handle two
-// hook calls from the same OpenCode session in close succession cannot
+// acquireLock) around the read-modify-write cycle, so two veil processes
+// racing to handle two hook calls from the same OpenCode session in close succession cannot
 // interleave and corrupt each other's counters.
 func (s *FileStore) Token(sessionID, category, original string) (string, error) {
 	if err := os.MkdirAll(s.dir, 0o700); err != nil {

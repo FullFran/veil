@@ -1,48 +1,151 @@
 package main
 
 import (
+	"bytes"
 	"encoding/json"
 	"io"
+	"strings"
 
+	"github.com/FullFran/veil/internal/domain"
+	"github.com/FullFran/veil/internal/policy"
 	"github.com/FullFran/veil/internal/problem"
 	"github.com/FullFran/veil/internal/pseudonymstore"
 )
 
-// runStore implements `veil store reveal <session>` and
-// `veil store forget <session>`, so a host reads or deletes a session's
-// pseudonyms through veil instead of parsing or removing its files.
-// Success exits 0; a store failure is one problem line on stderr and
-// exit 1; bad arguments exit 2.
-func runStore(args []string, stdout, stderr io.Writer) int {
-	if len(args) != 2 || args[1] == "" {
-		problem.Write(stderr, problem.New(problem.Usage))
-		return problem.ExitUsage
-	}
-	subcommand, session := args[0], args[1]
+// maxFindValue bounds how much of stdin `store find --value -` reads.
+const maxFindValue = 64 << 10
 
-	switch subcommand {
+// runStore implements the `veil store` commands, so a host reads,
+// searches or deletes pseudonym sessions through veil instead of parsing
+// or removing its files:
+//
+//	veil store reveal <session>
+//	veil store forget <session> [<session> ...]
+//	veil store find --value <value|->
+//	veil store sweep
+//
+// Success exits 0 with one JSON line on stdout (none for forget); a
+// failure is one problem line on stderr and exit 1; bad arguments exit 2.
+func runStore(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
+	if len(args) == 0 {
+		return usage(stderr)
+	}
+	switch subcommand, rest := args[0], args[1:]; subcommand {
 	case "reveal":
-		markers, err := newStore().Reveal(session)
+		if len(rest) != 1 || rest[0] == "" {
+			return usage(stderr)
+		}
+		markers, err := newStore().Reveal(rest[0])
 		if err != nil {
 			return failStore(stderr, err)
 		}
-		answer, err := json.Marshal(struct {
+		return answer(stdout, stderr, struct {
 			Markers []pseudonymstore.Marker `json:"markers"`
 		}{markers})
+	case "forget":
+		if len(rest) == 0 {
+			return usage(stderr)
+		}
+		for _, session := range rest {
+			if session == "" {
+				return usage(stderr)
+			}
+		}
+		store := newStore()
+		for _, session := range rest {
+			if err := store.Forget(session); err != nil {
+				return failStore(stderr, err)
+			}
+		}
+		return problem.ExitDecision
+	case "find":
+		value, ok := findValue(rest, stdin)
+		if !ok {
+			return usage(stderr)
+		}
+		holdings, err := newStore().Find(canonicalForms(value))
 		if err != nil {
 			return failStore(stderr, err)
 		}
-		stdout.Write(append(answer, '\n'))
-		return problem.ExitDecision
-	case "forget":
-		if err := newStore().Forget(session); err != nil {
-			return failStore(stderr, err)
+		return answer(stdout, stderr, struct {
+			Sessions []pseudonymstore.Holding `json:"sessions"`
+		}{holdings})
+	case "sweep":
+		if len(rest) != 0 {
+			return usage(stderr)
 		}
-		return problem.ExitDecision
+		p, err := policy.FromEnv()
+		if err != nil {
+			problem.Write(stderr, problem.New(classifyPolicyError(err)))
+			return problem.ExitFailedClosed
+		}
+		result := pseudonymstore.SweepResult{Forgotten: []string{}, Skipped: []string{}}
+		if ttl, ok := p.Retention(); ok {
+			if result, err = newStore().Sweep(ttl); err != nil {
+				return failStore(stderr, err)
+			}
+		}
+		return answer(stdout, stderr, result)
 	default:
-		problem.Write(stderr, problem.New(problem.Usage))
-		return problem.ExitUsage
+		return usage(stderr)
 	}
+}
+
+// findValue reads `--value <v>`, or the value from stdin for `--value -`
+// (trailing line break removed), so it can stay out of argv, which other
+// local users and the shell history can read.
+func findValue(args []string, stdin io.Reader) (string, bool) {
+	if len(args) != 2 || args[0] != "--value" || args[1] == "" {
+		return "", false
+	}
+	if args[1] != "-" {
+		return args[1], true
+	}
+	raw, err := io.ReadAll(io.LimitReader(stdin, maxFindValue+1))
+	if err != nil || len(raw) > maxFindValue {
+		return "", false
+	}
+	value := strings.TrimRight(string(raw), "\r\n")
+	return value, value != ""
+}
+
+// canonicalForms returns the value as typed plus every canonical key veil's
+// rewritable detectors give it (for example "12345678Z" for
+// "12.345.678-Z"), so find matches a value however it was written, the
+// way detection keyed it when the token was minted. All detectors run,
+// whatever the current policy enables: a session may hold values from an
+// earlier policy.
+func canonicalForms(value string) []string {
+	forms := []string{value}
+	event := domain.Event{Kind: domain.EventPromptSubmit, Text: value}
+	for _, d := range []domain.Detector{domain.NewDNIDetector(), domain.NewIBANDetector(), domain.NewEmailDetector(), domain.NewPhoneDetector()} {
+		for _, f := range d.Detect(event) {
+			if f.Key != "" {
+				forms = append(forms, f.Key)
+			} else if f.Match != "" {
+				forms = append(forms, f.Match)
+			}
+		}
+	}
+	return forms
+}
+
+// answer writes v as one JSON line on stdout.
+func answer(stdout, stderr io.Writer, v any) int {
+	raw, err := json.Marshal(v)
+	if err != nil {
+		return failStore(stderr, err)
+	}
+	var line bytes.Buffer
+	line.Write(raw)
+	line.WriteByte('\n')
+	stdout.Write(line.Bytes())
+	return problem.ExitDecision
+}
+
+func usage(stderr io.Writer) int {
+	problem.Write(stderr, problem.New(problem.Usage))
+	return problem.ExitUsage
 }
 
 // failStore reports a store command failure: the store's own code, an
