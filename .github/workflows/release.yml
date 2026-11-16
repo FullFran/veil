@@ -9,6 +9,10 @@
 # SHA256SUMS is computed before those files exist, so its content and the
 # names of the existing assets do not change.
 #
+# Release notes are the tag's section of CHANGELOG.md (Keep a Changelog) on the
+# default branch, so a tag cut before its notes were written still gets them.
+# The release fails before building anything if that section is missing.
+#
 # Runs on a tag push, or by hand for an EXISTING tag (workflow_dispatch with
 # `tag`), which builds that tag's sources without moving it.
 name: release
@@ -54,6 +58,25 @@ jobs:
         with:
           ref: refs/tags/${{ env.TAG }}
           persist-credentials: false
+
+      - name: Release notes from CHANGELOG.md
+        env:
+          GH_TOKEN: ${{ github.token }}
+          REPO: ${{ github.repository }}
+        run: |
+          version="${TAG#v}"
+          gh api "repos/$REPO/contents/CHANGELOG.md" -H "Accept: application/vnd.github.raw" |
+            awk -v heading="## [$version]" '
+              index($0, heading) == 1 { found = 1; next }
+              found && /^## \[/ { exit }
+              found && /^\[[^]]+\]: / { exit }
+              found { print }
+            ' > "$RUNNER_TEMP/release-notes.md"
+          if ! grep -q '[^[:space:]]' "$RUNNER_TEMP/release-notes.md"; then
+            echo "CHANGELOG.md has no section for $version" >&2
+            exit 1
+          fi
+          cat "$RUNNER_TEMP/release-notes.md"
 
       - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
         with:
@@ -123,9 +146,10 @@ jobs:
         env:
           GH_TOKEN: ${{ github.token }}
         run: |
+          notes="$RUNNER_TEMP/release-notes.md"
           if gh release view "$TAG" > /dev/null 2>&1; then
             gh release upload "$TAG" dist/* --clobber
+            gh release edit "$TAG" --notes-file "$notes"
           else
-            gh release create "$TAG" dist/* --verify-tag --title "$TAG" \
-              --notes "Prebuilt veil binaries (CGO_ENABLED=0), the OpenCode plugin and SHA256SUMS for $TAG."
+            gh release create "$TAG" dist/* --verify-tag --title "$TAG" --notes-file "$notes"
           fi

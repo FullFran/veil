@@ -7,7 +7,7 @@ import "os"
 var (
 	syncFile = func(f *os.File) error { return f.Sync() }
 	syncDir  = func(dir string) error {
-		d, err := os.Open(dir)
+		d, err := os.Open(dir) // #nosec G304 -- the store's own sessions directory, opened only to fsync it
 		if err != nil {
 			return err
 		}

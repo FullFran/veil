@@ -32,7 +32,7 @@ func TestOSKeyring_Integration(t *testing.T) {
 		t.Fatal("a fresh service already holds a secret")
 	}
 
-	t.Cleanup(func() { keyring.Delete(service, "probe") })
+	t.Cleanup(func() { _ = keyring.Delete(service, "probe") }) // best-effort cleanup of the probe entry
 	if err := kr.Set(service, "probe", "value"); err != nil {
 		t.Fatalf("Set failed: %v", err)
 	}

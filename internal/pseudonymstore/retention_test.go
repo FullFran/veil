@@ -214,7 +214,7 @@ func TestLock_HolderKilled_IsReleasedAndNeverShared(t *testing.T) {
 	store := newStore(t, dir, newFakeKeyring())
 	mintOne(t, store)
 
-	child := exec.Command(os.Args[0], "-test.run=^TestHelperHoldLock$")
+	child := exec.Command(os.Args[0], "-test.run=^TestHelperHoldLock$") // #nosec G702 -- re-runs this test binary as the lock-holding child
 	child.Env = append(os.Environ(), "VEIL_TEST_HOLD_LOCK="+filepath.Join(dir, "session-1.json.lock"))
 	out, err := child.StdoutPipe()
 	if err != nil {
@@ -223,7 +223,7 @@ func TestLock_HolderKilled_IsReleasedAndNeverShared(t *testing.T) {
 	if err := child.Start(); err != nil {
 		t.Fatal(err)
 	}
-	t.Cleanup(func() { child.Process.Kill(); child.Wait() })
+	t.Cleanup(func() { _ = child.Process.Kill(); _ = child.Wait() }) // no-ops if the test already reaped it
 	if line, _ := bufio.NewReader(out).ReadString('\n'); line != "held\n" {
 		t.Fatalf("child said %q, want held", line)
 	}
@@ -235,7 +235,7 @@ func TestLock_HolderKilled_IsReleasedAndNeverShared(t *testing.T) {
 	if err := child.Process.Kill(); err != nil {
 		t.Fatal(err)
 	}
-	child.Wait()
+	_ = child.Wait() // killed on purpose, so Wait reports the signal
 
 	if token, err := store.Token("session-1", "DNI", "87654321X"); err != nil || token != "[DNI-002]" {
 		t.Fatalf("Token after the holder died = (%q, %v), want ([DNI-002], nil)", token, err)
@@ -427,7 +427,9 @@ func TestSweep_SessionUsedMeanwhile_IsKeptAndNotReported(t *testing.T) {
 	mint(t, clockAt(t, dir, kr, t0), "s", "DNI", "12345678Z")
 	now := t0.Add(2 * ttl)
 	pseudonymstore.OnSweepLocked(t, func(id string) {
-		os.Chtimes(filepath.Join(dir, id+".age"), now, now)
+		if err := os.Chtimes(filepath.Join(dir, id+".age"), now, now); err != nil {
+			t.Errorf("Chtimes: %v", err)
+		}
 	})
 
 	got, err := clockAt(t, dir, kr, now).Sweep(ttl, 0)

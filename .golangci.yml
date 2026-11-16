@@ -1,0 +1,26 @@
+# Static analysis for pull requests (OpenSSF Best Practices `static_analysis`).
+# The `standard` set (errcheck, govet, ineffassign, staticcheck, unused) plus
+# gosec. Findings are fixed, or justified inline with a rule-specific
+# `#nosec <rule> -- <reason>`; nothing is disabled for production code.
+version: "2"
+linters:
+  default: standard
+  enable:
+    - gosec
+  exclusions:
+    presets:
+      # Upstream preset: unchecked Close, Flush, print and os.(Un)Setenv
+      # errors. gosec G104 still reports unchecked errors elsewhere.
+      - std-error-handling
+    rules:
+      # Test fixtures only, and only these gosec rules: tests read and write
+      # files they create under t.TempDir() (G304, G703), set loose modes on
+      # purpose to test the store's hardening (G302, G306), compare marker
+      # strings such as "[DNI-001]" (G101 false positive) and re-run the test
+      # binary or the go tool (G204). Every other gosec rule still applies.
+      - path: _test\.go
+        linters: [gosec]
+        text: "^G(101|204|302|304|306|703):"
+issues:
+  max-issues-per-linter: 0
+  max-same-issues: 0

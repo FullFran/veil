@@ -345,16 +345,16 @@ func Append(path string, rec Record) error {
 	if err != nil {
 		return err
 	}
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_APPEND|os.O_CREATE, 0o600) // #nosec G304 -- the host chooses the evidence file (VEIL_EVIDENCE_FILE)
 	if err != nil {
 		return err
 	}
 	if _, err := f.Write(append(b, '\n')); err != nil {
-		f.Close()
+		_ = f.Close() // the write error is the one to report
 		return err
 	}
 	if err := f.Sync(); err != nil {
-		f.Close()
+		_ = f.Close() // the sync error is the one to report
 		return err
 	}
 	return f.Close()

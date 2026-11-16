@@ -24,7 +24,7 @@ const (
 	KeyFDEnv = "VEIL_KEY_FD"
 	// CredentialName is the systemd credential veil reads from
 	// $CREDENTIALS_DIRECTORY (LoadCredential= / LoadCredentialEncrypted=).
-	CredentialName = "veil-store-key"
+	CredentialName = "veil-store-key" // #nosec G101 -- the name of a systemd credential, not a secret
 	// KeyringService and KeyringAccount name the OS keyring entry that
 	// holds the generated key when no host or systemd key is given.
 	KeyringService = "veil"

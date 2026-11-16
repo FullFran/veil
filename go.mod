@@ -2,6 +2,8 @@ module github.com/FullFran/veil
 
 go 1.26.3
 
+toolchain go1.26.11
+
 require (
 	filippo.io/age v1.3.2
 	github.com/santhosh-tekuri/jsonschema/v6 v6.0.3

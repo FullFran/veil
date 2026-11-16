@@ -29,6 +29,8 @@ func lockFile(f *os.File) (bool, error) {
 // gets the lock, that the file is no longer at the path (lockedFileIsAt)
 // and retries on a fresh one.
 func releaseLock(f *os.File, path string) {
-	os.Remove(path)
-	f.Close()
+	// Neither error can be acted on: a lock file left behind is holder-less,
+	// and the next acquirer takes it over.
+	_ = os.Remove(path)
+	_ = f.Close()
 }

@@ -1,6 +1,8 @@
-# Pull request checks: formatting, vet, Go tests (including the domain import
-# rule in internal/domain/imports_test.go), the OpenCode plugin test, and an
-# architecture gate that compares archsieve snapshots of the base and the head.
+# Pull request checks: formatting, vet, Go tests under the race detector
+# (including the domain import rule in internal/domain/imports_test.go), static
+# analysis (golangci-lint with gosec, and govulncheck), the OpenCode plugin
+# test, and an architecture gate that compares archsieve snapshots of the base
+# and the head. CodeQL runs in codeql.yml.
 name: ci
 
 on:
@@ -41,8 +43,46 @@ jobs:
       - name: go vet
         run: go vet ./...
 
+      # The race detector instruments every test run (dynamic analysis).
       - name: go test
-        run: go test -count=1 ./...
+        run: go test -race -count=1 ./...
+
+  lint:
+    name: static analysis (golangci-lint, gosec)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # Linters and their exclusions are in .golangci.yml; any finding fails.
+      - uses: golangci/golangci-lint-action@ba0d7d2ec06a0ea1cb5fa41b2e4a3ab91d21278a # v9.3.0
+        with:
+          version: v2.14.0
+
+  govulncheck:
+    name: known vulnerabilities (govulncheck)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # Fails when code veil actually calls (including the standard library of
+      # the toolchain in go.mod) has a known vulnerability in the Go
+      # vulnerability database. The version is checked against sum.golang.org.
+      - name: govulncheck
+        run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
 
   plugin:
     name: opencode plugin test

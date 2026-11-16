@@ -44,7 +44,7 @@ func tryLock(path string) (release func(), held bool, err error) {
 	// a lock guards nothing; retry on the file now at path. Bounded,
 	// since each retry means another process made progress.
 	for range 16 {
-		f, err := os.OpenFile(path, lockOpenFlags, 0o600)
+		f, err := os.OpenFile(path, lockOpenFlags, 0o600) // #nosec G304 -- lock file inside the store's own sessions directory
 		if os.IsExist(err) {
 			return nil, false, nil // create-exclusive fallback: held
 		}
@@ -53,17 +53,17 @@ func tryLock(path string) (release func(), held bool, err error) {
 		}
 		held, err := lockFile(f)
 		if err != nil {
-			f.Close()
+			_ = f.Close() // the lock error is the one to report
 			return nil, false, fmt.Errorf("pseudonymstore: acquire lock: %w", err)
 		}
 		if !held {
-			f.Close()
+			_ = f.Close() // read-only handle on a lock someone else holds
 			return nil, false, nil
 		}
 		if lockedFileIsAt(f, path) {
 			return func() { releaseLock(f, path) }, true, nil
 		}
-		f.Close()
+		_ = f.Close() // a stale handle; retry on the file now at path
 	}
 	return nil, false, nil
 }

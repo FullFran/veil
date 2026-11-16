@@ -158,7 +158,7 @@ func extendJoined(original []rune, start, end int) (int, int) {
 // with an empty catalog, since a client's name catalog is exactly the
 // input that must never silently go missing.
 func LoadNameCatalog(path string) ([]string, error) {
-	data, err := os.ReadFile(path)
+	data, err := os.ReadFile(path) // #nosec G304 -- the operator chooses the catalog file (VEIL_CATALOG or the policy); reading it is the purpose
 	if err != nil {
 		return nil, fmt.Errorf("domain: read name catalog %s: %w", path, err)
 	}
