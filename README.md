@@ -237,6 +237,7 @@ Every key failure denies the event with a typed problem
 | Session file fails to decrypt, authenticate or parse | `VEIL_STORE_CORRUPT` |
 | OS keyring unreachable | `VEIL_STORE_KEYRING_UNAVAILABLE` |
 | Lock held past the deadline | `VEIL_STORE_LOCKED` |
+| Session retired (removed without readable counters) | `VEIL_SESSION_RETIRED` |
 
 ### Commands
 
@@ -247,7 +248,7 @@ or removing its files:
 veil store reveal <session>          # stdout: {"markers":[{"marker":"[DNI-001]","category":"DNI","value":"12345678Z"}]}
 veil store forget <session> [...]    # removes each session's store and its lock
 veil store find --value <value|->    # stdout: {"sessions":[{"session":"sess-1","categories":["DNI"]}]}
-veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped":[]}
+veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped":[],"failed":[]}
 ```
 
 - `reveal` prints every marker of the session and the real value it
@@ -266,8 +267,10 @@ veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped"
   [Retention and data subject requests](#retention-and-data-subject-requests).
 - `sweep` removes the sessions unused for longer than the policy's
   `store.ttl`. See below.
-- All exit 0 on success, 1 with a problem line on a store failure (on any
-  failure stdout is empty), 2 on bad arguments.
+- All exit 0 on success, 1 with a problem line on a store failure, 2 on
+  bad arguments. On a failure stdout is empty, except for a `sweep` that
+  failed on some sessions: it still prints its answer (session ids only,
+  the failed ones under `failed`) before the problem line, and exits 1.
 
 ### Retention and data subject requests
 
@@ -295,13 +298,24 @@ which is the default, so upgrading never removes anyone's data.
   so does every token lookup and every rehydration (`reveal` does not).
   Content veil processes cannot set it; whoever can write the private
   sessions directory can, but can delete the files anyway. Copying the
-  store without preserving times restarts the clock.
+  store without preserving times restarts the clock. Expiry trusts the
+  system clock: **a forward jump of the clock (a wrong NTP step, a
+  restored VM, a manual change) expires every session older than the TTL
+  at the new time at once**, so keep the clock synchronized and choose a
+  TTL with margin.
 - With a TTL set, **every veil start sweeps** expired sessions, silently
-  and without affecting the decision, and `veil store sweep` runs the same
-  sweep and reports it. Both need no key. A session another veil process
-  holds locked is never deleted (it is reported under `skipped`), and its
-  last use is checked again under the lock.
-- Deletion goes through the same path as `forget`. Removing a file is not
+  and without affecting the decision, removing **at most 16 sessions per
+  start** so a hook call never does unbounded work (the rest go on later
+  starts). `veil store sweep` runs the same sweep without a bound and
+  reports it. Both need no key. A session another veil process holds
+  locked is never deleted (it is reported under `skipped`), and its last
+  use is checked again under the lock (a session used meanwhile is kept
+  and not reported). A session that cannot be locked or removed (for
+  example a planted symlink as its lock file) is reported under `failed`
+  and the sweep goes on with the others.
+- Deletion goes through the same path as `forget`, and is durable: the
+  directory is synced after the files are removed, so a crash cannot bring
+  a deleted session back. Removing a file is not
   media sanitization (NIST SP 800-88 Rev. 2): on SSDs and journaling
   filesystems the old blocks may survive, but they hold age ciphertext. To
   make *every* session unreadable, destroy the store key.
@@ -318,9 +332,14 @@ which is the default, so upgrading never removes anyone's data.
   pseudonymisation key. It is plaintext so keyless removal can keep it,
   and it is never swept, since deleting it would reopen the reuse.
   Sessions written by a veil before counters files existed get one on
-  their next write, or at removal when the key (or a v1 file) is at hand;
-  one removed without the key before that restarts at `-001`, so such a
-  host should not reuse that session id.
+  their next write, or at removal when the key (or a v1 file) is at hand.
+  **One removed without a key that opens it is retired:** removal still
+  happens (erasure is never blocked), its counters file becomes the
+  tombstone `{"version":1,"retired":true}` (no personal data either), and
+  any later event that would mint a marker for that session id fails
+  closed with `VEIL_SESSION_RETIRED`, since any number could repeat one
+  the host's history holds. The host must continue under a new session
+  id.
 
 **Access and erasure requests.** Find, then forget:
 
@@ -340,6 +359,8 @@ veil store forget sess-1
   session it cannot read, ends the search with the store's problem code
   and no partial list, since an incomplete answer to such a request is
   worse than none.
+- `find` only reads: it never migrates a v1 plaintext session, rewrites a
+  file or generates a key.
 - `find` decrypts every session and checks every entry, so its duration
   depends on the store's size, not on whether or where the value is. It
   answers only what its caller, who holds the key, could already learn
@@ -754,6 +775,7 @@ line on stderr is what tells a failure apart.
 | `VEIL_STORE_CORRUPT` | `store-corrupt` | A session file cannot be decrypted, authenticated or parsed |
 | `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable |
 | `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline |
+| `VEIL_SESSION_RETIRED` | `session-retired` | The session was removed without its marker counters; minting for it would risk a repeated marker, so the host must use a new session id |
 | `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
 | `VEIL_EVIDENCE_WRITE` | `evidence-write` | `VEIL_EVIDENCE_FILE` is set and the evidence record cannot be appended |
 | `VEIL_CATALOG_REVISION_INVALID` | `catalog-revision-invalid` | `VEIL_CATALOG_REVISION` is not an opaque token (`[A-Za-z0-9._:-]{1,128}`) |

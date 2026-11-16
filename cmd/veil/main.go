@@ -79,7 +79,7 @@ func newEngine() (*engine, error) {
 		// event (the event's own session still fails closed on its own
 		// path), and nothing is written to stderr, which belongs to the
 		// host protocol. `veil store sweep` reports the same sweep.
-		_, _ = store.Sweep(ttl)
+		_, _ = store.Sweep(ttl, startupSweepLimit)
 	}
 	return &engine{
 		evaluator:       domain.NewPolicy(registry, store),
@@ -140,6 +140,11 @@ func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, 
 // keyring is the OS keyring the store key falls back to. Tests replace it
 // with a fake so they never touch the real keyring.
 var keyring pseudonymstore.Keyring = pseudonymstore.OSKeyring{}
+
+// startupSweepLimit bounds how many expired sessions one veil start
+// removes, so a hook call never does unbounded work; the rest go on the
+// next starts or with `veil store sweep`.
+const startupSweepLimit = 16
 
 // clock is the time the store reads for last use and retention. Tests
 // move it instead of waiting.
@@ -256,6 +261,7 @@ var storeErrors = []struct {
 	code problem.Code
 }{
 	{pseudonymstore.ErrLocked, problem.StoreLocked},
+	{pseudonymstore.ErrSessionRetired, problem.SessionRetired},
 	{pseudonymstore.ErrKeyMissing, problem.StoreKeyMissing},
 	{pseudonymstore.ErrKeyInvalid, problem.StoreKeyInvalid},
 	{pseudonymstore.ErrKeyringUnavailable, problem.StoreKeyringUnavailable},

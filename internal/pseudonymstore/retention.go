@@ -17,7 +17,14 @@ type SweepResult struct {
 	// Skipped sessions were expired but another process held their lock;
 	// they are never removed under a holder.
 	Skipped []string `json:"skipped"`
+	// Failed sessions could not be locked or removed; the sweep went on
+	// with the rest.
+	Failed []string `json:"failed"`
 }
+
+// sweepLocked runs after Sweep takes a session's lock, before its
+// re-check. It is a variable only so tests can use a session meanwhile.
+var sweepLocked = func(sessionID string) {}
 
 // Holding is one session whose store holds a searched value: the session
 // id and the categories the value was pseudonymized under, never a value.
@@ -27,41 +34,59 @@ type Holding struct {
 }
 
 // Sweep removes every session unused for longer than ttl (GDPR art.
-// 5(1)(e) storage limitation). A session's last use is its file's mtime
-// (see FileStore), so the sweep needs no key: a lost key never blocks
-// deletion. It never waits for and never removes a session another
-// process holds locked; it re-checks the last use under the lock, since
-// the holder may just have used the session, and deletes through
-// removeLocked, the same path as Forget.
-func (s *FileStore) Sweep(ttl time.Duration) (SweepResult, error) {
-	result := SweepResult{Forgotten: []string{}, Skipped: []string{}}
+// 5(1)(e) storage limitation), at most limit of them when limit is
+// positive. A session's last use is its file's mtime (see FileStore), so
+// the sweep needs no key: a lost key never blocks deletion. It never
+// waits for and never removes a session another process holds locked; it
+// re-checks the last use under the lock, since the holder may just have
+// used the session, and deletes through removeLocked, the same path as
+// Forget. A session it cannot lock or remove is reported failed and the
+// sweep goes on with the rest; the error then joins every failure.
+func (s *FileStore) Sweep(ttl time.Duration, limit int) (SweepResult, error) {
+	result := SweepResult{Forgotten: []string{}, Skipped: []string{}, Failed: []string{}}
 	sessions, err := s.sessions()
 	if err != nil {
 		return result, err
 	}
 	now := s.now()
+	var failures []error
 	for _, id := range sessions {
+		if limit > 0 && len(result.Forgotten)+len(result.Failed) >= limit {
+			break
+		}
 		if !s.expired(id, now, ttl) {
 			continue
 		}
-		release, held, err := tryLock(s.lockPath(id))
-		if err != nil {
-			return result, err
-		}
-		if !held {
+		removed, held, err := s.sweepOne(id, now, ttl)
+		switch {
+		case err != nil:
+			result.Failed = append(result.Failed, id)
+			failures = append(failures, err)
+		case !held:
 			result.Skipped = append(result.Skipped, id)
-			continue
+		case removed:
+			result.Forgotten = append(result.Forgotten, id)
 		}
-		if s.expired(id, now, ttl) {
-			err = s.removeLocked(id)
-		}
-		release()
-		if err != nil {
-			return result, err
-		}
-		result.Forgotten = append(result.Forgotten, id)
 	}
-	return result, nil
+	return result, errors.Join(failures...)
+}
+
+// sweepOne removes one session if it is still expired once its lock is
+// held. held is false when another process holds the lock.
+func (s *FileStore) sweepOne(id string, now time.Time, ttl time.Duration) (removed, held bool, err error) {
+	release, held, err := tryLock(s.lockPath(id))
+	if err != nil || !held {
+		return false, held, err
+	}
+	defer release()
+	sweepLocked(id)
+	if !s.expired(id, now, ttl) {
+		return false, true, nil
+	}
+	if err := s.removeLocked(id); err != nil {
+		return false, true, err
+	}
+	return true, true, nil
 }
 
 // expired reports whether the session's newest file was last used more
@@ -86,7 +111,8 @@ func (s *FileStore) expired(id string, now time.Time, ttl time.Duration) bool {
 //
 // It decrypts every session and checks every entry with no early exit, so
 // its duration depends on the store's size, not on whether or where a
-// value is. It fails closed: a session it cannot read (missing or wrong
+// value is. It only reads: a v1 plaintext session is not migrated and no
+// key is generated. It fails closed: a session it cannot read (missing or wrong
 // key, corrupt file) aborts the whole search with no partial answer, since
 // an incomplete answer to such a request is worse than none.
 func (s *FileStore) Find(values []string) ([]Holding, error) {
@@ -101,7 +127,7 @@ func (s *FileStore) Find(values []string) ([]Holding, error) {
 
 	holdings := []Holding{}
 	for _, id := range sessions {
-		data, err := s.load(id, false)
+		data, err := s.peek(id)
 		if err != nil {
 			return nil, err
 		}

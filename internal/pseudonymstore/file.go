@@ -234,11 +234,18 @@ func (s *FileStore) Forget(sessionID string) error {
 // resumed after removal never mints a marker number it used before. A
 // session written before counters files existed has none yet: its
 // counters are saved from the store first when the key or a v1 file is at
-// hand; without either, removal still goes ahead, since erasure must never
-// be blocked.
+// hand; without either, the session is retired (a tombstone), and removal
+// still goes ahead, since erasure must never be blocked. The directory is
+// synced afterwards, so a removed file cannot come back after a crash.
 func (s *FileStore) removeLocked(sessionID string) error {
-	if !exists(s.countersPath(sessionID)) {
-		if data, err := s.readForCounters(sessionID); err == nil && len(data.Counters) > 0 {
+	if !exists(s.countersPath(sessionID)) && (exists(s.agePath(sessionID)) || exists(s.legacyPath(sessionID))) {
+		data, err := s.readOnly(sessionID)
+		switch {
+		case err != nil:
+			if err := s.retire(sessionID); err != nil {
+				return err
+			}
+		case len(data.Counters) > 0:
 			if err := s.writeCounters(sessionID, data.Counters); err != nil {
 				return err
 			}
@@ -249,12 +256,39 @@ func (s *FileStore) removeLocked(sessionID string) error {
 		// v1 files, including an interrupted v1 write: both hold plaintext.
 		s.legacyPath(sessionID), s.legacyPath(sessionID) + ".tmp",
 	}
+	removed := false
 	for _, path := range paths {
-		if err := os.Remove(path); err != nil && !errors.Is(err, fs.ErrNotExist) {
+		err := os.Remove(path)
+		switch {
+		case err == nil:
+			removed = true
+		case !errors.Is(err, fs.ErrNotExist):
 			return fmt.Errorf("pseudonymstore: remove: %w", err)
 		}
 	}
+	if removed {
+		if err := syncDir(s.dir); err != nil {
+			return fmt.Errorf("pseudonymstore: sync dir: %w", err)
+		}
+	}
 	return nil
+}
+
+// peek reads a session under its lock without writing anything (see
+// readOnly). A session with no file is empty.
+func (s *FileStore) peek(sessionID string) (*sessionFile, error) {
+	if !exists(s.agePath(sessionID)) && !exists(s.legacyPath(sessionID)) {
+		return emptySession(), nil
+	}
+	if err := securePrivateDir(s.dir); err != nil {
+		return nil, err
+	}
+	unlock, err := acquireLock(s.lockPath(sessionID))
+	if err != nil {
+		return nil, err
+	}
+	defer unlock()
+	return s.readOnly(sessionID)
 }
 
 // load loads a session for a read-only operation, refreshing its last-use

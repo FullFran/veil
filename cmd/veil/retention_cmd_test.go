@@ -5,6 +5,7 @@ import (
 	"encoding/json"
 	"io"
 	"os"
+	"path/filepath"
 	"reflect"
 	"strings"
 	"testing"
@@ -53,7 +54,7 @@ const ttlPolicy = `{"version":"1.0","detectors":{"dni":{"action":"rewrite"}},"st
 func swept(t *testing.T, stdout string) pseudonymstore.SweepResult {
 	t.Helper()
 	var r pseudonymstore.SweepResult
-	if err := json.Unmarshal([]byte(stdout), &r); err != nil || r.Forgotten == nil || r.Skipped == nil {
+	if err := json.Unmarshal([]byte(stdout), &r); err != nil || r.Forgotten == nil || r.Skipped == nil || r.Failed == nil {
 		t.Fatalf("stdout %q is not a sweep answer: %v", stdout, err)
 	}
 	return r
@@ -257,4 +258,29 @@ func TestRun_StoreRetention_BadUsage(t *testing.T) {
 			assertProblem(t, stderr, problem.Usage)
 		})
 	}
+}
+
+// TestRun_StoreSweep_PartialFailure_ReportsAndExitsOne: a session that
+// cannot be removed does not stop the sweep; the answer lists it under
+// failed (ids only) and the command still fails closed.
+func TestRun_StoreSweep_PartialFailure_ReportsAndExitsOne(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	t.Setenv("VEIL_POLICY", writePolicy(t, ttlPolicy))
+	seed(t, "a1", "DNI", "12345678Z")
+	seed(t, "b2", "DNI", "12345678Z")
+	if err := os.Symlink(filepath.Join(t.TempDir(), "elsewhere"), filepath.Join(sessionsDir(), "a1.json.lock")); err != nil {
+		t.Fatal(err)
+	}
+	setClock(t, day0.Add(48*time.Hour))
+
+	exit, stdout, stderr := storeCmd("sweep")
+
+	if exit != problem.ExitFailedClosed {
+		t.Fatalf("sweep exit = %d, want %d", exit, problem.ExitFailedClosed)
+	}
+	got := swept(t, stdout)
+	if !reflect.DeepEqual(got.Failed, []string{"a1"}) || !reflect.DeepEqual(got.Forgotten, []string{"b2"}) {
+		t.Fatalf("sweep = %+v, want a1 failed and b2 forgotten", got)
+	}
+	assertProblem(t, stderr, problem.StoreIO)
 }

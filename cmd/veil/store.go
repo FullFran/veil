@@ -25,7 +25,9 @@ const maxFindValue = 64 << 10
 //	veil store sweep
 //
 // Success exits 0 with one JSON line on stdout (none for forget); a
-// failure is one problem line on stderr and exit 1; bad arguments exit 2.
+// failure is one problem line on stderr and exit 1, with an empty stdout
+// except for a sweep that removed some sessions and failed on others,
+// which still prints its answer; bad arguments exit 2.
 func runStore(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
 		return usage(stderr)
@@ -79,11 +81,18 @@ func runStore(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			problem.Write(stderr, problem.New(classifyPolicyError(err)))
 			return problem.ExitFailedClosed
 		}
-		result := pseudonymstore.SweepResult{Forgotten: []string{}, Skipped: []string{}}
+		result := pseudonymstore.SweepResult{Forgotten: []string{}, Skipped: []string{}, Failed: []string{}}
 		if ttl, ok := p.Retention(); ok {
-			if result, err = newStore().Sweep(ttl); err != nil {
-				return failStore(stderr, err)
-			}
+			result, err = newStore().Sweep(ttl, 0)
+		}
+		if err != nil && len(result.Failed) > 0 {
+			// Partial: report what was done and what failed (ids only),
+			// then fail closed.
+			answer(stdout, stderr, result)
+			return failStore(stderr, err)
+		}
+		if err != nil {
+			return failStore(stderr, err)
 		}
 		return answer(stdout, stderr, result)
 	default:

@@ -53,6 +53,10 @@ const (
 	// StoreLocked: the pseudonym session file stayed locked by another
 	// process past the deadline.
 	StoreLocked Code = "VEIL_STORE_LOCKED"
+	// SessionRetired: the pseudonym session was removed when its marker
+	// counters could not be read, so it can never mint again without
+	// risking a repeated marker. The host must start a new session id.
+	SessionRetired Code = "VEIL_SESSION_RETIRED"
 	// StoreIO: the pseudonym store cannot be read or written.
 	StoreIO Code = "VEIL_STORE_IO"
 	// EvidenceWrite: the evidence sink cannot be written.
@@ -108,6 +112,7 @@ var titles = map[Code]string{
 	StoreCorrupt:            "Pseudonym store is corrupt",
 	StoreKeyringUnavailable: "Keyring is unavailable",
 	StoreLocked:             "Pseudonym store is locked",
+	SessionRetired:          "Pseudonym session is retired",
 	StoreIO:                 "Pseudonym store cannot be read or written",
 	EvidenceWrite:           "Evidence cannot be written",
 	CatalogRevisionInvalid:  "Catalog revision is invalid",
@@ -129,6 +134,7 @@ var details = map[Code]string{
 	StoreCorrupt:            "A pseudonym session file cannot be parsed; veil refuses to start over and reuse tokens.",
 	StoreKeyringUnavailable: "The OS keyring that holds the pseudonym store key cannot be reached.",
 	StoreLocked:             "Another veil process held the pseudonym session lock past the deadline.",
+	SessionRetired:          "This session was removed without its marker counters, so veil cannot mint for it without repeating a marker; use a new session id.",
 	StoreIO:                 "The pseudonym store directory or a session file cannot be read or written.",
 	EvidenceWrite:           "The evidence sink cannot be written, so veil fails closed.",
 	CatalogRevisionInvalid:  "VEIL_CATALOG_REVISION must be an opaque token of 1 to 128 characters from A-Z, a-z, 0-9, '.', '_', ':' and '-'.",
@@ -141,7 +147,7 @@ var details = map[Code]string{
 // all fixes the order All returns.
 var all = []Code{
 	Usage, InputInvalid, CatalogUnreadable, PolicyUnreadable, PolicyInvalid, CapabilityUnsupported,
-	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, StoreIO,
+	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, SessionRetired, StoreIO,
 	EvidenceWrite, CatalogRevisionInvalid,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,

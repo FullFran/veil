@@ -54,7 +54,7 @@ func TestSweep_RemovesExpiredSession_KeepsUnexpiredOne(t *testing.T) {
 	mint(t, clockAt(t, dir, kr, t0), "old", "DNI", "12345678Z")
 	mint(t, clockAt(t, dir, kr, t0.Add(10*24*time.Hour)), "recent", "DNI", "87654321X")
 
-	got, err := clockAt(t, dir, kr, t0.Add(ttl+time.Hour)).Sweep(ttl)
+	got, err := clockAt(t, dir, kr, t0.Add(ttl+time.Hour)).Sweep(ttl, 0)
 	if err != nil {
 		t.Fatalf("Sweep failed: %v", err)
 	}
@@ -83,7 +83,7 @@ func TestSweep_ExpiryCountsFromLastUse(t *testing.T) {
 		t.Fatal(err)
 	}
 
-	got, err := clockAt(t, dir, kr, t0.Add(ttl+time.Hour)).Sweep(ttl)
+	got, err := clockAt(t, dir, kr, t0.Add(ttl+time.Hour)).Sweep(ttl, 0)
 	if err != nil {
 		t.Fatalf("Sweep failed: %v", err)
 	}
@@ -98,7 +98,7 @@ func TestSweep_NeedsNoKey(t *testing.T) {
 	dir := t.TempDir()
 	mint(t, clockAt(t, dir, newFakeKeyring(), t0), "old", "DNI", "12345678Z")
 
-	got, err := clockAt(t, dir, newFakeKeyring(), t0.Add(2*ttl)).Sweep(ttl)
+	got, err := clockAt(t, dir, newFakeKeyring(), t0.Add(2*ttl)).Sweep(ttl, 0)
 	if err != nil || !reflect.DeepEqual(got.Forgotten, []string{"old"}) {
 		t.Fatalf("Sweep without the key = (%+v, %v), want old forgotten", got, err)
 	}
@@ -111,7 +111,7 @@ func TestSweep_SkipsASessionAnotherProcessHoldsLocked(t *testing.T) {
 	pseudonymstore.HoldLock(t, filepath.Join(dir, "busy.json.lock"))
 
 	start := time.Now()
-	got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl)
+	got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl, 0)
 	if err != nil {
 		t.Fatalf("Sweep failed: %v", err)
 	}
@@ -127,7 +127,7 @@ func TestSweep_SkipsASessionAnotherProcessHoldsLocked(t *testing.T) {
 }
 
 func TestSweep_MissingDir_IsEmpty(t *testing.T) {
-	got, err := clockAt(t, filepath.Join(t.TempDir(), "absent"), newFakeKeyring(), t0).Sweep(ttl)
+	got, err := clockAt(t, filepath.Join(t.TempDir(), "absent"), newFakeKeyring(), t0).Sweep(ttl, 0)
 	if err != nil || len(got.Forgotten)+len(got.Skipped) != 0 {
 		t.Fatalf("Sweep(missing dir) = (%+v, %v), want empty", got, err)
 	}
@@ -262,7 +262,7 @@ func TestHelperHoldLock(t *testing.T) {
 func TestRemovedSession_NeverReusesATokenNumber(t *testing.T) {
 	remove := map[string]func(t *testing.T, dir string, kr *fakeKeyring){
 		"sweep": func(t *testing.T, dir string, kr *fakeKeyring) {
-			got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl)
+			got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl, 0)
 			if err != nil || len(got.Forgotten) != 1 {
 				t.Fatalf("Sweep = (%+v, %v), want s forgotten", got, err)
 			}
@@ -326,7 +326,150 @@ func TestRemovedSession_KeepsOnlyCounters(t *testing.T) {
 	if got, err := newStore(t, dir, kr).Find([]string{"12345678Z"}); err != nil || len(got) != 0 {
 		t.Fatalf("Find after forget = (%v, %v), want nothing", got, err)
 	}
-	if got, err := clockAt(t, dir, kr, t0.Add(100*ttl)).Sweep(ttl); err != nil || len(got.Forgotten) != 0 {
+	if got, err := clockAt(t, dir, kr, t0.Add(100*ttl)).Sweep(ttl, 0); err != nil || len(got.Forgotten) != 0 {
 		t.Fatalf("Sweep of a counters file = (%+v, %v), want nothing forgotten", got, err)
+	}
+}
+
+// TestRemoval_UnreadableCounters_RetiresTheSession: a session written
+// before counters files existed, removed without a key that opens it, has
+// lost its numbering. Removal still happens (erasure is never blocked),
+// but the session id is retired: minting for it fails closed instead of
+// starting again at -001.
+func TestRemoval_UnreadableCounters_RetiresTheSession(t *testing.T) {
+	remove := map[string]func(t *testing.T, dir string){
+		"forget without the key": func(t *testing.T, dir string) {
+			if err := newStore(t, dir, newFakeKeyring()).Forget("p1"); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"sweep with a wrong key": func(t *testing.T, dir string) {
+			wrong := newFakeKeyring()
+			wrong.secrets[pseudonymstore.KeyringService+"/"+pseudonymstore.KeyringAccount] = newIdentity(t).String()
+			got, err := clockAt(t, dir, wrong, t0.Add(2*ttl)).Sweep(ttl, 0)
+			if err != nil || !reflect.DeepEqual(got.Forgotten, []string{"p1"}) {
+				t.Fatalf("Sweep = (%+v, %v), want p1 forgotten", got, err)
+			}
+		},
+	}
+	for name, removeSession := range remove {
+		t.Run(name, func(t *testing.T) {
+			dir := t.TempDir()
+			kr := newFakeKeyring()
+			mint(t, clockAt(t, dir, kr, t0), "p1", "DNI", "12345678Z")
+			mint(t, clockAt(t, dir, kr, t0), "p1", "DNI", "87654321X")
+			if err := os.Remove(filepath.Join(dir, "p1.ctr")); err != nil { // as written before counters files
+				t.Fatal(err)
+			}
+
+			removeSession(t, dir)
+
+			if exists(t, filepath.Join(dir, "p1.age")) {
+				t.Fatal("removal was blocked")
+			}
+			raw, err := os.ReadFile(filepath.Join(dir, "p1.ctr"))
+			if err != nil || strings.Contains(string(raw), "12345678Z") {
+				t.Fatalf("p1.ctr = (%q, %v), want a tombstone with no value", raw, err)
+			}
+			token, err := clockAt(t, dir, kr, t0.Add(3*ttl)).Token("p1", "DNI", "11111111H")
+			wantErr(t, err, pseudonymstore.ErrSessionRetired)
+			if token != "" {
+				t.Fatalf("retired session minted %q", token)
+			}
+		})
+	}
+}
+
+// TestRemoval_IsDurable: removal syncs the directory, so a power loss
+// cannot bring a deleted session file back.
+func TestRemoval_IsDurable(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	mint(t, clockAt(t, dir, kr, t0), "forgotten", "DNI", "12345678Z")
+	mint(t, clockAt(t, dir, kr, t0), "swept", "DNI", "12345678Z")
+	pseudonymstore.FailSync(t, nil, errDisk)
+
+	wantErr(t, newStore(t, dir, kr).Forget("forgotten"), errDisk)
+	got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl, 0)
+	wantErr(t, err, errDisk)
+	if !reflect.DeepEqual(got.Failed, []string{"swept"}) {
+		t.Fatalf("Sweep with a failing dir sync = %+v, want swept failed", got)
+	}
+}
+
+// TestSweep_OnePoisonedSession_DoesNotBlockTheRest: a session that cannot
+// be locked (its lock path is a symlink) is reported failed, and the
+// sweep still removes the others.
+func TestSweep_OnePoisonedSession_DoesNotBlockTheRest(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	mint(t, clockAt(t, dir, kr, t0), "a1", "DNI", "12345678Z")
+	mint(t, clockAt(t, dir, kr, t0), "b2", "DNI", "12345678Z")
+	if err := os.Symlink(filepath.Join(t.TempDir(), "elsewhere"), filepath.Join(dir, "a1.json.lock")); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl, 0)
+
+	if err == nil {
+		t.Fatal("Sweep hid a failed session")
+	}
+	if !reflect.DeepEqual(got.Failed, []string{"a1"}) || !reflect.DeepEqual(got.Forgotten, []string{"b2"}) {
+		t.Fatalf("Sweep = %+v, want a1 failed and b2 forgotten", got)
+	}
+}
+
+// TestSweep_SessionUsedMeanwhile_IsKeptAndNotReported: the re-check under
+// the lock keeps a session another process used after the first check.
+func TestSweep_SessionUsedMeanwhile_IsKeptAndNotReported(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	mint(t, clockAt(t, dir, kr, t0), "s", "DNI", "12345678Z")
+	now := t0.Add(2 * ttl)
+	pseudonymstore.OnSweepLocked(t, func(id string) {
+		os.Chtimes(filepath.Join(dir, id+".age"), now, now)
+	})
+
+	got, err := clockAt(t, dir, kr, now).Sweep(ttl, 0)
+
+	if err != nil || len(got.Forgotten) != 0 || !exists(t, filepath.Join(dir, "s.age")) {
+		t.Fatalf("Sweep = (%+v, %v), s present = %v; want s kept and not reported", got, err, exists(t, filepath.Join(dir, "s.age")))
+	}
+}
+
+// TestSweep_Limit_BoundsOneRun: a bounded sweep removes at most limit
+// sessions per run; the next run carries on.
+func TestSweep_Limit_BoundsOneRun(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	for _, id := range []string{"a", "b", "c"} {
+		mint(t, clockAt(t, dir, kr, t0), id, "DNI", "12345678Z")
+	}
+	later := clockAt(t, dir, kr, t0.Add(2*ttl))
+
+	first, err := later.Sweep(ttl, 2)
+	if err != nil || len(first.Forgotten) != 2 {
+		t.Fatalf("first Sweep = (%+v, %v), want 2 forgotten", first, err)
+	}
+	second, err := later.Sweep(ttl, 2)
+	if err != nil || len(second.Forgotten) != 1 {
+		t.Fatalf("second Sweep = (%+v, %v), want the last one forgotten", second, err)
+	}
+}
+
+// TestFind_IsReadOnly: find never migrates or rewrites what it reads.
+func TestFind_IsReadOnly(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	legacy := writeV1(t, dir)
+
+	got, err := newStore(t, dir, kr).Find([]string{"12345678Z"})
+
+	want := []pseudonymstore.Holding{{Session: "session-1", Categories: []string{"DNI"}}}
+	if err != nil || !reflect.DeepEqual(got, want) {
+		t.Fatalf("Find = (%+v, %v), want %+v", got, err, want)
+	}
+	if !exists(t, legacy) || exists(t, filepath.Join(dir, "session-1.age")) || kr.sets != 0 {
+		t.Fatal("Find migrated a v1 session or generated a key; it must only read")
 	}
 }

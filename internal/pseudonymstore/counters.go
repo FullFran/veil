@@ -26,9 +26,17 @@ import (
 // which need no key, can keep it; whoever can rewrite it can also delete
 // the whole store. It is never swept: deleting it reopens the reuse it
 // exists to prevent.
+//
+// When a session is removed and its counters cannot be read (a session
+// written before counters files existed, removed without a key that opens
+// it), the file is a tombstone instead: {"version":1,"retired":true}.
+// Removal still happens, and minting for that session id then fails
+// closed with ErrSessionRetired, since any number could repeat one the
+// host's history already holds.
 type countersFile struct {
 	Version  int            `json:"version"`
-	Counters map[string]int `json:"counters"`
+	Counters map[string]int `json:"counters,omitempty"`
+	Retired  bool           `json:"retired,omitempty"`
 }
 
 const countersVersion = 1
@@ -48,6 +56,9 @@ func (s *FileStore) raiseCounters(sessionID string, data *sessionFile) error {
 		// Starting from zero could reuse a marker: fail closed.
 		return fmt.Errorf("%w: counters file", ErrCorrupt)
 	}
+	if c.Retired {
+		return ErrSessionRetired
+	}
 	for category, n := range c.Counters {
 		if n > data.Counters[category] {
 			data.Counters[category] = n
@@ -59,7 +70,16 @@ func (s *FileStore) raiseCounters(sessionID string, data *sessionFile) error {
 // writeCounters durably replaces the session's counters file. The caller
 // holds the session lock.
 func (s *FileStore) writeCounters(sessionID string, counters map[string]int) error {
-	encoded, err := json.Marshal(countersFile{Version: countersVersion, Counters: counters})
+	return s.writeCountersFile(sessionID, countersFile{Version: countersVersion, Counters: counters})
+}
+
+// retire writes the session's tombstone (see countersFile).
+func (s *FileStore) retire(sessionID string) error {
+	return s.writeCountersFile(sessionID, countersFile{Version: countersVersion, Retired: true})
+}
+
+func (s *FileStore) writeCountersFile(sessionID string, c countersFile) error {
+	encoded, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("pseudonymstore: encode counters: %w", err)
 	}
@@ -76,9 +96,10 @@ func (s *FileStore) writeCounters(sessionID string, counters map[string]int) err
 	return nil
 }
 
-// readForCounters reads a session's mapping without writing anything: the
-// age file when the key opens it, else a v1 plaintext file.
-func (s *FileStore) readForCounters(sessionID string) (*sessionFile, error) {
+// readOnly reads a session's mapping without writing anything (no
+// migration, no key generation): the age file when the key opens it, else
+// a v1 plaintext file. The caller holds the session lock.
+func (s *FileStore) readOnly(sessionID string) (*sessionFile, error) {
 	if raw, err := os.ReadFile(s.agePath(sessionID)); err == nil {
 		return s.decrypt(raw)
 	}

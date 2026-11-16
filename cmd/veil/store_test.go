@@ -124,6 +124,16 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 		{"no keyring", func(t *testing.T) {
 			useKeyring(t, &fakeKeyring{secrets: map[string]string{}, err: errors.New("no D-Bus session")})
 		}, problem.StoreKeyringUnavailable},
+		{"session retired by a keyless forget without counters", func(t *testing.T) {
+			useKeyring(t, newFakeKeyring())
+			foreignSession(t)
+			if err := os.Remove(filepath.Join(sessionsDir(), "sess-1.ctr")); err != nil {
+				t.Fatal(err)
+			}
+			if exit, _, stderr := storeCmd("forget", "sess-1"); exit != problem.ExitDecision {
+				t.Fatalf("forget = (exit %d, %q), want 0", exit, stderr)
+			}
+		}, problem.SessionRetired},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
