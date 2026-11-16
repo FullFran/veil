@@ -18,9 +18,10 @@
 // value and no "category:original" key is on disk in clear. A v1
 // plaintext <session>.json is migrated on first access and then removed.
 //
-// Retention (TTL) is not decided here: Forget is the one deletion path,
-// so a retention sweep calls it per expired session, and each write is a
-// fresh rename, so a session file's mtime is its last write.
+// Retention: a session file's mtime is its last use. Every write sets it,
+// and so does every token lookup and rehydration, without rewriting the
+// file. Sweep (retention.go) deletes sessions unused for longer than a TTL
+// through the same locked deletion as Forget.
 package pseudonymstore
 
 import (
@@ -73,13 +74,21 @@ type Marker struct {
 type FileStore struct {
 	dir  string
 	keys Keys
+	now  func() time.Time
 }
 
 // NewFileStore builds a FileStore rooted at dir whose files are encrypted
 // with the identity keys resolves. dir is created (0700) on first write
 // if it does not already exist.
 func NewFileStore(dir string, keys Keys) *FileStore {
-	return &FileStore{dir: dir, keys: keys}
+	return &FileStore{dir: dir, keys: keys, now: time.Now}
+}
+
+// WithClock makes the store read the time from now instead of the system
+// clock, for last-use times and retention, and returns the store.
+func (s *FileStore) WithClock(now func() time.Time) *FileStore {
+	s.now = now
+	return s
 }
 
 // DefaultDir returns the default root FileStore should use: under
@@ -114,9 +123,8 @@ func (s *FileStore) lockPath(sessionID string) string {
 	return s.legacyPath(sessionID) + ".lock"
 }
 
-// Token implements domain.PseudonymStore. It takes a simple create-file
-// advisory lock (a sibling ".lock" file created with O_EXCL) around the
-// read-modify-write cycle, so two veil processes racing to handle two
+// Token implements domain.PseudonymStore. It takes the session lock (see
+// acquireLock) around the read-modify-write cycle, so two veil processes racing to handle two
 // hook calls from the same OpenCode session in close succession cannot
 // interleave and corrupt each other's counters.
 func (s *FileStore) Token(sessionID, category, original string) (string, error) {
@@ -140,6 +148,9 @@ func (s *FileStore) Token(sessionID, category, original string) (string, error) 
 
 	key := category + ":" + original
 	if token, ok := data.Mapping[key]; ok {
+		if err := s.touch(sessionID); err != nil {
+			return "", err
+		}
 		return token, nil
 	}
 
@@ -155,9 +166,10 @@ func (s *FileStore) Token(sessionID, category, original string) (string, error) 
 }
 
 // Original implements domain.PseudonymStore's reverse lookup, guarded by
-// the same lock and fail-closed load as Token.
+// the same lock and fail-closed load as Token. A rehydration is use of the
+// session, so it refreshes the session's last-use time.
 func (s *FileStore) Original(sessionID, token string) (string, bool, error) {
-	data, err := s.read(sessionID)
+	data, err := s.load(sessionID, true)
 	if err != nil {
 		return "", false, err
 	}
@@ -169,7 +181,7 @@ func (s *FileStore) Original(sessionID, token string) (string, bool, error) {
 // by category and then by number, for a host's own "what veil hid" view.
 // An unknown session has no markers.
 func (s *FileStore) Reveal(sessionID string) ([]Marker, error) {
-	data, err := s.read(sessionID)
+	data, err := s.load(sessionID, false)
 	if err != nil {
 		return nil, err
 	}
@@ -209,7 +221,13 @@ func (s *FileStore) Forget(sessionID string) error {
 		return err
 	}
 	defer unlock()
+	return s.removeLocked(sessionID)
+}
 
+// removeLocked deletes every file of the session's store. The caller holds
+// the session lock. It is the one deletion path: Forget and Sweep both
+// use it.
+func (s *FileStore) removeLocked(sessionID string) error {
 	paths := []string{
 		s.agePath(sessionID), s.agePath(sessionID) + ".tmp",
 		// v1 files, including an interrupted v1 write: both hold plaintext.
@@ -223,10 +241,10 @@ func (s *FileStore) Forget(sessionID string) error {
 	return nil
 }
 
-// read loads a session for a read-only operation. A session with no file
-// at all is empty and needs neither the lock nor a key, so a read never
-// generates a key.
-func (s *FileStore) read(sessionID string) (*sessionFile, error) {
+// load loads a session for a read-only operation, refreshing its last-use
+// time when use is set. A session with no file at all is empty and needs
+// neither the lock nor a key, so a read never generates a key.
+func (s *FileStore) load(sessionID string, use bool) (*sessionFile, error) {
 	if !exists(s.agePath(sessionID)) && !exists(s.legacyPath(sessionID)) {
 		return emptySession(), nil
 	}
@@ -240,7 +258,26 @@ func (s *FileStore) read(sessionID string) (*sessionFile, error) {
 	}
 	defer unlock()
 
-	return s.open(sessionID)
+	data, err := s.open(sessionID)
+	if err != nil {
+		return nil, err
+	}
+	if use {
+		if err := s.touch(sessionID); err != nil {
+			return nil, err
+		}
+	}
+	return data, nil
+}
+
+// touch sets the session file's mtime, its last-use time, to now. The
+// caller holds the session lock.
+func (s *FileStore) touch(sessionID string) error {
+	now := s.now()
+	if err := os.Chtimes(s.agePath(sessionID), now, now); err != nil {
+		return fmt.Errorf("pseudonymstore: touch: %w", err)
+	}
+	return nil
 }
 
 // open loads the session under its lock. An age file is decrypted; a
@@ -373,6 +410,9 @@ func (s *FileStore) save(sessionID string, data *sessionFile) error {
 	if err := os.Rename(tmp, path); err != nil {
 		return fmt.Errorf("pseudonymstore: rename: %w", err)
 	}
+	if err := s.touch(sessionID); err != nil {
+		return err
+	}
 	// The rename is durable only once the directory entry is: until then
 	// a power loss can bring back the old file, so a caller must not
 	// remove a v1 plaintext file before this returns.
@@ -420,28 +460,4 @@ func removeIfExists(path string) error {
 		return fmt.Errorf("pseudonymstore: remove: %w", err)
 	}
 	return nil
-}
-
-// acquireLock takes a simple create-exclusive lock file, retrying briefly
-// on contention, and returns a function that releases it. It fails
-// closed with ErrLocked rather than blocking forever if the lock cannot
-// be acquired within a short deadline, since a stuck lock must eventually
-// surface as a blocked event, not a silently skipped rewrite.
-func acquireLock(path string) (release func(), err error) {
-	deadline := time.Now().Add(2 * time.Second)
-
-	for {
-		f, err := os.OpenFile(path, os.O_CREATE|os.O_EXCL|os.O_WRONLY, 0o600)
-		if err == nil {
-			f.Close()
-			return func() { os.Remove(path) }, nil
-		}
-		if !os.IsExist(err) {
-			return nil, fmt.Errorf("pseudonymstore: acquire lock: %w", err)
-		}
-		if time.Now().After(deadline) {
-			return nil, fmt.Errorf("%w: timed out waiting for %s", ErrLocked, path)
-		}
-		time.Sleep(10 * time.Millisecond)
-	}
 }

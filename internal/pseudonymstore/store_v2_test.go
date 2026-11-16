@@ -299,9 +299,7 @@ func TestFileStore_HeldLock_FailsClosedWithLocked(t *testing.T) {
 	dir := t.TempDir()
 	store := newStore(t, dir, newFakeKeyring())
 	mintOne(t, store)
-	if err := os.WriteFile(filepath.Join(dir, "session-1.json.lock"), nil, 0o600); err != nil {
-		t.Fatalf("WriteFile failed: %v", err)
-	}
+	pseudonymstore.HoldLock(t, filepath.Join(dir, "session-1.json.lock"))
 
 	_, err := store.Token("session-1", "DNI", "87654321X")
 	wantErr(t, err, pseudonymstore.ErrLocked)

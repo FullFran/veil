@@ -23,3 +23,15 @@ func FailSync(t *testing.T, file, dir error) {
 		return prevDir(d)
 	}
 }
+
+// HoldLock takes the session lock at path, as another veil process
+// would, until the test ends or release is called.
+func HoldLock(t *testing.T, path string) (release func()) {
+	t.Helper()
+	release, err := acquireLock(path)
+	if err != nil {
+		t.Fatalf("HoldLock: %v", err)
+	}
+	t.Cleanup(release)
+	return release
+}
