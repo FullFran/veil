@@ -4,6 +4,7 @@
 
 [![ci](https://github.com/FullFran/veil/actions/workflows/ci.yml/badge.svg)](https://github.com/FullFran/veil/actions/workflows/ci.yml)
 [![OpenSSF Scorecard](https://api.scorecard.dev/projects/github.com/FullFran/veil/badge)](https://scorecard.dev/viewer/?uri=github.com/FullFran/veil)
+[![OpenSSF Best Practices](https://www.bestpractices.dev/projects/16829/badge)](https://www.bestpractices.dev/projects/16829)
 
 A host-agnostic privacy guard for AI coding agents. It inspects what an
 agent is about to do and blocks or redacts personal data before it leaves
@@ -529,7 +530,9 @@ Every release publishes, as assets, `veil-<os>-<arch>` binaries built with
 `CGO_ENABLED=0` (`linux`, `darwin` and `windows`, each on `amd64` and
 `arm64`; Windows files end in `.exe`), the OpenCode plugin `veil-plugin.js`,
 and a `SHA256SUMS` file covering all of them
-(`.github/workflows/release.yml`). Verify before use:
+(`.github/workflows/release.yml`). What changed in each release, including
+the changes a host must act on, is in [`CHANGELOG.md`](CHANGELOG.md).
+Verify before use:
 
 ```bash
 curl -fsSLO https://github.com/FullFran/veil/releases/download/v0.1.0/veil-linux-amd64
@@ -902,12 +905,15 @@ request.
 ## Development
 
 Every pull request runs `.github/workflows/ci.yml`: `gofmt -l`, `go vet`,
-`go test` (which includes `TestDomainImportsNoHostAdapter`, failing if
+`go test -race` (which includes `TestDomainImportsNoHostAdapter`, failing if
 `internal/domain` depends on any `internal/hosts/...` package), the plugin
 test, and an architecture gate: an [archsieve](https://github.com/FullFran/archsieve)
 snapshot of the base and of the head, compared with
 `archsieve diff --fail-on error`. The diff is in the job summary and the
-snapshots are uploaded as an artifact. The
+snapshots are uploaded as an artifact. Static analysis runs on every pull
+request too: golangci-lint with gosec (`.golangci.yml`; run it locally with
+`golangci-lint run ./...`), `govulncheck ./...`, and CodeQL for Go and the
+workflows (`.github/workflows/codeql.yml`). The
 [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/FullFran/veil)
 runs weekly and on every push to `main`. To report a vulnerability, see
 [`.github/SECURITY.md`](.github/SECURITY.md).
