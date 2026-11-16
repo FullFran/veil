@@ -26,6 +26,7 @@ var wantCodes = []Code{
 	StoreLocked,
 	StoreIO,
 	EvidenceWrite,
+	CatalogRevisionInvalid,
 	Timeout,
 	OutputTooLarge,
 	Unavailable,

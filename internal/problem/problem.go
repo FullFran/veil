@@ -57,6 +57,9 @@ const (
 	StoreIO Code = "VEIL_STORE_IO"
 	// EvidenceWrite: the evidence sink cannot be written.
 	EvidenceWrite Code = "VEIL_EVIDENCE_WRITE"
+	// CatalogRevisionInvalid: VEIL_CATALOG_REVISION is set but is not an
+	// opaque token ([A-Za-z0-9._:-]{1,128}).
+	CatalogRevisionInvalid Code = "VEIL_CATALOG_REVISION_INVALID"
 	// Timeout: raised by the OpenCode plugin when the binary does not
 	// answer in time.
 	Timeout Code = "VEIL_TIMEOUT"
@@ -107,6 +110,7 @@ var titles = map[Code]string{
 	StoreLocked:             "Pseudonym store is locked",
 	StoreIO:                 "Pseudonym store cannot be read or written",
 	EvidenceWrite:           "Evidence cannot be written",
+	CatalogRevisionInvalid:  "Catalog revision is invalid",
 	Timeout:                 "veil did not answer in time",
 	OutputTooLarge:          "veil answer is too large",
 	Unavailable:             "veil is unavailable",
@@ -127,6 +131,7 @@ var details = map[Code]string{
 	StoreLocked:             "Another veil process held the pseudonym session lock past the deadline.",
 	StoreIO:                 "The pseudonym store directory or a session file cannot be read or written.",
 	EvidenceWrite:           "The evidence sink cannot be written, so veil fails closed.",
+	CatalogRevisionInvalid:  "VEIL_CATALOG_REVISION must be an opaque token of 1 to 128 characters from A-Z, a-z, 0-9, '.', '_', ':' and '-'.",
 	Timeout:                 "The veil binary did not answer before the deadline.",
 	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
 	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
@@ -137,7 +142,7 @@ var details = map[Code]string{
 var all = []Code{
 	Usage, InputInvalid, CatalogUnreadable, PolicyUnreadable, PolicyInvalid, CapabilityUnsupported,
 	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, StoreIO,
-	EvidenceWrite,
+	EvidenceWrite, CatalogRevisionInvalid,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,
 }
