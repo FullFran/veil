@@ -41,6 +41,7 @@ func (d *PhoneDetector) Detect(event Event) []Finding {
 		findings = append(findings, phoneFinding(event.Text[idx[0]:idx[1]]))
 	}
 
+	findings = append(findings, separatedPhoneFindings(event.Text)...)
 	return findings
 }
 

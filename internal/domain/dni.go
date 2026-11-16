@@ -45,6 +45,7 @@ func (d *DNIDetector) Detect(event Event) []Finding {
 			Category: "DNI",
 		})
 	}
+	findings = append(findings, separatedDNIFindings(event.Text)...)
 	return findings
 }
 

@@ -36,6 +36,7 @@ func (d *IBANDetector) Detect(event Event) []Finding {
 			Category: "IBAN",
 		})
 	}
+	findings = append(findings, separatedIBANFindings(event.Text)...)
 	return findings
 }
 

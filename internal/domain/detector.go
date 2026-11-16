@@ -24,6 +24,11 @@ type Finding struct {
 	// short of blocking it outright (e.g. a tool call targeting a
 	// secrets-bearing file).
 	Category string
+	// Key is the canonical value Policy mints the pseudonym for (e.g. the
+	// compact "12345678Z" for a written "12.345.678-Z"), so one value
+	// written two ways is one token, and rehydration gives back Key.
+	// Empty means Match itself.
+	Key string
 }
 
 // Detector inspects an Event and reports any Findings. Implementations
