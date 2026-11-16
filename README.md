@@ -184,8 +184,18 @@ value and no `category:original` key is on disk in clear. Writes go
 through a new temp file (created with `O_EXCL`, mode 0600, after removing
 any leftover or planted link), `fsync`, a rename and an `fsync` of the
 directory, so a write is durable when it returns, even across a power
-loss. A sibling `<session>.json.lock` (created with `O_EXCL`, 2 s
-deadline) serializes writers across processes.
+loss. A sibling `<session>.json.lock` serializes writers across
+processes (2 s deadline, then `VEIL_STORE_LOCKED`). The lock is a kernel
+lock on that file (`flock(2)` on Linux, macOS and the BSDs, `LockFileEx`
+on Windows), so the kernel releases it when its holder dies: a crash never
+leaves a session locked forever, and a lock file with no holder (left by a
+crash, or by an older veil) is taken over. The holder unlinks the file
+before releasing it, and a process that locked a file no longer at the
+path retries, so two writers are never let in. **Hosts must not run two veil
+versions on the same store concurrently:** an older veil (v0.x,
+create-exclusive lock file) and this one (kernel lock) do not exclude each
+other, so stop every old veil before the first new one runs. On Windows the empty lock file stays after
+use.
 
 The sessions directory must be private: veil creates it 0700, tightens an
 existing one that group or others can reach to 0700, and fails closed
@@ -227,6 +237,7 @@ Every key failure denies the event with a typed problem
 | Session file fails to decrypt, authenticate or parse | `VEIL_STORE_CORRUPT` |
 | OS keyring unreachable | `VEIL_STORE_KEYRING_UNAVAILABLE` |
 | Lock held past the deadline | `VEIL_STORE_LOCKED` |
+| Session retired (removed without readable counters) | `VEIL_SESSION_RETIRED` |
 
 ### Commands
 
@@ -234,20 +245,126 @@ Hosts read and delete a session's pseudonyms through veil, not by parsing
 or removing its files:
 
 ```sh
-veil store reveal <session>   # stdout: {"markers":[{"marker":"[DNI-001]","category":"DNI","value":"12345678Z"}]}
-veil store forget <session>   # removes the session's store and its lock
+veil store reveal <session>          # stdout: {"markers":[{"marker":"[DNI-001]","category":"DNI","value":"12345678Z"}]}
+veil store forget <session> [...]    # removes each session's store and its lock
+veil store find --value <value|->    # stdout: {"sessions":[{"session":"sess-1","categories":["DNI"]}]}
+veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped":[],"failed":[]}
 ```
 
 - `reveal` prints every marker of the session and the real value it
   stands for, sorted by category and number, for a host's own "what veil
   hid" view. It needs the key, like any read. An unknown session prints
   `{"markers":[]}`.
-- `forget` removes the session's age file, any v1 file, any interrupted
-  write (v1 or v2 temp file) and its lock,
-  holding the lock while it deletes. It needs no key. An unknown session
-  succeeds.
-- Both exit 0 on success, 1 with a problem line on a store failure, 2 on
-  bad arguments. Retention and TTL are not part of these commands yet.
+- `forget` removes each named session's age file, any v1 file, any
+  interrupted write (v1 or v2 temp file) and its lock, holding the lock
+  while it deletes. It keeps the session's counters file, which holds no
+  personal data, so the session id never reuses a marker number (see
+  [Retention](#retention-and-data-subject-requests)). It needs no key, on purpose: a lost key must never
+  block an erasure, and without the key the file is unreadable anyway. An
+  unknown session succeeds.
+- `find` lists the sessions whose store holds a value, and the categories
+  it was hidden under; it never prints the value or any other value. See
+  [Retention and data subject requests](#retention-and-data-subject-requests).
+- `sweep` removes the sessions unused for longer than the policy's
+  `store.ttl`. See below.
+- All exit 0 on success, 1 with a problem line on a store failure, 2 on
+  bad arguments. On a failure stdout is empty, except for a `sweep` that
+  failed on some sessions: it still prints its answer (session ids only,
+  the failed ones under `failed`) before the problem line, and exits 1.
+
+### Retention and data subject requests
+
+GDPR art. 5(1)(e) (storage limitation) asks that personal data be kept no
+longer than needed; arts. 15 and 17 give people the right to access and to
+erase their data. veil supplies the mechanism; **deciding retention
+periods, verifying who is asking, answering within the legal deadline and
+erasing the same data from everything else that holds it (host
+transcripts, logs, backups) stays the organisation's job.**
+
+**Retention.** Set a TTL in the policy (see [Policy](#policy)):
+
+```json
+{ "version": "1.0", "detectors": { "dni": { "action": "rewrite" } }, "store": { "ttl": "P30D" } }
+```
+
+`store.ttl` is an ISO 8601 duration as JSON Schema's `duration` format
+defines it (RFC 3339 Appendix A), limited to days, hours and minutes
+(`P30D`, `PT12H`, `P1DT6H`): years and months have no fixed length. It must
+be positive. **Without `store.ttl` veil never deletes a session on its own**,
+which is the default, so upgrading never removes anyone's data.
+
+- A session expires when it has been **unused** for longer than the TTL.
+  Its last use is its file's modification time: every write sets it, and
+  so does every token lookup and every rehydration (`reveal` does not).
+  Content veil processes cannot set it; whoever can write the private
+  sessions directory can, but can delete the files anyway. Copying the
+  store without preserving times restarts the clock. Expiry trusts the
+  system clock: **a forward jump of the clock (a wrong NTP step, a
+  restored VM, a manual change) expires every session older than the TTL
+  at the new time at once**, so keep the clock synchronized and choose a
+  TTL with margin.
+- With a TTL set, **every veil start sweeps** expired sessions, silently
+  and without affecting the decision, removing **at most 16 sessions per
+  start** so a hook call never does unbounded work (the rest go on later
+  starts). `veil store sweep` runs the same sweep without a bound and
+  reports it. Both need no key. A session another veil process holds
+  locked is never deleted (it is reported under `skipped`), and its last
+  use is checked again under the lock (a session used meanwhile is kept
+  and not reported). A session that cannot be locked or removed (for
+  example a planted symlink as its lock file) is reported under `failed`
+  and the sweep goes on with the others.
+- Deletion goes through the same path as `forget`, and is durable: the
+  directory is synced after the files are removed, so a crash cannot bring
+  a deleted session back. Removing a file is not
+  media sanitization (NIST SP 800-88 Rev. 2): on SSDs and journaling
+  filesystems the old blocks may survive, but they hold age ciphertext. To
+  make *every* session unreadable, destroy the store key.
+- **Marker numbers are never reused within a session id.** The host's
+  history of a resumed session still holds the markers veil sent; if a new
+  value got an old `[DNI-001]`, the model would see two people as one and
+  rehydrating that marker in a write would put the wrong value on disk. So
+  every session keeps a counters file, `<session>.ctr`, which sweep and
+  `forget` leave in place: a resumed session carries on at `[DNI-002]`,
+  and an old marker is simply unknown (left as it is, never rehydrated to
+  a new value). The file holds only how many values of each category the
+  session has seen (for example `{"version":1,"counters":{"DNI":1}}`): no
+  value, no marker, no mapping, so it is not personal data and not the
+  pseudonymisation key. It is plaintext so keyless removal can keep it,
+  and it is never swept, since deleting it would reopen the reuse.
+  Sessions written by a veil before counters files existed get one on
+  their next write, or at removal when the key (or a v1 file) is at hand.
+  **One removed without a key that opens it is retired:** removal still
+  happens (erasure is never blocked), its counters file becomes the
+  tombstone `{"version":1,"retired":true}` (no personal data either), and
+  any later event that would mint a marker for that session id fails
+  closed with `VEIL_SESSION_RETIRED`, since any number could repeat one
+  the host's history holds. The host must continue under a new session
+  id.
+
+**Access and erasure requests.** Find, then forget:
+
+```sh
+printf '%s\n' '12.345.678-Z' | veil store find --value -
+# {"sessions":[{"session":"sess-1","categories":["DNI"]}]}
+veil store forget sess-1
+```
+
+- `find` matches a value however it was written, the way detection keys
+  it: `12.345.678-Z` and `12345678Z` are the same DNI, and an IBAN or
+  phone with spaces, dots or dashes matches its compact form.
+- Prefer `--value -`, which reads the value from stdin (one line): a value
+  on the command line is visible to other local users in the process list
+  and stays in shell history.
+- `find` needs the key and **fails closed**: a missing or wrong key, or a
+  session it cannot read, ends the search with the store's problem code
+  and no partial list, since an incomplete answer to such a request is
+  worse than none.
+- `find` only reads: it never migrates a v1 plaintext session, rewrites a
+  file or generates a key.
+- `find` decrypts every session and checks every entry, so its duration
+  depends on the store's size, not on whether or where the value is. It
+  answers only what its caller, who holds the key, could already learn
+  with `reveal`.
 
 ### Migration from v1
 
@@ -313,7 +430,8 @@ Set `VEIL_POLICY` to a policy file to use your own:
     "binary-content": { "action": "deny" },
     "name-catalog": { "action": "rewrite" }
   },
-  "catalog": { "path": "names.json" }
+  "catalog": { "path": "names.json" },
+  "store": { "ttl": "P30D" }
 }
 ```
 
@@ -332,6 +450,9 @@ Set `VEIL_POLICY` to a policy file to use your own:
   `name-catalog` runs only when a catalog is set, by `catalog.path` or by
   `VEIL_CATALOG`. Setting both, or setting either while the policy does not
   enable `name-catalog`, is rejected as ambiguous rather than ignoring one.
+- **Retention.** `store.ttl` deletes sessions unused for longer than an
+  ISO 8601 duration; without it nothing is deleted (see
+  [Retention and data subject requests](#retention-and-data-subject-requests)).
 - **Fails closed.** If `VEIL_POLICY` is set, veil never falls back to the
   default policy: an unreadable file blocks every event with
   `VEIL_POLICY_UNREADABLE`, and a file that is not exactly one JSON
@@ -654,6 +775,7 @@ line on stderr is what tells a failure apart.
 | `VEIL_STORE_CORRUPT` | `store-corrupt` | A session file cannot be decrypted, authenticated or parsed |
 | `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable |
 | `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline |
+| `VEIL_SESSION_RETIRED` | `session-retired` | The session was removed without its marker counters; minting for it would risk a repeated marker, so the host must use a new session id |
 | `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
 | `VEIL_EVIDENCE_WRITE` | `evidence-write` | `VEIL_EVIDENCE_FILE` is set and the evidence record cannot be appended |
 | `VEIL_CATALOG_REVISION_INVALID` | `catalog-revision-invalid` | `VEIL_CATALOG_REVISION` is not an opaque token (`[A-Za-z0-9._:-]{1,128}`) |

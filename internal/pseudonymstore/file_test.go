@@ -77,8 +77,8 @@ func TestFileStore_DifferentSessions_UseSeparateFiles(t *testing.T) {
 	if err != nil {
 		t.Fatalf("ReadDir(%s) failed: %v", dir, err)
 	}
-	if len(entries) != 2 {
-		t.Fatalf("got %d files in %s, want 2 (one per session): %v", len(entries), dir, entries)
+	if len(entries) != 4 {
+		t.Fatalf("got %d files in %s, want 4 (a store and a counters file per session): %v", len(entries), dir, entries)
 	}
 	for _, entry := range entries {
 		info, err := entry.Info()

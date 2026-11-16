@@ -15,9 +15,13 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
+	"regexp"
+	"strconv"
 	"sync"
+	"time"
 
 	"github.com/FullFran/veil/internal/problem"
 	"github.com/santhosh-tekuri/jsonschema/v6"
@@ -60,11 +64,21 @@ type CatalogRef struct {
 	Path string `json:"path"`
 }
 
+// StoreRules is the pseudonym store's retention.
+type StoreRules struct {
+	// TTL is an ISO 8601 duration (RFC 3339 Appendix A), for example
+	// "P30D": how long a session may sit unused before veil deletes it.
+	TTL string `json:"ttl"`
+}
+
 // Policy is a validated policy document.
 type Policy struct {
 	Version   string                  `json:"version"`
 	Detectors map[string]DetectorRule `json:"detectors"`
 	Catalog   *CatalogRef             `json:"catalog,omitempty"`
+	Store     *StoreRules             `json:"store,omitempty"`
+
+	ttl time.Duration
 
 	digest string
 	// dir is the directory relative catalog paths resolve against: the
@@ -153,6 +167,14 @@ func Parse(raw []byte) (*Policy, error) {
 		}
 	}
 
+	if p.Store != nil {
+		ttl, err := parseTTL(p.Store.TTL)
+		if err != nil {
+			return nil, invalid(RuleTTLNotPositive, "store.ttl: %w", err)
+		}
+		p.ttl = ttl
+	}
+
 	canonical, err := canonicalJSON(instance)
 	if err != nil {
 		return nil, invalid(RuleSyntax, "canonicalize policy: %w", err)
@@ -216,3 +238,40 @@ func FromEnv() (*Policy, error) {
 }
 
 var errDuplicateKey = errors.New("duplicate object member")
+
+// Retention returns how long a pseudonym session may sit unused before
+// veil deletes it, and false when the policy sets no TTL: then veil never
+// deletes a session on its own.
+func (p *Policy) Retention() (time.Duration, bool) {
+	if p.Store == nil {
+		return 0, false
+	}
+	return p.ttl, true
+}
+
+// ttlPattern is the schema's pattern for store.ttl, with capture groups.
+var ttlPattern = regexp.MustCompile(`^P(?:([0-9]+)D)?(?:T(?:([0-9]+)H)?(?:([0-9]+)M)?)?$`)
+
+// parseTTL reads the day/hour/minute subset of an ISO 8601 duration the
+// schema accepts. Years and months are excluded: they have no fixed length.
+func parseTTL(s string) (time.Duration, error) {
+	m := ttlPattern.FindStringSubmatch(s)
+	if m == nil {
+		return 0, fmt.Errorf("ttl %q is not a day/hour/minute ISO 8601 duration", s)
+	}
+	var total time.Duration
+	for i, unit := range []time.Duration{24 * time.Hour, time.Hour, time.Minute} {
+		if m[i+1] == "" {
+			continue
+		}
+		n, err := strconv.ParseInt(m[i+1], 10, 64)
+		if err != nil || n > int64(math.MaxInt64/unit) || total > math.MaxInt64-time.Duration(n)*unit {
+			return 0, fmt.Errorf("ttl %q is too large", s)
+		}
+		total += time.Duration(n) * unit
+	}
+	if total <= 0 {
+		return 0, fmt.Errorf("ttl %q is not positive", s)
+	}
+	return total, nil
+}

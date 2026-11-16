@@ -7,6 +7,7 @@ import (
 	"path/filepath"
 	"strings"
 	"sync"
+	"syscall"
 	"testing"
 
 	"filippo.io/age"
@@ -98,9 +99,7 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 			if err := os.MkdirAll(sessionsDir(), 0o700); err != nil {
 				t.Fatal(err)
 			}
-			if err := os.WriteFile(filepath.Join(sessionsDir(), "sess-1.json.lock"), nil, 0o600); err != nil {
-				t.Fatal(err)
-			}
+			holdLock(t, filepath.Join(sessionsDir(), "sess-1.json.lock"))
 		}, problem.StoreLocked},
 		{"key missing for an existing store", func(t *testing.T) {
 			useKeyring(t, newFakeKeyring())
@@ -125,6 +124,16 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 		{"no keyring", func(t *testing.T) {
 			useKeyring(t, &fakeKeyring{secrets: map[string]string{}, err: errors.New("no D-Bus session")})
 		}, problem.StoreKeyringUnavailable},
+		{"session retired by a keyless forget without counters", func(t *testing.T) {
+			useKeyring(t, newFakeKeyring())
+			foreignSession(t)
+			if err := os.Remove(filepath.Join(sessionsDir(), "sess-1.ctr")); err != nil {
+				t.Fatal(err)
+			}
+			if exit, _, stderr := storeCmd("forget", "sess-1"); exit != problem.ExitDecision {
+				t.Fatalf("forget = (exit %d, %q), want 0", exit, stderr)
+			}
+		}, problem.SessionRetired},
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
@@ -142,5 +151,20 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 			}
 			assertProblem(t, stderr.String(), tc.wantCode)
 		})
+	}
+}
+
+// holdLock holds the session lock at path for the rest of the test, as
+// another veil process would: a flock on the lock file. A lock file
+// without a holder is stale and veil takes it over.
+func holdLock(t *testing.T, path string) {
+	t.Helper()
+	f, err := os.OpenFile(path, os.O_CREATE|os.O_RDWR, 0o600)
+	if err != nil {
+		t.Fatal(err)
+	}
+	t.Cleanup(func() { f.Close() })
+	if err := syscall.Flock(int(f.Fd()), syscall.LOCK_EX|syscall.LOCK_NB); err != nil {
+		t.Fatal(err)
 	}
 }

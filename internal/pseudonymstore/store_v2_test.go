@@ -282,8 +282,12 @@ func TestFileStore_Forget_RemovesStoreAndLock(t *testing.T) {
 			t.Errorf("%s still exists after Forget", name)
 		}
 	}
-	if token := mintOne(t, store); token != "[DNI-001]" {
-		t.Fatalf("Token after Forget = %q, want a fresh [DNI-001]", token)
+	if !exists(t, filepath.Join(dir, "session-1.ctr")) {
+		t.Error("Forget removed the counters file")
+	}
+	// Same value, new mapping: the old marker is never minted again.
+	if token := mintOne(t, store); token != "[DNI-002]" {
+		t.Fatalf("Token after Forget = %q, want [DNI-002]", token)
 	}
 }
 
@@ -299,9 +303,7 @@ func TestFileStore_HeldLock_FailsClosedWithLocked(t *testing.T) {
 	dir := t.TempDir()
 	store := newStore(t, dir, newFakeKeyring())
 	mintOne(t, store)
-	if err := os.WriteFile(filepath.Join(dir, "session-1.json.lock"), nil, 0o600); err != nil {
-		t.Fatalf("WriteFile failed: %v", err)
-	}
+	pseudonymstore.HoldLock(t, filepath.Join(dir, "session-1.json.lock"))
 
 	_, err := store.Token("session-1", "DNI", "87654321X")
 	wantErr(t, err, pseudonymstore.ErrLocked)

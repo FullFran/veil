@@ -72,8 +72,17 @@ func newEngine() (*engine, error) {
 	if err != nil {
 		return nil, err
 	}
+	store := newStore()
+	if ttl, ok := p.Retention(); ok {
+		// Retention runs at every start. It is maintenance, not part of
+		// the decision: a failure here neither blocks nor allows the
+		// event (the event's own session still fails closed on its own
+		// path), and nothing is written to stderr, which belongs to the
+		// host protocol. `veil store sweep` reports the same sweep.
+		_, _ = store.Sweep(ttl, startupSweepLimit)
+	}
 	return &engine{
-		evaluator:       domain.NewPolicy(registry, newStore()),
+		evaluator:       domain.NewPolicy(registry, store),
 		registry:        registry,
 		policyDigest:    p.Digest(),
 		policyVersion:   p.Version,
@@ -132,11 +141,21 @@ func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, 
 // with a fake so they never touch the real keyring.
 var keyring pseudonymstore.Keyring = pseudonymstore.OSKeyring{}
 
+// startupSweepLimit bounds how many expired sessions one veil start
+// removes, so a hook call never does unbounded work; the rest go on the
+// next starts or with `veil store sweep`.
+const startupSweepLimit = 16
+
+// clock is the time the store reads for last use and retention. Tests
+// move it instead of waiting.
+var clock = time.Now
+
 // newStore builds the pseudonym store under DefaultDir, with its key from
 // VEIL_KEY_FD, then $CREDENTIALS_DIRECTORY, then the OS keyring.
 func newStore() *pseudonymstore.FileStore {
 	dir := pseudonymstore.DefaultDir()
-	return pseudonymstore.NewFileStore(dir, pseudonymstore.NewKeyChainFromEnv(dir, keyring))
+	return pseudonymstore.NewFileStore(dir, pseudonymstore.NewKeyChainFromEnv(dir, keyring)).
+		WithClock(func() time.Time { return clock() })
 }
 
 // hostProfile is one host veil can answer: how it handles an event and
@@ -170,7 +189,7 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 		return runPolicy(args[1:], stdout, stderr)
 	}
 	if len(args) >= 1 && args[0] == "store" {
-		return runStore(args[1:], stdout, stderr)
+		return runStore(args[1:], stdin, stdout, stderr)
 	}
 	if len(args) != 1 {
 		problem.Write(stderr, problem.New(problem.Usage))
@@ -242,6 +261,7 @@ var storeErrors = []struct {
 	code problem.Code
 }{
 	{pseudonymstore.ErrLocked, problem.StoreLocked},
+	{pseudonymstore.ErrSessionRetired, problem.SessionRetired},
 	{pseudonymstore.ErrKeyMissing, problem.StoreKeyMissing},
 	{pseudonymstore.ErrKeyInvalid, problem.StoreKeyInvalid},
 	{pseudonymstore.ErrKeyringUnavailable, problem.StoreKeyringUnavailable},

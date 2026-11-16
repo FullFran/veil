@@ -20,4 +20,8 @@ var (
 	ErrKeyringUnavailable = errors.New("pseudonymstore: keyring unavailable")
 	// ErrLocked: another process held the session lock past the deadline.
 	ErrLocked = errors.New("pseudonymstore: session locked")
+	// ErrSessionRetired: the session was removed when its marker counters
+	// could not be read, so it can never mint again without risking a
+	// repeated marker. The host must use a new session id.
+	ErrSessionRetired = errors.New("pseudonymstore: session retired")
 )

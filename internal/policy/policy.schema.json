@@ -25,6 +25,20 @@
         "binary-content": { "$ref": "#/$defs/denyOnly", "description": "Tool output veil cannot scan (binary or base64). No safe rewrite exists." }
       }
     },
+    "store": {
+      "description": "Pseudonym store retention (GDPR art. 5(1)(e)). Without this member veil never deletes a session on its own.",
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["ttl"],
+      "properties": {
+        "ttl": {
+          "description": "How long a session may sit unused before veil deletes it: an ISO 8601 duration (RFC 3339 Appendix A) in days, hours and minutes, for example P30D or PT12H. Must be positive.",
+          "type": "string",
+          "format": "duration",
+          "pattern": "^P(?:[0-9]+D(?:T(?:[0-9]+H(?:[0-9]+M)?|[0-9]+M))?|T(?:[0-9]+H(?:[0-9]+M)?|[0-9]+M))$"
+        }
+      }
+    },
     "catalog": {
       "description": "Name catalog for the name-catalog detector. A relative path is resolved against the policy file's directory.",
       "type": "object",

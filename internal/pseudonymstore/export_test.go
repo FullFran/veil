@@ -23,3 +23,23 @@ func FailSync(t *testing.T, file, dir error) {
 		return prevDir(d)
 	}
 }
+
+// HoldLock takes the session lock at path, as another veil process
+// would, until the test ends or release is called.
+func HoldLock(t *testing.T, path string) (release func()) {
+	t.Helper()
+	release, err := acquireLock(path)
+	if err != nil {
+		t.Fatalf("HoldLock: %v", err)
+	}
+	t.Cleanup(release)
+	return release
+}
+
+// OnSweepLocked runs f each time Sweep holds a session's lock, before it
+// re-checks expiry, for the rest of the test.
+func OnSweepLocked(t *testing.T, f func(sessionID string)) {
+	prev := sweepLocked
+	sweepLocked = f
+	t.Cleanup(func() { sweepLocked = prev })
+}
