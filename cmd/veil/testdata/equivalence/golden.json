@@ -1,0 +1,72 @@
+{
+  "cc-after-unsupported": {
+    "exitCode": 2,
+    "stdout": "",
+    "stderr": "{\"type\":\"tag:fullfran.github.io,2026:veil/problems/input-invalid\",\"title\":\"Input is not one valid event\",\"detail\":\"stdin must hold exactly one JSON event of a kind the host adapter supports.\",\"code\":\"VEIL_INPUT_INVALID\"}\n"
+  },
+  "cc-bash-iban-email": {
+    "exitCode": 0,
+    "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"updatedInput\":{\"command\":\"echo [IBAN-001] [EMAIL-001]\"}}}",
+    "stderr": ""
+  },
+  "cc-prompt-clean": {
+    "exitCode": 0,
+    "stdout": "",
+    "stderr": ""
+  },
+  "cc-prompt-dni": {
+    "exitCode": 0,
+    "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"updatedInput\":{\"user_input\":\"DNI [DNI-001] y NIE [DNI-002]\"}}}",
+    "stderr": ""
+  },
+  "cc-prompt-name": {
+    "exitCode": 0,
+    "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"UserPromptSubmit\",\"updatedInput\":{\"user_input\":\"Escribe a [NOMBRE-001] hoy\"}}}",
+    "stderr": ""
+  },
+  "cc-read-env": {
+    "exitCode": 0,
+    "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"tool argument targets a known secrets-bearing file: /repo/.env\"}}",
+    "stderr": ""
+  },
+  "cc-read-env-and-dni": {
+    "exitCode": 0,
+    "stdout": "{\"hookSpecificOutput\":{\"hookEventName\":\"PreToolUse\",\"permissionDecision\":\"deny\",\"permissionDecisionReason\":\"tool argument targets a known secrets-bearing file: /repo/.env\"}}",
+    "stderr": ""
+  },
+  "oc-after-binary": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"deny\",\"reason\":\"tool output field \\\"output\\\" looks like base64-encoded binary content and cannot be scanned for personal data\"}",
+    "stderr": ""
+  },
+  "oc-after-dni": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"output\":\"cliente [DNI-001]\"}}",
+    "stderr": ""
+  },
+  "oc-before-nested": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"edits\":[{\"newString\":\"Juan García 12345678Z\",\"oldString\":\"x\"}],\"filePath\":\"a.txt\"}}",
+    "stderr": ""
+  },
+  "oc-before-phone": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"command\":\"llama al [TEL-001]\"}}",
+    "stderr": ""
+  },
+  "oc-chat-email": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"0\":\"mi correo es [EMAIL-001]\"}}",
+    "stderr": ""
+  },
+  "oc-history": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"0:0:text\":\"IBAN [IBAN-001]\",\"1:0:tool\":\"nada\"}}",
+    "stderr": ""
+  },
+  "oc-system": {
+    "exitCode": 0,
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"0\":\"eres un asistente; contacto [TEL-001]\"}}",
+    "stderr": ""
+  }
+}

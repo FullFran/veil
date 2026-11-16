@@ -1,0 +1,14 @@
+{"name":"cc-prompt-clean","host":"claude-code","payload":{"hook_event_name":"UserPromptSubmit","session_id":"s","user_input":"hola, revisa el README"}}
+{"name":"cc-prompt-dni","host":"claude-code","payload":{"hook_event_name":"UserPromptSubmit","session_id":"s","user_input":"DNI 12345678Z y NIE X1234567L"}}
+{"name":"cc-prompt-name","host":"claude-code","payload":{"hook_event_name":"UserPromptSubmit","session_id":"s","user_input":"Escribe a MARIA PEREZ hoy"}}
+{"name":"cc-bash-iban-email","host":"claude-code","payload":{"hook_event_name":"PreToolUse","session_id":"s","tool_name":"Bash","tool_input":{"command":"echo ES91 2100 0418 4502 0005 1332 ana@example.com"}}}
+{"name":"cc-read-env","host":"claude-code","payload":{"hook_event_name":"PreToolUse","session_id":"s","tool_name":"Read","tool_input":{"file_path":"/repo/.env"}}}
+{"name":"cc-read-env-and-dni","host":"claude-code","payload":{"hook_event_name":"PreToolUse","session_id":"s","tool_name":"Read","tool_input":{"file_path":"/repo/.env","note":"12345678Z"}}}
+{"name":"oc-before-phone","host":"opencode","payload":{"event":"tool.execute.before","sessionID":"s","tool":"bash","args":{"command":"llama al +34 600 123 456"}}}
+{"name":"oc-before-nested","host":"opencode","payload":{"event":"tool.execute.before","sessionID":"s","tool":"multiedit","args":{"filePath":"a.txt","edits":[{"oldString":"x","newString":"Juan García 12.345.678-Z"}]}}}
+{"name":"oc-chat-email","host":"opencode","payload":{"event":"chat.message","sessionID":"s","fields":{"0":"mi correo es ana@example.com"}}}
+{"name":"oc-after-binary","host":"opencode","payload":{"event":"tool.execute.after","sessionID":"s","tool":"read","fields":{"output":"QUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrL0FCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFlaQUJDREVGR0hJSktMTU5PUFFSU1RVVldYWVphYmNkZWZnaGlqa2xtbm9wcXJzdHV2d3h5ejAxMjM0NTY3ODkrL0FCQ0RFRkdISUpLTE1OT1BRUlNUVVZXWFla"}}}
+{"name":"oc-after-dni","host":"opencode","payload":{"event":"tool.execute.after","sessionID":"s","tool":"read","fields":{"output":"cliente 12345678Z"}}}
+{"name":"oc-history","host":"opencode","payload":{"event":"experimental.chat.messages.transform","sessionID":"s","fields":{"0:0:text":"IBAN ES9121000418450200051332","1:0:tool":"nada"}}}
+{"name":"oc-system","host":"opencode","payload":{"event":"experimental.chat.system.transform","sessionID":"s","fields":{"0":"eres un asistente; contacto 600123456"}}}
+{"name":"cc-after-unsupported","host":"claude-code","payload":{"hook_event_name":"PostToolUse","session_id":"s","tool_name":"Read","tool_input":{"file_path":"a"},"tool_response":"x"}}
