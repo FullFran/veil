@@ -1,21 +1,48 @@
 package domain
 
 import (
+	"bytes"
+	"encoding/json"
+	"errors"
 	"fmt"
+	"io"
 	"sort"
 	"strconv"
 	"strings"
 )
 
+// DecodeJSON decodes one host event like json.Unmarshal, but keeps JSON
+// numbers as json.Number: a phone or an id sent as a number is scanned by
+// its own digits (not "6.12345678e+08") and written back without being
+// rounded through float64.
+func DecodeJSON(raw []byte, v any) error {
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.UseNumber()
+	if err := dec.Decode(v); err != nil {
+		return err
+	}
+	if _, err := dec.Token(); !errors.Is(err, io.EOF) {
+		return errors.New("veil: unexpected data after the JSON value")
+	}
+	return nil
+}
+
+// pathKey escapes "\" and "." in one key, so a top-level key "a.b" and a
+// nested a -> b never share a field path (one would hide the other).
+func pathKey(key string) string {
+	return strings.NewReplacer(`\`, `\\`, ".", `\.`).Replace(key)
+}
+
 // FlattenArgs turns a tool call's structured arguments into one field per
 // leaf (a top-level argument by its own name, a nested one by its dotted
-// path, e.g. "edits.0.newString") and a text blob of every leaf for
+// path, e.g. "edits.0.newString", a dot inside a key escaped as "\.")
+// and a text blob of every leaf for
 // detectors that scan free text. Numbers and booleans are fields too, so a
 // phone number sent as a number is still found. Null leaves are skipped.
 func FlattenArgs(args map[string]any) (fields map[string]string, text string) {
 	fields = make(map[string]string)
 	for key, value := range args {
-		flattenLeaf(key, value, fields)
+		flattenLeaf(pathKey(key), value, fields)
 	}
 	keys := make([]string, 0, len(fields))
 	for key := range fields {
@@ -37,7 +64,7 @@ func flattenLeaf(path string, value any, fields map[string]string) {
 	case nil:
 	case map[string]any:
 		for key, child := range v {
-			flattenLeaf(path+"."+key, child, fields)
+			flattenLeaf(path+"."+pathKey(key), child, fields)
 		}
 	case []any:
 		for i, child := range v {
@@ -68,7 +95,7 @@ func RebuildArgs(args map[string]any, fields map[string]string) map[string]any {
 	}
 	out := make(map[string]any, len(args))
 	for key, value := range args {
-		out[key] = rebuildLeaf(key, value, fields)
+		out[key] = rebuildLeaf(pathKey(key), value, fields)
 	}
 	return out
 }
@@ -80,7 +107,7 @@ func rebuildLeaf(path string, value any, fields map[string]string) any {
 	case map[string]any:
 		out := make(map[string]any, len(v))
 		for key, child := range v {
-			out[key] = rebuildLeaf(path+"."+key, child, fields)
+			out[key] = rebuildLeaf(path+"."+pathKey(key), child, fields)
 		}
 		return out
 	case []any:

@@ -28,7 +28,7 @@ type rawInput struct {
 // unrecognized event fails loudly instead of being silently ignored.
 func Decode(raw []byte) (domain.Event, error) {
 	var in rawInput
-	if err := json.Unmarshal(raw, &in); err != nil {
+	if err := domain.DecodeJSON(raw, &in); err != nil {
 		return domain.Event{}, fmt.Errorf("claudecode: decode input: %w", err)
 	}
 

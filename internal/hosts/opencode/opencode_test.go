@@ -401,3 +401,67 @@ func TestRoundTrip_MultiEdit_NestedTokens_AreRehydratedInPlace(t *testing.T) {
 		t.Errorf("edit = %#v, want newString rehydrated and replaceAll kept false", edit)
 	}
 }
+
+func encodeRaw(t *testing.T, policy *domain.Policy, raw []byte) string {
+	t.Helper()
+	event, err := opencode.Decode(raw)
+	if err != nil {
+		t.Fatalf("Decode: %v", err)
+	}
+	decision, err := policy.Evaluate(event)
+	if err != nil {
+		t.Fatalf("Evaluate: %v", err)
+	}
+	result, err := opencode.Encode(event, decision)
+	if err != nil {
+		t.Fatalf("Encode: %v", err)
+	}
+	return string(result.Stdout)
+}
+
+// TestRoundTrip_DottedKey_DoesNotHideANestedValue proves a top-level key
+// with a dot ("a.b") and a nested one (a -> b) are scanned and rebuilt
+// apart: a shared path let one value skip the scan and leak.
+func TestRoundTrip_DottedKey_DoesNotHideANestedValue(t *testing.T) {
+	policy := domain.NewPolicy(domain.NewRegistry(domain.NewPhoneDetector()), domain.NewMemoryPseudonymStore())
+	for i := 0; i < 8; i++ {
+		out := evaluateWith(t, policy, []byte(`{"event":"tool.execute.before","sessionID":"s1","tool":"bash",
+			"args":{"a.b":"612 345 678","a":{"b":"hello"}}}`))
+		if out["action"] != "rewrite" {
+			t.Fatalf("action = %v, want rewrite (%v)", out["action"], out)
+		}
+		args := out["args"].(map[string]any)
+		if args["a.b"] != "[TEL-001]" {
+			t.Errorf("args[a.b] = %v, want [TEL-001]", args["a.b"])
+		}
+		if nested := args["a"].(map[string]any); nested["b"] != "hello" {
+			t.Errorf("args.a.b = %v, want hello untouched", nested["b"])
+		}
+	}
+}
+
+// TestRoundTrip_NumericPhone_IsDetected proves a phone sent as a JSON
+// number is scanned by its digits, not by Go's float form (6.12345678e+08).
+func TestRoundTrip_NumericPhone_IsDetected(t *testing.T) {
+	policy := domain.NewPolicy(domain.NewRegistry(domain.NewPhoneDetector()), domain.NewMemoryPseudonymStore())
+	out := evaluateWith(t, policy, []byte(`{"event":"tool.execute.before","sessionID":"s1","tool":"bash","args":{"count":612345678}}`))
+	if out["action"] != "rewrite" {
+		t.Fatalf("action = %v, want rewrite (%v)", out["action"], out)
+	}
+	if args := out["args"].(map[string]any); args["count"] != "[TEL-001]" {
+		t.Errorf("args.count = %v, want [TEL-001]", args["count"])
+	}
+}
+
+// TestRoundTrip_LargeInteger_KeepsItsDigits proves a rewrite does not
+// round an unrelated integer argument through float64.
+func TestRoundTrip_LargeInteger_KeepsItsDigits(t *testing.T) {
+	policy := domain.NewPolicy(domain.NewRegistry(domain.NewDNIDetector()), domain.NewMemoryPseudonymStore())
+	stdout := encodeRaw(t, policy, []byte(`{"event":"tool.execute.before","sessionID":"s1","tool":"bash",
+		"args":{"id":1234567890123456789,"ratio":0.1,"t":"12345678Z"}}`))
+	for _, want := range []string{`"id":1234567890123456789`, `"ratio":0.1`, `"t":"[DNI-001]"`} {
+		if !strings.Contains(stdout, want) {
+			t.Errorf("stdout %s lacks %s", stdout, want)
+		}
+	}
+}
