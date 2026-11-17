@@ -1,0 +1,10 @@
+kind: Changed
+body: |-
+  The corpus latency gate (`TestCorpus_MeetsBaseline`, `veil-eval -check`)
+  no longer compares absolute p95 microseconds, which failed on busy
+  machines, CI runners and under `-race` (#44). It gates the ratio of
+  `Evaluate` time to an in-process calibration workload timed right
+  before each sample (`latencyRatioBudget` in `baseline.json`, 6), which
+  stays stable under load and still fails a tenfold regression. Absolute
+  p50, p95 and max are still reported. Recall gates are unchanged.
+time: 2026-11-17T11:00:00Z

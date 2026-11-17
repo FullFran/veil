@@ -1,6 +1,7 @@
 // Command veil-eval measures veil's detectors against the Spanish
 // evaluation corpus: precision, recall and F1 per label, span-level
-// micro-F1 (MEDDOCAN strict convention) and Evaluate latency per event.
+// micro-F1 (MEDDOCAN strict convention) and Evaluate latency per event,
+// absolute and relative to an in-process calibration workload.
 //
 //	go run ./cmd/veil-eval                  # print the table
 //	go run ./cmd/veil-eval -check           # also fail if below baseline.json
@@ -12,6 +13,7 @@ import (
 	"flag"
 	"fmt"
 	"io"
+	"math"
 	"os"
 	"path/filepath"
 	"text/tabwriter"
@@ -36,9 +38,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 	corpusDir := fs.String("corpus", filepath.Join("testdata", "corpus", "es", "v1"), "corpus directory (corpus.jsonl, catalog.json, baseline.json)")
 	policyPath := fs.String("policy", "", "policy file (default: the embedded default policy)")
 	baselinePath := fs.String("baseline", "", "baseline file (default: <corpus>/baseline.json)")
-	check := fs.Bool("check", false, "exit 1 if recall on any label or p95 latency is worse than the baseline")
+	check := fs.Bool("check", false, "exit 1 if recall on any label or the latency ratio is worse than the baseline")
 	writeBaseline := fs.Bool("write-baseline", false, "write the current numbers as the baseline")
-	budget := fs.Float64("latency-budget-us", 0, "p95 latency budget per event in microseconds, for -write-baseline (default: keep the existing one, else 2000)")
+	budget := fs.Float64("latency-ratio-budget", 0, "maximum Evaluate/calibration latency ratio, for -write-baseline (default: keep the existing one, else 3x the measured ratio)")
 	repeats := fs.Int("repeats", 20, "evaluations per event for latency")
 	asJSON := fs.Bool("json", false, "print the report as JSON")
 	if err := fs.Parse(args); err != nil {
@@ -80,9 +82,9 @@ func run(args []string, stdout, stderr io.Writer) int {
 
 	if *writeBaseline {
 		if *budget == 0 {
-			*budget = 2000
-			if old, err := eval.LoadBaseline(*baselinePath); err == nil && old.LatencyP95BudgetMicro > 0 {
-				*budget = old.LatencyP95BudgetMicro
+			*budget = math.Ceil(eval.DefaultLatencyRatioHeadroom*report.Latency.Ratio*10) / 10
+			if old, err := eval.LoadBaseline(*baselinePath); err == nil && old.LatencyRatioBudget > 0 {
+				*budget = old.LatencyRatioBudget
 			}
 		}
 		b, _ := json.MarshalIndent(eval.BaselineFrom(report, *budget), "", "  ")
@@ -123,4 +125,6 @@ func printTable(w io.Writer, r eval.Report) {
 	_ = tw.Flush() // a short report on stdout; the exit code does not depend on it
 	fmt.Fprintf(w, "\nlatency per event (Evaluate, %d samples): p50 %.1f µs, p95 %.1f µs, max %.1f µs\n",
 		r.Latency.Samples, r.Latency.P50Micro, r.Latency.P95Micro, r.Latency.MaxMicro)
+	fmt.Fprintf(w, "latency ratio (Evaluate / calibration, gated): %.3f (calibration p50 %.1f µs)\n",
+		r.Latency.Ratio, r.Latency.CalibrationP50Micro)
 }

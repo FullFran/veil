@@ -2,6 +2,7 @@ package eval_test
 
 import (
 	"errors"
+	"os"
 	"path/filepath"
 	"testing"
 
@@ -80,23 +81,24 @@ func TestCounts_EmptyIsPerfect(t *testing.T) {
 
 func TestCheck(t *testing.T) {
 	base := eval.Baseline{
-		Recall:                map[string]float64{"DNI": 0.9, "TEL": 0.5},
-		LatencyP95BudgetMicro: 1000,
+		Recall:             map[string]float64{"DNI": 0.9, "TEL": 0.5},
+		LatencyRatioBudget: 6,
 	}
-	report := func(dniTP, dniFN int, p95 float64) eval.Report {
+	report := func(dniTP, dniFN int, ratio float64) eval.Report {
 		return eval.Report{
 			Labels:  map[string]eval.Counts{"DNI": {TP: dniTP, FN: dniFN}, "TEL": {TP: 1, FN: 1}},
-			Latency: eval.Latency{P95Micro: p95},
+			Latency: eval.Latency{Ratio: ratio, P95Micro: 1e9, MaxMicro: 1e9},
 		}
 	}
 	cases := map[string]struct {
 		r    eval.Report
 		want []eval.Violation
 	}{
-		"same":           {report(9, 1, 10), nil},
-		"better":         {report(10, 0, 10), nil},
-		"recall drop":    {report(8, 2, 10), []eval.Violation{{Kind: eval.ViolationRecall, Label: "DNI"}}},
-		"latency":        {report(9, 1, 2000), []eval.Violation{{Kind: eval.ViolationLatency}}},
+		"same":           {report(9, 1, 2), nil},
+		"better":         {report(10, 0, 2), nil},
+		"at budget":      {report(9, 1, 6), nil},
+		"recall drop":    {report(8, 2, 2), []eval.Violation{{Kind: eval.ViolationRecall, Label: "DNI"}}},
+		"latency":        {report(9, 1, 6.01), []eval.Violation{{Kind: eval.ViolationLatency}}},
 		"label vanished": {eval.Report{Labels: map[string]eval.Counts{"TEL": {TP: 1, FN: 1}}}, []eval.Violation{{Kind: eval.ViolationRecall, Label: "DNI"}}},
 	}
 	for name, tc := range cases {
@@ -114,14 +116,46 @@ func TestCheck(t *testing.T) {
 	}
 }
 
-// TestCorpus_MeetsBaseline is the CI gate: the committed Spanish corpus,
-// run with the default policy, must not lower recall on any label below
-// the committed baseline nor exceed its p95 latency budget.
-func TestCorpus_MeetsBaseline(t *testing.T) {
+func loadCorpusAndBaseline(t *testing.T) (*eval.Corpus, eval.Baseline) {
+	t.Helper()
 	dir := filepath.Join("..", "..", "testdata", "corpus", "es", "v1")
 	corpus, err := eval.LoadCorpus(dir)
 	if err != nil {
 		t.Fatal(err)
+	}
+	base, err := eval.LoadBaseline(filepath.Join(dir, "baseline.json"))
+	if err != nil {
+		t.Fatal(err)
+	}
+	return corpus, base
+}
+
+// TestCorpus_FailsOnTenfoldSlowdown proves the latency gate still catches
+// an order-of-magnitude regression: with every Evaluate made ten times
+// slower, the committed baseline must report a latency violation, and
+// only that one.
+func TestCorpus_FailsOnTenfoldSlowdown(t *testing.T) {
+	corpus, base := loadCorpusAndBaseline(t)
+	defer eval.SetSlowdown(10)()
+	report, err := eval.Run(corpus, policy.Default(), eval.Options{Repeats: 20})
+	if err != nil {
+		t.Fatal(err)
+	}
+	violations := eval.Check(report, base)
+	if len(violations) != 1 || violations[0].Kind != eval.ViolationLatency {
+		t.Fatalf("violations = %+v, want exactly one %q violation", violations, eval.ViolationLatency)
+	}
+}
+
+// TestCorpus_MeetsBaseline is the CI gate: the committed Spanish corpus,
+// run with the default policy, must not lower recall on any label below
+// the committed baseline nor exceed its latency ratio budget. The ratio
+// is relative to an in-process calibration, so it holds on a loaded
+// machine and under -race.
+func TestCorpus_MeetsBaseline(t *testing.T) {
+	corpus, base := loadCorpusAndBaseline(t)
+	if base.LatencyRatioBudget <= 0 {
+		t.Fatalf("baseline latencyRatioBudget = %v, want a positive budget", base.LatencyRatioBudget)
 	}
 	if len(corpus.Cases) < 60 {
 		t.Fatalf("corpus has %d cases, want at least 60", len(corpus.Cases))
@@ -130,11 +164,29 @@ func TestCorpus_MeetsBaseline(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	base, err := eval.LoadBaseline(filepath.Join(dir, "baseline.json"))
+	for _, v := range eval.Check(report, base) {
+		t.Errorf("baseline violation: %+v", v)
+	}
+}
+
+func TestLoadBaseline_RejectsUnknownFields(t *testing.T) {
+	path := filepath.Join(t.TempDir(), "baseline.json")
+	if err := os.WriteFile(path, []byte(`{"recall":{"DNI":1},"latencyP95BudgetMicros":2000}`), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	if _, err := eval.LoadBaseline(path); err == nil {
+		t.Fatal("LoadBaseline accepted a baseline with an unknown field")
+	}
+}
+
+func TestRun_ReportsCalibratedRatio(t *testing.T) {
+	corpus, _ := loadCorpusAndBaseline(t)
+	report, err := eval.Run(corpus, policy.Default(), eval.Options{Repeats: 3})
 	if err != nil {
 		t.Fatal(err)
 	}
-	for _, v := range eval.Check(report, base) {
-		t.Errorf("baseline violation: %+v", v)
+	l := report.Latency
+	if l.Samples != 3*len(corpus.Cases) || l.CalibrationP50Micro <= 0 || l.Ratio <= 0 {
+		t.Fatalf("latency = %+v, want %d samples and a positive calibration and ratio", l, 3*len(corpus.Cases))
 	}
 }
