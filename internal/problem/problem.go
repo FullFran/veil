@@ -57,6 +57,10 @@ const (
 	// counters could not be read, so it can never mint again without
 	// risking a repeated marker. The host must start a new session id.
 	SessionRetired Code = "VEIL_SESSION_RETIRED"
+	// SessionIDMissing: the event needs the pseudonym store and the host
+	// sent no session id. veil never shares one mapping between events
+	// that have no session.
+	SessionIDMissing Code = "VEIL_SESSION_ID_MISSING"
 	// StoreIO: the pseudonym store cannot be read or written.
 	StoreIO Code = "VEIL_STORE_IO"
 	// EvidenceWrite: the evidence sink cannot be written.
@@ -140,6 +144,7 @@ var titles = map[Code]string{
 	StoreKeyringUnavailable: "Keyring is unavailable",
 	StoreLocked:             "Pseudonym store is locked",
 	SessionRetired:          "Pseudonym session is retired",
+	SessionIDMissing:        "Session id is missing",
 	StoreIO:                 "Pseudonym store cannot be read or written",
 	EvidenceWrite:           "Evidence cannot be written",
 	CatalogRevisionInvalid:  "Catalog revision is invalid",
@@ -170,6 +175,7 @@ var details = map[Code]string{
 	StoreKeyringUnavailable: "The OS keyring that holds the pseudonym store key cannot be reached.",
 	StoreLocked:             "Another veil process held the pseudonym session lock past the deadline.",
 	SessionRetired:          "This session was removed without its marker counters, so veil cannot mint for it without repeating a marker; use a new session id.",
+	SessionIDMissing:        "The event needs a pseudonym but carries no session id; veil never shares one pseudonym mapping between events without a session.",
 	StoreIO:                 "The pseudonym store directory or a session file cannot be read or written.",
 	EvidenceWrite:           "The evidence sink cannot be written, so veil fails closed.",
 	CatalogRevisionInvalid:  "VEIL_CATALOG_REVISION must be an opaque token of 1 to 128 characters from A-Z, a-z, 0-9, '.', '_', ':' and '-'.",
@@ -190,7 +196,7 @@ var details = map[Code]string{
 // all fixes the order All returns.
 var all = []Code{
 	Usage, InputInvalid, CatalogUnreadable, PolicyUnreadable, PolicyInvalid, CapabilityUnsupported,
-	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, SessionRetired, StoreIO,
+	StoreKeyMissing, StoreKeyInvalid, StoreCorrupt, StoreKeyringUnavailable, StoreLocked, SessionRetired, SessionIDMissing, StoreIO,
 	EvidenceWrite, CatalogRevisionInvalid,
 	ACSVersionUnsupported, ACSRequestInvalid, ACSMethodUnsupported, ACSSignatureInvalid,
 	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid, ACSUnredactable,

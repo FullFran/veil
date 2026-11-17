@@ -40,9 +40,10 @@ func seed(t *testing.T, session, category, value string) {
 // file, which outlives removal and holds no value, does not count).
 func hasSession(t *testing.T, session string) bool {
 	t.Helper()
-	entries, _ := os.ReadDir(sessionsDir())
+	stem := filepath.Base(sessionFile(session, ""))
+	entries, _ := os.ReadDir(filepath.Dir(sessionFile(session, "")))
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), session+".") && e.Name() != session+".ctr" {
+		if suffix, ok := strings.CutPrefix(e.Name(), stem); ok && suffix != ".ctr" && suffix != ".id" {
 			return true
 		}
 	}
@@ -268,7 +269,7 @@ func TestRun_StoreSweep_PartialFailure_ReportsAndExitsOne(t *testing.T) {
 	t.Setenv("VEIL_POLICY", writePolicy(t, ttlPolicy))
 	seed(t, "a1", "DNI", "12345678Z")
 	seed(t, "b2", "DNI", "12345678Z")
-	if err := os.Symlink(filepath.Join(t.TempDir(), "elsewhere"), filepath.Join(sessionsDir(), "a1.json.lock")); err != nil {
+	if err := os.Symlink(filepath.Join(t.TempDir(), "elsewhere"), sessionFile("a1", ".lock")); err != nil {
 		t.Fatal(err)
 	}
 	setClock(t, day0.Add(48*time.Hour))

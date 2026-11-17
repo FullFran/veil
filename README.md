@@ -203,7 +203,7 @@ separately, under technical measures. veil keeps it encrypted at rest.
 
 Each session is one [age v1](https://c2sp.org/age) file
 (`age-encryption.org/v1`, Go library `filippo.io/age`) at
-`<state>/veil/sessions/<session>.age`, mode 0600, encrypted to one X25519
+`<state>/veil/sessions/ids/<stem>.age` (see [File names](#file-names)), mode 0600, encrypted to one X25519
 recipient. The plaintext inside is a JSON mapping (`"version": 2`): each
 marker's canonical key and, when it differs, the first written form it
 rehydrates to (the optional `written` member; a file without it, written
@@ -212,7 +212,7 @@ value and no `category:original` key is on disk in clear. Writes go
 through a new temp file (created with `O_EXCL`, mode 0600, after removing
 any leftover or planted link), `fsync`, a rename and an `fsync` of the
 directory, so a write is durable when it returns, even across a power
-loss. A sibling `<session>.json.lock` serializes writers across
+loss. A sibling `<stem>.lock` serializes writers across
 processes (2 s deadline, then `VEIL_STORE_LOCKED`). The lock is a kernel
 lock on that file (`flock(2)` on Linux, macOS and the BSDs, `LockFileEx`
 on Windows), so the kernel releases it when its holder dies: a crash never
@@ -224,6 +224,34 @@ versions on the same store concurrently:** an older veil (v0.x,
 create-exclusive lock file) and this one (kernel lock) do not exclude each
 other, so stop every old veil before the first new one runs. On Windows the empty lock file stays after
 use.
+
+### File names
+
+A session id names its files injectively, so two distinct session ids
+never share a mapping, a counters file or a `forget`:
+
+- The stem is the session id's bytes in [RFC 4648](https://www.rfc-editor.org/rfc/rfc4648)
+  base32 (section 6), **lowercase and without padding**: `sess-1` is
+  `onsxg4znge`. Base32 is single-case, so a case-insensitive
+  filesystem (macOS, Windows) cannot fold two stems into one, and it never
+  yields a path separator, a `.` or a Windows device name.
+- An id whose base32 form is longer than 160 characters (an id over 100
+  bytes) would not fit the filesystem's name limit (255 bytes) with its
+  suffix. Its stem is the base32 of its first 60 bytes, `-`, and the
+  base32 of the SHA-256 of the whole id; a plaintext `<stem>.id` file,
+  written before anything else and kept like the counters file, holds the
+  id so `find` and `sweep` can report it.
+- **An empty or missing session id fails closed** with
+  `VEIL_SESSION_ID_MISSING` on every host, as soon as the event needs a
+  pseudonym (a rewrite or a rehydration). There is no shared bucket: an
+  event without a session id that needs no pseudonym is still decided,
+  since it links nothing. (ACS requests cannot omit it: the schema
+  requires `metadata.session_id` as a UUID, so such a request is refused
+  with `VEIL_ACS_REQUEST_INVALID`.)
+
+Every report (`find`, `sweep`) names the session id the host used, never a
+file stem. See [Migration from the lossy file names](#migration-from-the-lossy-file-names)
+for stores written before this naming.
 
 The sessions directory must be private: veil creates it 0700, tightens an
 existing one that group or others can reach to 0700, and fails closed
@@ -266,6 +294,7 @@ Every key failure denies the event with a typed problem
 | OS keyring unreachable | `VEIL_STORE_KEYRING_UNAVAILABLE` |
 | Lock held past the deadline | `VEIL_STORE_LOCKED` |
 | Session retired (removed without readable counters) | `VEIL_SESSION_RETIRED` |
+| Event needs a pseudonym but has no session id | `VEIL_SESSION_ID_MISSING` |
 
 ### Commands
 
@@ -275,8 +304,9 @@ or removing its files:
 ```sh
 veil store reveal <session>          # stdout: {"markers":[{"marker":"[DNI-001]","category":"DNI","value":"12345678Z"}]}
 veil store forget <session> [...]    # removes each session's store and its lock
+veil store forget --legacy-stem <stem> [...]  # removes a shared pre-#26 store
 veil store find --value <value|->    # stdout: {"sessions":[{"session":"sess-1","categories":["DNI"]}]}
-veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped":[],"failed":[]}
+veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped":[],"failed":[],"legacy_stems":{"forgotten":[],"skipped":[],"failed":[]}}
 ```
 
 - `reveal` prints every marker of the session and the real value it
@@ -290,12 +320,18 @@ veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped"
   personal data, so the session id never reuses a marker number (see
   [Retention](#retention-and-data-subject-requests)). It needs no key, on purpose: a lost key must never
   block an erasure, and without the key the file is unreadable anyway. An
-  unknown session succeeds.
+  unknown session succeeds. It reaches only that session id's files.
+  `forget --legacy-stem <stem>` does the same for a store left under a
+  shared pre-#26 name (see [Migration](#migration-from-the-lossy-file-names));
+  a stem that is not a plain file name is bad usage.
 - `find` lists the sessions whose store holds a value, and the categories
-  it was hidden under; it never prints the value or any other value. See
+  it was hidden under; it never prints the value or any other value. A
+  shared pre-#26 store is listed as `{"legacy_stem":"a_b","categories":[...]}`
+  with no `session`, since its session id cannot be known. See
   [Retention and data subject requests](#retention-and-data-subject-requests).
 - `sweep` removes the sessions unused for longer than the policy's
-  `store.ttl`. See below.
+  `store.ttl`. See below. Shared pre-#26 stores are reported apart, under
+  `legacy_stems`, by their stem.
 - All exit 0 on success, 1 with a problem line on a store failure, 2 on
   bad arguments. On a failure stdout is empty, except for a `sweep` that
   failed on some sessions: it still prints its answer (session ids only,
@@ -352,7 +388,7 @@ which is the default, so upgrading never removes anyone's data.
   history of a resumed session still holds the markers veil sent; if a new
   value got an old `[DNI-001]`, the model would see two people as one and
   rehydrating that marker in a write would put the wrong value on disk. So
-  every session keeps a counters file, `<session>.ctr`, which sweep and
+  every session keeps a counters file, `<stem>.ctr`, which sweep and
   `forget` leave in place: a resumed session carries on at `[DNI-002]`,
   and an old marker is simply unknown (left as it is, never rehydrated to
   a new value). The file holds only how many values of each category the
@@ -406,6 +442,39 @@ access to such a session veil reads it, writes it as `<session>.age`, and
 removes the plaintext file only once the encrypted file is durable; token numbers carry on where they were. A v1
 file that cannot be parsed fails closed with `VEIL_STORE_CORRUPT` and is
 left in place.
+
+### Migration from the lossy file names
+
+**Store format change.** veil before #26 named a session's files
+`<state>/veil/sessions/<stem>.*` with a lossy stem: `/`, `\` and `..`
+became `_`, and an empty id became `unknown-session`, so `a/b`, `a\b`,
+`a..b` and `a_b` shared one store. veil now carries such files over the
+first time a session id is used, under the session's lock and then the
+old lock name (`<stem>.json.lock`), with no command to run:
+
+- **A stem only one id can have produced** (no `_`, not
+  `unknown-session`, which covers UUIDs such as Claude Code's and ACS's)
+  is that session's. Its counters, age and v1 files are renamed into
+  `ids/` one by one, interrupted writes are removed and both directories
+  are synced. Its markers keep rehydrating and numbering carries on; a
+  crash midway is finished by the next use. A file already at its new name
+  while the old one is still there is never overwritten or merged: the
+  session fails closed with `VEIL_STORE_CORRUPT`.
+- **A stem several ids could have produced** (with `_`, such as
+  OpenCode's `ses_…` ids, or `unknown-session`) is **never read for any of
+  them**, since it may mix sessions. It stays where it is, under its old
+  name: `find` lists it as a `legacy_stem`, `forget --legacy-stem <stem>`
+  erases it and retention sweeps it. Only its counters cross over: before
+  each of those ids first mints, its counters start from the old stem's
+  (its counters file, else the counts inside its mapping, which needs the
+  key), so no marker number the host history may hold is ever reused. A
+  retired stem retires those ids (`VEIL_SESSION_RETIRED`), and counters
+  that cannot be read fail closed. The cost is that markers minted before
+  the upgrade in such a session no longer rehydrate: they stay as they
+  are, never resolved to another session's value.
+
+Stop every older veil before the first new one runs (see Format): an
+older veil does not know `ids/`.
 
 ### Threat model
 
@@ -1058,6 +1127,7 @@ line on stderr is what tells a failure apart.
 | `VEIL_STORE_KEYRING_UNAVAILABLE` | `store-keyring-unavailable` | OS keyring unreachable |
 | `VEIL_STORE_LOCKED` | `store-locked` | Session lock held past the deadline |
 | `VEIL_SESSION_RETIRED` | `session-retired` | The session was removed without its marker counters; minting for it would risk a repeated marker, so the host must use a new session id |
+| `VEIL_SESSION_ID_MISSING` | `session-id-missing` | The event needs a pseudonym but carries no session id; veil never shares one mapping between events without a session |
 | `VEIL_STORE_IO` | `store-io` | The pseudonym store cannot be read or written |
 | `VEIL_EVIDENCE_WRITE` | `evidence-write` | `VEIL_EVIDENCE_FILE` is set and the evidence record cannot be appended |
 | `VEIL_CATALOG_REVISION_INVALID` | `catalog-revision-invalid` | `VEIL_CATALOG_REVISION` is not an opaque token (`[A-Za-z0-9._:-]{1,128}`) |

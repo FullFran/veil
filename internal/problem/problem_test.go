@@ -25,6 +25,7 @@ var wantCodes = []Code{
 	StoreKeyringUnavailable,
 	StoreLocked,
 	SessionRetired,
+	SessionIDMissing,
 	StoreIO,
 	EvidenceWrite,
 	CatalogRevisionInvalid,
