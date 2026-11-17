@@ -41,6 +41,10 @@ Each release's notes on GitHub are its section of this file
 - Native Go fuzz tests for every parser of untrusted input (host decoders and
   encoders, ACS JSON-RPC and stdio framing, policy, detectors, store files,
   keys and file names), fuzzed in CI by `.github/workflows/fuzz.yml` (#33).
+- Governance documents (`GOVERNANCE.md`, `CODE_OF_CONDUCT.md`, `ROADMAP.md`),
+  `docs/architecture.md`, `docs/assurance-case.md`, coding and code review
+  standards in `CONTRIBUTING.md`, a CI gate at 80% statement coverage, and
+  the OpenSSF Best Practices answers for silver and gold (#33).
 - Failures are reported as RFC 9457 problem details: one JSON line on stderr
   with a stable `type` (`tag:` URI) and `code`, and never a detected value,
   path or session id (#13).
