@@ -13,6 +13,9 @@ do not: report them privately as [`SECURITY.md`](SECURITY.md) explains.
    pass. Every new detector, host adapter behaviour or capability needs a
    test in the automated suite. Tests check codes and structure, not message
    text.
+   Code that parses untrusted input (host JSON, policy, store files, keys)
+   needs a native fuzz test (`func FuzzXxx(f *testing.F)`) asserting its
+   invariants; see "Development" in the [README](../README.md#development).
 4. Keep `internal/domain` free of host or transport types. CI fails if it
    depends on any `internal/hosts/...` package.
 5. Update `README.md` for every new command, flag, environment variable or
