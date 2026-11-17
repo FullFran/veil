@@ -1,0 +1,72 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "urn:veil:schema:ner-catalog:1.0",
+  "title": "veil NER model catalog",
+  "description": "Local NER models veil can select, each pinned to a source revision and to the size and SHA-256 digest of every file it needs.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["version", "models"],
+  "properties": {
+    "version": { "const": "1.0" },
+    "models": { "type": "array", "items": { "$ref": "#/$defs/entry" } }
+  },
+  "$defs": {
+    "entry": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["id", "runtime", "source", "license", "languages", "labels", "files"],
+      "properties": {
+        "id": { "description": "Unique catalog id (HCS-0001-R003).", "type": "string", "pattern": "^[a-z0-9][a-z0-9._-]{0,63}$" },
+        "runtime": { "description": "Which sidecar runtime loads the files.", "enum": ["gliner2", "spacy"] },
+        "source": {
+          "type": "object",
+          "additionalProperties": false,
+          "required": ["repo", "revision"],
+          "properties": {
+            "repo": { "type": "string", "minLength": 1 },
+            "revision": { "description": "Immutable revision: a commit hash or a release tag.", "type": "string", "minLength": 1 }
+          }
+        },
+        "license": { "description": "SPDX license identifier of the model.", "type": "string", "pattern": "^[A-Za-z0-9.+-]+$" },
+        "languages": { "type": "array", "minItems": 1, "items": { "type": "string", "pattern": "^[a-z]{2,3}$" } },
+        "labels": {
+          "description": "Model label to finding category. Only NOMBRE in this version.",
+          "type": "object",
+          "minProperties": 1,
+          "additionalProperties": { "const": "NOMBRE" }
+        },
+        "parameters": {
+          "type": "object",
+          "additionalProperties": false,
+          "properties": { "threshold": { "type": "number", "exclusiveMinimum": 0, "maximum": 1 } }
+        },
+        "files": { "type": "array", "minItems": 1, "items": { "$ref": "#/$defs/file" } },
+        "cost": {
+          "description": "Measured cost, informative only.",
+          "type": "object",
+          "additionalProperties": false,
+          "properties": {
+            "diskMB": { "type": "number", "minimum": 0 },
+            "rssMB": { "type": "number", "minimum": 0 },
+            "rssPeakMB": { "type": "number", "minimum": 0 },
+            "coldStartS": { "type": "number", "minimum": 0 },
+            "p50Ms": { "type": "number", "minimum": 0 },
+            "p95Ms": { "type": "number", "minimum": 0 },
+            "measuredBy": { "type": "string" }
+          }
+        }
+      }
+    },
+    "file": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": ["path", "url", "size", "digest"],
+      "properties": {
+        "path": { "description": "Relative path in the model directory. No segment starts with '.', so none can be '..', '.' or the cache's '.partial' directory.", "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9._-]*(/[A-Za-z0-9_][A-Za-z0-9._-]*)*$" },
+        "url": { "type": "string", "pattern": "^https://[^\\s]+$" },
+        "size": { "type": "integer", "minimum": 1 },
+        "digest": { "description": "HCS-0001-R004 digest of the file.", "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
+      }
+    }
+  }
+}
