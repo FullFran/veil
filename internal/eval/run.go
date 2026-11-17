@@ -2,6 +2,7 @@ package eval
 
 import (
 	"fmt"
+	"regexp"
 	"sort"
 	"strings"
 	"time"
@@ -19,12 +20,51 @@ type Options struct {
 }
 
 // Latency summarizes domain.Policy.Evaluate time per event, in
-// microseconds, over every repeat of every event.
+// microseconds, over every repeat of every event, and its cost relative
+// to a calibration workload timed in the same process.
+//
+// The absolute figures depend on the machine and on its load, so they
+// are reported, never gated. Ratio is what the baseline gates: each
+// Evaluate sample is paired with a calibration sample taken right before
+// it on the same event, so load that slows one slows the other.
 type Latency struct {
 	Samples  int     `json:"samples"`
 	P50Micro float64 `json:"p50Micros"`
 	P95Micro float64 `json:"p95Micros"`
 	MaxMicro float64 `json:"maxMicros"`
+	// CalibrationP50Micro is the median time of the calibration workload
+	// per event.
+	CalibrationP50Micro float64 `json:"calibrationP50Micros"`
+	// Ratio is the sum over events of the median Evaluate time divided by
+	// the sum over events of the median calibration time.
+	Ratio float64 `json:"ratio"`
+}
+
+// calibration is the reference workload Evaluate is timed against: a
+// standard-library regular expression scanned over every unit of the
+// event. It is pure Go, like veil's detectors, so the race detector and
+// CPU contention slow it in a similar proportion, and it does not depend
+// on any veil code, so a veil regression does not move it.
+var calibration = regexp.MustCompile(`[\p{L}0-9._%+-]+@[\p{L}0-9.-]+|\b[0-9]{8}[A-Z]\b|\b[6-9][0-9 ]{8,11}\b`)
+
+// calibrationPasses scales the calibration workload so that one sample
+// lasts about as long as one Evaluate, which keeps timer resolution out
+// of the ratio.
+const calibrationPasses = 4
+
+// slowdown multiplies the work timed as one Evaluate sample. It is 1 in
+// production; tests raise it through export_test.go to prove the gate
+// catches an order-of-magnitude regression.
+var slowdown = 1
+
+func calibrate(units map[string]string) int {
+	n := 0
+	for i := 0; i < calibrationPasses; i++ {
+		for _, text := range units {
+			n += len(calibration.FindAllStringIndex(text, -1))
+		}
+	}
+	return n
 }
 
 // Report is the result of one run.
@@ -69,16 +109,32 @@ func Run(c *Corpus, p *policy.Policy, opts Options) (Report, error) {
 	if repeats < 1 {
 		repeats = 1
 	}
-	var samples []float64
+	var samples, calSamples []float64
+	var evalSum, calSum float64
 	for _, cs := range c.Cases {
 		scores.Add(cs.Gold, predict(raw.DetectAll(cs.Event), cs.Units))
+		evalCase := make([]float64, 0, repeats)
+		calCase := make([]float64, 0, repeats)
 		for i := 0; i < repeats; i++ {
 			start := time.Now()
-			if _, err := evaluator.Evaluate(cs.Event); err != nil {
-				return Report{}, fmt.Errorf("case %s: %w", cs.ID, err)
+			calibrate(cs.Units)
+			calCase = append(calCase, micros(time.Since(start)))
+			start = time.Now()
+			for k := 0; k < slowdown; k++ {
+				if _, err := evaluator.Evaluate(cs.Event); err != nil {
+					return Report{}, fmt.Errorf("case %s: %w", cs.ID, err)
+				}
 			}
-			samples = append(samples, float64(time.Since(start).Nanoseconds())/1000)
+			evalCase = append(evalCase, micros(time.Since(start)))
 		}
+		evalSum += percentile(sortedCopy(evalCase), 50)
+		calSum += percentile(sortedCopy(calCase), 50)
+		samples = append(samples, evalCase...)
+		calSamples = append(calSamples, calCase...)
+	}
+	ratio := 0.0
+	if calSum > 0 {
+		ratio = evalSum / calSum
 	}
 	sorted := sortedCopy(samples)
 	return Report{
@@ -92,8 +148,15 @@ func Run(c *Corpus, p *policy.Policy, opts Options) (Report, error) {
 			P50Micro: percentile(sorted, 50),
 			P95Micro: percentile(sorted, 95),
 			MaxMicro: percentile(sorted, 100),
+
+			CalibrationP50Micro: percentile(sortedCopy(calSamples), 50),
+			Ratio:               ratio,
 		},
 	}, nil
+}
+
+func micros(d time.Duration) float64 {
+	return float64(d.Nanoseconds()) / 1000
 }
 
 // predict turns findings into spans: exactly what domain.Policy replaces
@@ -150,10 +213,12 @@ func longestAt(s string, matches []string) string {
 type Baseline struct {
 	// Recall is the minimum recall per label.
 	Recall map[string]float64 `json:"recall"`
-	// LatencyP95BudgetMicro is the maximum p95 Evaluate latency per
-	// event, in microseconds. Absolute rather than relative to a
-	// measured value, because shared CI runners are noisy.
-	LatencyP95BudgetMicro float64 `json:"latencyP95BudgetMicros"`
+	// LatencyRatioBudget is the maximum Latency.Ratio: Evaluate cost
+	// relative to the in-process calibration workload. A ratio, not
+	// microseconds, so machine load and the race detector, which slow
+	// both sides alike, do not fail the gate; an order-of-magnitude
+	// regression in Evaluate does.
+	LatencyRatioBudget float64 `json:"latencyRatioBudget"`
 	// Report is the run the baseline was taken from, for reference.
 	Report *Report `json:"report,omitempty"`
 }
@@ -178,7 +243,8 @@ type Violation struct {
 const recallEpsilon = 1e-9
 
 // Check compares r against b: recall on any baseline label may not drop,
-// and p95 latency may not exceed the budget.
+// and the latency ratio may not exceed the budget. Absolute latency is
+// never checked.
 func Check(r Report, b Baseline) []Violation {
 	labels := make([]string, 0, len(b.Recall))
 	for label := range b.Recall {
@@ -197,20 +263,26 @@ func Check(r Report, b Baseline) []Violation {
 			out = append(out, Violation{Kind: ViolationRecall, Label: label, Baseline: want, Got: got})
 		}
 	}
-	if b.LatencyP95BudgetMicro > 0 && r.Latency.P95Micro > b.LatencyP95BudgetMicro {
-		out = append(out, Violation{Kind: ViolationLatency, Baseline: b.LatencyP95BudgetMicro, Got: r.Latency.P95Micro})
+	if b.LatencyRatioBudget > 0 && r.Latency.Ratio > b.LatencyRatioBudget {
+		out = append(out, Violation{Kind: ViolationLatency, Baseline: b.LatencyRatioBudget, Got: r.Latency.Ratio})
 	}
 	return out
 }
 
+// DefaultLatencyRatioHeadroom is how far above a measured ratio a new
+// baseline's budget is set when none is given: wide enough for noise
+// and for differences between CI machines, narrow enough that a tenfold
+// regression fails.
+const DefaultLatencyRatioHeadroom = 3
+
 // BaselineFrom builds a baseline that pins r's recall per label, with the
-// given latency budget.
-func BaselineFrom(r Report, latencyBudgetMicro float64) Baseline {
+// given latency ratio budget.
+func BaselineFrom(r Report, latencyRatioBudget float64) Baseline {
 	recall := make(map[string]float64, len(r.Labels))
 	for label, c := range r.Labels {
 		recall[label] = round4(c.Recall())
 	}
-	return Baseline{Recall: recall, LatencyP95BudgetMicro: latencyBudgetMicro, Report: &r}
+	return Baseline{Recall: recall, LatencyRatioBudget: latencyRatioBudget, Report: &r}
 }
 
 // round4 rounds down to 4 decimals, so a pinned recall never exceeds the

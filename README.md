@@ -1255,6 +1255,17 @@ How to read it:
 - **latency** is `Evaluate` time per event (detection plus rewrite, with an
   in-memory pseudonym store), over every repeat of every event: p50, p95
   and max in microseconds. Process start-up and disk I/O are not included.
+  These absolute numbers depend on the machine and its load, so they are
+  reported, never gated.
+- **latency ratio** is `Evaluate` time relative to a calibration workload
+  (a standard-library regular expression scanned over the same event)
+  timed right before each `Evaluate` sample in the same process: the sum
+  over events of the median `Evaluate` time divided by the sum of the
+  median calibration time. Load and the race detector slow both sides
+  alike, so the ratio stays put (about 1.9 idle, loaded or under `-race`
+  on the reference machine), while a tenfold slower `Evaluate` makes it
+  about ten times larger. For trends in absolute time, use `go test
+  -bench` with `benchstat`.
 
 The baseline at the time of writing (90 cases, default policy):
 
@@ -1286,11 +1297,16 @@ context or named-entity recognition (#3), not a pattern:
 The false positives fail in the safe direction (over-redaction).
 
 **Gate.** `TestCorpus_MeetsBaseline` (in `go test ./...`, so CI runs it)
-fails when recall on any label drops below `baseline.json`, or when p95
-latency exceeds its absolute budget (`latencyP95BudgetMicros`, 2000 µs;
-absolute because shared CI runners are too noisy for a relative bound).
-After a deliberate improvement, pin the new numbers with
-`go run ./cmd/veil-eval -write-baseline` and commit `baseline.json`. A
+fails when recall on any label drops below `baseline.json`, or when the
+latency ratio exceeds `latencyRatioBudget` (6, about three times the
+measured ratio: it catches order-of-magnitude regressions, not noise; a
+busy machine or `-race` does not fail it). `go run ./cmd/veil-eval -check`
+applies the same rules and exits 1 on a violation; a `baseline.json` with
+unknown fields, such as the former absolute `latencyP95BudgetMicros`, is
+a usage error (exit 2). After a deliberate improvement, pin the new
+numbers with `go run ./cmd/veil-eval -write-baseline` and commit
+`baseline.json`; it keeps the existing ratio budget, or takes
+`-latency-ratio-budget`, else three times the measured ratio. A
 change that lowers recall needs the same command and a reason in the pull
 request.
 

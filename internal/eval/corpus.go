@@ -227,8 +227,13 @@ func LoadBaseline(path string) (Baseline, error) {
 	if err != nil {
 		return b, err
 	}
-	if err := json.Unmarshal(raw, &b); err != nil {
-		return b, fmt.Errorf("%s: %w", path, err)
+	// Unknown fields are an error, so a baseline written for another
+	// format (such as the former absolute latencyP95BudgetMicros) fails
+	// loudly instead of silently dropping its latency gate.
+	dec := json.NewDecoder(bytes.NewReader(raw))
+	dec.DisallowUnknownFields()
+	if err := dec.Decode(&b); err != nil {
+		return Baseline{}, fmt.Errorf("%s: %w", path, err)
 	}
 	return b, nil
 }

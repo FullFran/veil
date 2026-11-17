@@ -6,7 +6,7 @@
     "NOMBRE": 0.875,
     "TEL": 1
   },
-  "latencyP95BudgetMicros": 2000,
+  "latencyRatioBudget": 6,
   "report": {
     "corpus": "testdata/corpus/es/v1",
     "policy": "sha256:cc0ab7b0430dac34a71111c9fec329a331aba91dc51204aa91dc61b0510e661b",
@@ -45,9 +45,11 @@
     },
     "latency": {
       "samples": 1800,
-      "p50Micros": 36.811,
-      "p95Micros": 90.092,
-      "maxMicros": 477.09
+      "p50Micros": 18.506,
+      "p95Micros": 45.106,
+      "maxMicros": 439.427,
+      "calibrationP50Micros": 10.4,
+      "ratio": 1.8758929799919029
     }
   }
 }
