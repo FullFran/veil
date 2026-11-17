@@ -95,6 +95,12 @@ Each release's notes on GitHub are its section of this file
 
 ### Fixed
 
+- One Spanish phone is one marker however it is written: `612345678`,
+  `612 345 678`, `0034612345678` and `(+34) 612-345-678` are keyed by their
+  ITU-T E.164 form, `+34612345678`, which is also what rehydration writes
+  back and what `veil store find` matches. The compact `0034` prefix is now
+  detected. Markers an existing session already holds are not merged or
+  renumbered (#27).
 - Catalog names are cut at rune offsets: inputs such as `¿Ana García` no
   longer leak in clear or panic on multibyte runes (#4).
 - IBAN, DNI/NIE and Spanish phone numbers written with separators are

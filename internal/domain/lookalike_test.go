@@ -35,7 +35,7 @@ func TestRegistry_DetectAll_Lookalikes(t *testing.T) {
 			want: []spanCase{
 				{match: "１２３４５６７８Ｚ", category: "DNI", key: "12345678Z"},
 				{match: "zed＠example.org", category: "EMAIL", key: "zed@example.org"},
-				{match: "６１２３４５６７８", category: "TEL", key: "612345678"},
+				{match: "６１２３４５６７８", category: "TEL", key: "+34612345678"},
 			},
 		},
 		{
@@ -49,17 +49,17 @@ func TestRegistry_DetectAll_Lookalikes(t *testing.T) {
 		{
 			name: "other format characters",
 			text: "tel 6\u200c1\u200d2\u20603\ufeff4\u00ad5678 ok",
-			want: []spanCase{{match: "6\u200c1\u200d2\u20603\ufeff4\u00ad5678", category: "TEL", key: "612345678"}},
+			want: []spanCase{{match: "6\u200c1\u200d2\u20603\ufeff4\u00ad5678", category: "TEL", key: "+34612345678"}},
 		},
 		{
 			name: "no-break spaces in a separated phone",
 			text: "llama al 612\u00a0345\u202f678 hoy",
-			want: []spanCase{{match: "612\u00a0345\u202f678", category: "TEL", key: "612345678"}},
+			want: []spanCase{{match: "612\u00a0345\u202f678", category: "TEL", key: "+34612345678"}},
 		},
 		{
 			name: "decimal digits of another script",
 			text: "tel \u0666\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668 ok",
-			want: []spanCase{{match: "\u0666\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668", category: "TEL", key: "612345678"}},
+			want: []spanCase{{match: "\u0666\u0661\u0662\u0663\u0664\u0665\u0666\u0667\u0668", category: "TEL", key: "+34612345678"}},
 		},
 		{
 			name: "full-width catalog name",
@@ -86,7 +86,7 @@ func TestRegistry_DetectAll_Lookalikes(t *testing.T) {
 }
 
 // Text with nothing to normalize gives exactly the findings it gave
-// before: same Match, and no Key added.
+// before: same Match, and no Key added beyond the phone's own E.164 key.
 func TestRegistry_DetectAll_PlainText_Unchanged(t *testing.T) {
 	text := "Mi DNI es 12345678Z, mail zed@example.org, tel 612345678, María."
 	findings := allDetectors().DetectAll(promptEvent(text))
@@ -94,8 +94,12 @@ func TestRegistry_DetectAll_PlainText_Unchanged(t *testing.T) {
 		t.Fatalf("got %d findings, want 4: %+v", len(findings), findings)
 	}
 	for _, f := range findings {
-		if f.Key != "" {
-			t.Errorf("finding %s has Key %q, want none", f.Category, f.Key)
+		want := ""
+		if f.Category == "TEL" {
+			want = "+34612345678"
+		}
+		if f.Key != want {
+			t.Errorf("finding %s has Key %q, want %q", f.Category, f.Key, want)
 		}
 	}
 }

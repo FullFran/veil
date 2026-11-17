@@ -10,7 +10,7 @@ import (
 
 // Cases ported verbatim from HagaHarness tests/helpers/separator-cases.mjs,
 // whose pre-veil JS normaliser this replaces: the written form, and the
-// compact form it shares a pseudonym with.
+// canonical key it shares a pseudonym with (compact; E.164 for a phone).
 var separatedCases = [][2]string{
 	{"ES91 2100 0418 4502 0005 1332", "ES9121000418450200051332"},
 	{"es91-2100-0418-4502-0005-1332", "ES9121000418450200051332"},
@@ -19,11 +19,11 @@ var separatedCases = [][2]string{
 	{"12 345 678 Z", "12345678Z"},
 	{"12345678-z", "12345678Z"},
 	{"X-1234567-L", "X1234567L"},
-	{"600 12 34 56", "600123456"},
-	{"600 123 456", "600123456"},
-	{"600-123-456", "600123456"},
+	{"600 12 34 56", "+34600123456"},
+	{"600 123 456", "+34600123456"},
+	{"600-123-456", "+34600123456"},
 	{"+34 600 123 456", "+34600123456"},
-	{"912 34 56 78", "912345678"},
+	{"912 34 56 78", "+34912345678"},
 	{"0034 600 123 456", "+34600123456"},
 }
 
@@ -160,9 +160,8 @@ func TestSeparatedForms_LinearTime(t *testing.T) {
 // TestPolicy_PhoneWithAndWithoutPrefix_NeitherLeaks is the threat model's
 // check for one phone written bare and with its +34 prefix in the same
 // event: both forms are replaced, so neither reaches the model in clear,
-// and each marker rehydrates to a form of that same number. Whether the
-// two forms should share one marker is open (see docs/threat-model.md),
-// so this test does not pin the marker numbers.
+// and each marker rehydrates to a form of that same number. That the two
+// forms share one marker is pinned by TestPolicy_OnePhoneEveryForm_OneMarker.
 func TestPolicy_PhoneWithAndWithoutPrefix_NeitherLeaks(t *testing.T) {
 	registry := domain.NewRegistry(domain.NewPhoneDetector())
 	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())

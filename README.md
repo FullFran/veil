@@ -51,7 +51,18 @@ of finding:
   groups. A separated IBAN of any country must also have that country's
   length in the SWIFT IBAN Registry (ISO 13616). A value written two ways
   shares one token, and rehydration gives back its compact form
-  (`12345678Z`, `+34612345670`). Email addresses may carry non-ASCII
+  (`12345678Z`, `+34612345670`). A Spanish phone is keyed by its ITU-T
+  E.164 form whether it is written bare or with `+34`, `0034`, `(+34)` or
+  `(0034)`: `612345678`, `612 345 678`, `0034612345678` and
+  `(+34) 612-345-678` are one `[TEL-001]`, which rehydrates to
+  `+34612345678`. So a file that held `612 345 678` gets `+34612345678`
+  if the agent writes the marker back (the same number, reformatted), and
+  an edit whose old text carries the marker no longer matches the file's
+  `612 345 678`: it fails instead of writing the wrong bytes. A session
+  that already holds separate markers for the bare and the prefixed form
+  (minted before this keying) keeps them, since a marker never changes
+  meaning within a session: each still rehydrates to what it was minted
+  for, and a new mention of the number gets the E.164 marker. Email addresses may carry non-ASCII
   letters in the local part and the domain (`josé@bücher.example.de`,
   RFC 6531). Unicode lookalikes are found too: compatibility forms such as
   full-width digits and letters (`１２３４５６７８Ｚ`, `zed＠example.org`),
@@ -362,7 +373,11 @@ veil store forget sess-1
 
 - `find` matches a value however it was written, the way detection keys
   it: `12.345.678-Z` and `12345678Z` are the same DNI, and an IBAN or
-  phone with spaces, dots or dashes matches its compact form.
+  phone with spaces, dots or dashes matches its compact form. A phone
+  matches by its E.164 form, so `612345678`, `+34 612 345 678` and
+  `0034612345678` find the same sessions; the bare form typed as is
+  also finds a session keyed before phones were keyed as E.164 (search
+  with the bare nine digits to cover those).
 - Prefer `--value -`, which reads the value from stdin (one line): a value
   on the command line is visible to other local users in the process list
   and stays in shell history.
@@ -1122,16 +1137,16 @@ How to read it:
   in-memory pseudonym store), over every repeat of every event: p50, p95
   and max in microseconds. Process start-up and disk I/O are not included.
 
-The baseline at the time of writing (87 cases, default policy):
+The baseline at the time of writing (90 cases, default policy):
 
 | label | tp | fp | fn | precision | recall | f1 |
 | --- | --: | --: | --: | --: | --: | --: |
 | DNI | 23 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | IBAN | 13 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | EMAIL | 12 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| TEL | 18 | 3 | 0 | 0.8571 | 1.0000 | 0.9231 |
+| TEL | 22 | 3 | 0 | 0.8800 | 1.0000 | 0.9362 |
 | NOMBRE | 14 | 1 | 2 | 0.9333 | 0.8750 | 0.9032 |
-| micro | 80 | 4 | 2 | 0.9524 | 0.9756 | 0.9639 |
+| micro | 84 | 4 | 2 | 0.9545 | 0.9767 | 0.9655 |
 
 Known misses, kept on purpose so the numbers stay honest. They need
 context or named-entity recognition (#3), not a pattern:

@@ -164,28 +164,25 @@ func separatedPhoneFindings(text string) []Finding {
 	for _, s := range spans {
 		match := text[s[0]:s[1]]
 		findings = append(findings, phoneFinding(match))
-		findings[len(findings)-1].Key = phoneKey(match)
 	}
 	return findings
 }
 
-// phoneKey is the E.164 form of a written Spanish phone ("+34NNNNNNNNN")
-// when it carries the country code, in any of "+34", "0034", "(+34)" or
-// "(0034)", and its bare nine digits otherwise.
+// phoneKey is the ITU-T E.164 form of a written Spanish phone,
+// "+34NNNNNNNNN": the country code and the 9-digit national significant
+// number, without separators. Every written form ("612345678",
+// "612 345 678", "0034612345678", "(+34) 612-345-678") keys the same, so
+// the same number is one pseudonym, and rehydration writes this form back.
+// The detectors only match Spanish numbers, whose national significant
+// number is always the last 9 digits of the match.
 func phoneKey(match string) string {
-	body, prefix := match, ""
-	for _, p := range []string{"(+34)", "(0034)", "+34", "0034"} {
-		if strings.HasPrefix(body, p) {
-			prefix, body = "+34", body[len(p):]
-			break
-		}
-	}
-	return prefix + strings.Map(func(r rune) rune {
+	digits := strings.Map(func(r rune) rune {
 		if r >= '0' && r <= '9' {
 			return r
 		}
 		return -1
-	}, body)
+	}, match)
+	return "+34" + digits[len(digits)-9:]
 }
 
 // phoneBefore: not glued to a letter, digit, "_" or "+"; not the tail of a

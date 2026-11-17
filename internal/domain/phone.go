@@ -2,13 +2,12 @@ package domain
 
 import (
 	"regexp"
-	"strings"
 )
 
 // phoneWithPrefixPattern matches a Spanish phone number written with its
-// +34 country code, also in parentheses ("(+34)", "(0034)"), with or
-// without a single space before the 9-digit number.
-var phoneWithPrefixPattern = regexp.MustCompile(`(?:\+34|\(\+34\)|\(0034\))[ ]?[6789][0-9]{8}\b`)
+// country code, as "+34" or "0034", also in parentheses ("(+34)",
+// "(0034)"), with or without a single space before the 9-digit number.
+var phoneWithPrefixPattern = regexp.MustCompile(`(?:\+34|0034|\(\+34\)|\(0034\))[ ]?[6789][0-9]{8}\b`)
 
 // barePhonePattern matches a bare 9-digit Spanish phone number: mobile
 // numbers start with 6 or 7, landlines with 8 or 9.
@@ -24,24 +23,25 @@ func NewPhoneDetector() *PhoneDetector { return &PhoneDetector{} }
 // Name identifies this detector.
 func (d *PhoneDetector) Name() string { return "phone" }
 
-// Detect scans event.Text for Spanish phone numbers. It matches the +34
-// form first so a prefixed number is reported once, as a single finding
-// covering the country code; the bare-number pattern then skips any match
-// that falls inside a +34 match already found, so the same 9 digits are
-// never reported twice.
+// Detect scans event.Text for Spanish phone numbers. It matches the
+// prefixed form first so a prefixed number is reported once, as a single
+// finding covering the country code; the bare-number pattern then skips
+// any match that falls inside a prefixed match already found, so the same
+// 9 digits are never reported twice. Every finding is keyed by its E.164
+// form (see phoneKey), so one number is one pseudonym however it is
+// written.
 func (d *PhoneDetector) Detect(event Event) []Finding {
 	var findings []Finding
 
-	prefixed := phoneWithPrefixPattern.FindAllStringIndex(event.Text, -1)
-	for _, idx := range prefixed {
-		match := event.Text[idx[0]:idx[1]]
-		f := phoneFinding(match)
-		if strings.HasPrefix(match, "(") {
-			// Keyed like "+34NNNNNNNNN", so it shares a token with the
-			// compact form.
-			f.Key = phoneKey(match)
+	var prefixed [][]int
+	for _, idx := range phoneWithPrefixPattern.FindAllStringIndex(event.Text, -1) {
+		// "0034" carries no "+" or "(" to start it, so it must not be the
+		// tail of a longer word or digit run ("ref0034…", "10034…").
+		if event.Text[idx[0]] == '0' && idx[0] > 0 && isASCIIWord(event.Text[idx[0]-1]) {
+			continue
 		}
-		findings = append(findings, f)
+		prefixed = append(prefixed, idx)
+		findings = append(findings, phoneFinding(event.Text[idx[0]:idx[1]]))
 	}
 
 	for _, idx := range barePhonePattern.FindAllStringIndex(event.Text, -1) {
@@ -62,6 +62,7 @@ func phoneFinding(match string) Finding {
 		Redacted: "*********",
 		Match:    match,
 		Category: "TEL",
+		Key:      phoneKey(match),
 	}
 }
 
