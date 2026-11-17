@@ -1,0 +1,356 @@
+{
+ "model": "memprivacy-1.7b",
+ "model_id": "IAAR-Shanghai/MemPrivacy-1.7B-RL",
+ "label_map": {
+  "Real Name": "NOMBRE",
+  "Third-Party Identifiable Info": "NOMBRE",
+  "Detailed Address": "DIRECCION",
+  "Work Address": "DIRECCION",
+  "Phone Number": "TEL",
+  "Email": "EMAIL",
+  "ID Number": "DNI",
+  "Financial Account": "IBAN"
+ },
+ "recognizers": null,
+ "env": {
+  "cpu": "AMD Ryzen 5 5500",
+  "logical_cpus": 12,
+  "torch_threads": 6,
+  "torch": "2.15.0+cpu",
+  "python": "3.12.3"
+ },
+ "size_on_disk_mb": 3457.1,
+ "load_s": 126.376,
+ "cold_start_s": 127.387,
+ "rss_before_load_mb": 217.8,
+ "rss_loaded_mb": 3788.6,
+ "repeats": 1,
+ "corpora": {
+  "es-ext-v1": {
+   "cases": 26,
+   "predictions": {
+    "ooc-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 35,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-004": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 29,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-010": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 21,
+      "raw": "Real Name",
+      "score": "PL2"
+     }
+    ],
+    "ooc-013": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 33,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-016": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 25,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-019": [],
+    "ooc-022": [],
+    "ooc-025": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 35,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 49,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-028": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 32,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "ooc-args-001": [
+     {
+      "unit": "content",
+      "start": 0,
+      "end": 24,
+      "raw": "Third-Party Identifiable Info",
+      "score": "PL2"
+     }
+    ],
+    "cat-002": [
+     {
+      "unit": "",
+      "start": 21,
+      "end": 56,
+      "raw": "Detailed Address",
+      "score": "PL2"
+     }
+    ],
+    "dir-003": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 44,
+      "raw": "Detailed Address",
+      "score": "PL2"
+     }
+    ],
+    "dir-006": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 34,
+      "raw": "Detailed Address",
+      "score": "PL2"
+     }
+    ],
+    "dir-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 18,
+      "raw": "Real Name",
+      "score": "PL2"
+     },
+     {
+      "unit": "",
+      "start": 20,
+      "end": 45,
+      "raw": "Detailed Address",
+      "score": "PL2"
+     }
+    ],
+    "dir-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 14,
+      "raw": "Real Name",
+      "score": "PL2"
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 62,
+      "raw": "Detailed Address",
+      "score": "PL2"
+     }
+    ],
+    "dir-015": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 44,
+      "raw": "Detailed Address",
+      "score": "PL2"
+     },
+     {
+      "unit": "",
+      "start": 51,
+      "end": 60,
+      "raw": "Phone Number",
+      "score": "PL2"
+     }
+    ],
+    "neg-001": [],
+    "neg-004": [],
+    "neg-007": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 30,
+      "raw": "Precise Location",
+      "score": "PL3"
+     },
+     {
+      "unit": "",
+      "start": 47,
+      "end": 62,
+      "raw": "Precise Location",
+      "score": "PL3"
+     }
+    ],
+    "neg-010": [],
+    "neg-013": [],
+    "neg-016": [],
+    "neg-019": [],
+    "neg-022": [],
+    "neg-025": []
+   },
+   "latency": {
+    "samples": 26,
+    "p50Micros": 117432701.7,
+    "p95Micros": 142259360.0,
+    "maxMicros": 229552762.0
+   }
+  }
+ },
+ "subset": {
+  "corpus": "es-ext-v1",
+  "every": 3
+ },
+ "rss_peak_mb": 4368.1,
+ "raw_outputs": [
+  {
+   "text": "Hola.",
+   "output": "[]"
+  },
+  {
+   "text": "Mañana viene Rodrigo Castaño Villar a revisar el contrato.",
+   "output": "[\n  {\n    \"original_text\": \"Rodrigo Castaño Villar\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "¿Puedes reenviar esto a Nerea? Gracias.",
+   "output": "[\n  {\n    \"original_text\": \"Nerea\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "El expediente de Óscar Gil-Robles sigue abierto.",
+   "output": "[\n  {\n    \"original_text\": \"Óscar Gil-Robles\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "La Dra. Elena Quiroga firmó el alta.",
+   "output": "[\n  {\n    \"original_text\": \"La Dra. Elena Quiroga\",\n    \"privacy_type\": \"Real Name\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Listado: Domínguez Lara, Patricia; pendiente de pago.",
+   "output": "[\n  {\n    \"original_text\": \"Domínguez Lara, Patricia\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Aitor y Itziar Etxeberria llegan en el tren de las 9.",
+   "output": "[\n  {\n    \"original_text\": \"Aitor y Itziar Etxeberria\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Que Paco me llame cuando pueda.",
+   "output": "[]"
+  },
+  {
+   "text": "Hola, soy Marta Ibáñez y quiero cambiar mi tarifa.",
+   "output": "[]"
+  },
+  {
+   "text": "Asistentes: Raúl Cano, Irene Lozano, Tomás Pastor.",
+   "output": "[\n  {\n    \"original_text\": \"Raúl Cano\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Irene Lozano\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Tomás Pastor\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "El paciente Victoria Paz Delgado no acudió.",
+   "output": "[\n  {\n    \"original_text\": \"Victoria Paz Delgado\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "acta.md",
+   "output": "[]"
+  },
+  {
+   "text": "Asiste Gonzalo Peña Vera en representación de la comunidad.",
+   "output": "[\n  {\n    \"original_text\": \"Asiste Gonzalo Peña Vera\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Lucía Martín vive en Calle Hileras 4, 2º B, 28013 Madrid.",
+   "output": "[\n  {\n    \"original_text\": \"Calle Hileras 4, 2º B, 28013 Madrid\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Vive en Avda. de la Constitución 8, portal 2.",
+   "output": "[\n  {\n    \"original_text\": \"Vive en Avda. de la Constitución 8, portal 2\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "mi casa es en calle ancha 27, 4º d, pásate luego",
+   "output": "[\n  {\n    \"original_text\": \"calle ancha 27, 4º d\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Andrés Ruiz Ferrer, Ronda de Valencia 6, 5º C, ha pedido la baja.",
+   "output": "[\n  {\n    \"original_text\": \"Andrés Ruiz Ferrer\",\n    \"privacy_type\": \"Real Name\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Ronda de Valencia 6, 5º C\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Soy Julia Vega y mi dirección es Avenida Reina Victoria 40, 2º.",
+   "output": "[\n  {\n    \"original_text\": \"Soy Julia Vega\",\n    \"privacy_type\": \"Real Name\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Avenida Reina Victoria 40, 2º\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Recoger en Calle Uría 21, 3º F, 33003 Oviedo; tel. 985123456.",
+   "output": "[\n  {\n    \"original_text\": \"Calle Uría 21, 3º F, 33003 Oviedo\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"985123456\",\n    \"privacy_type\": \"Phone Number\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+  },
+  {
+   "text": "Compra una rosa blanca y dos claveles para la mesa.",
+   "output": "[]"
+  },
+  {
+   "text": "Victoria clara del equipo local: 3 a 0.",
+   "output": "[]"
+  },
+  {
+   "text": "El desfile recorre la Gran Vía y termina en la Plaza de España.",
+   "output": "[\n  {\n    \"original_text\": \"Gran Vía\",\n    \"privacy_type\": \"Precise Location\",\n    \"privacy_level\": \"PL3\"\n  },\n  {\n    \"original_text\": \"Plaza de España\",\n    \"privacy_type\": \"Precise Location\",\n    \"privacy_level\": \"PL3\"\n  }\n]"
+  },
+  {
+   "text": "El Hospital Universitario Virgen del Rocío amplía su horario.",
+   "output": "[]"
+  },
+  {
+   "text": "Cervantes y Lope de Vega fueron contemporáneos.",
+   "output": "[]"
+  },
+  {
+   "text": "El día de San Juan cerramos la oficina a mediodía.",
+   "output": "[]"
+  },
+  {
+   "text": "Sevilla celebra la feria en el barrio de Los Remedios.",
+   "output": "[]"
+  },
+  {
+   "text": "La parroquia de Santa María celebra misa a las 12.",
+   "output": "[]"
+  },
+  {
+   "text": "Según la Ley Orgánica 3/2018 y el artículo 9 del RGPD.",
+   "output": "[]"
+  }
+ ]
+}

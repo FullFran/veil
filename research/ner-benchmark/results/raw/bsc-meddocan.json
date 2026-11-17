@@ -1,0 +1,1682 @@
+{
+ "model": "bsc-meddocan",
+ "model_id": "BSC-NLP4BIA/bsc-bio-ehr-es-carmen-meddocan",
+ "label_map": {
+  "NOMBRE_SUJETO_ASISTENCIA": "NOMBRE",
+  "NOMBRE_PERSONAL_SANITARIO": "NOMBRE",
+  "FAMILIARES_SUJETO_ASISTENCIA": "NOMBRE",
+  "CALLE": "DIRECCION",
+  "NUMERO_TELEFONO": "TEL",
+  "CORREO_ELECTRONICO": "EMAIL",
+  "ID_SUJETO_ASISTENCIA": "DNI",
+  "NUMERO_IDENTIF": "DNI"
+ },
+ "recognizers": null,
+ "env": {
+  "cpu": "AMD Ryzen 5 5500",
+  "logical_cpus": 12,
+  "torch_threads": 6,
+  "torch": "2.15.0+cpu",
+  "python": "3.12.3"
+ },
+ "size_on_disk_mb": 500.0,
+ "load_s": 2.926,
+ "cold_start_s": 3.879,
+ "rss_before_load_mb": 217.7,
+ "rss_loaded_mb": 712.4,
+ "repeats": 5,
+ "corpora": {
+  "es-v1": {
+   "cases": 78,
+   "predictions": {
+    "dni-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 20,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.9891056418418884
+     }
+    ],
+    "dni-002": [],
+    "dni-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 26,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9919529557228088
+     }
+    ],
+    "dni-004": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.49032846093177795
+     }
+    ],
+    "dni-005": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 20,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.903274655342102
+     },
+     {
+      "unit": "",
+      "start": 36,
+      "end": 44,
+      "raw": "TERRITORIO",
+      "score": 0.9997267127037048
+     }
+    ],
+    "dni-006": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 15,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.986143946647644
+     }
+    ],
+    "dni-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 30,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9935731291770935
+     }
+    ],
+    "dni-008": [],
+    "nie-001": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 29,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.5036154985427856
+     }
+    ],
+    "nie-002": [
+     {
+      "unit": "",
+      "start": 27,
+      "end": 33,
+      "raw": "FECHAS",
+      "score": 0.999103307723999
+     }
+    ],
+    "nie-003": [],
+    "nie-004": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 17,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9855999946594238
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 28,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9922096729278564
+     }
+    ],
+    "dni-009": [],
+    "dni-010": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 16,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.7489787340164185
+     },
+     {
+      "unit": "",
+      "start": 19,
+      "end": 29,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.90765780210495
+     }
+    ],
+    "dni-011": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 16,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.8672196865081787
+     }
+    ],
+    "dni-012": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 27,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.8503089547157288
+     }
+    ],
+    "dni-013": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 25,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9040044546127319
+     }
+    ],
+    "dni-014": [],
+    "dni-015": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.8311782479286194
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 32,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9022699594497681
+     }
+    ],
+    "iban-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 37,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9942317605018616
+     }
+    ],
+    "iban-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 15,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.7699794769287109
+     }
+    ],
+    "iban-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 36,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.5129850506782532
+     }
+    ],
+    "iban-004": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 47,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9962044358253479
+     }
+    ],
+    "iban-005": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 41,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9413682818412781
+     },
+     {
+      "unit": "",
+      "start": 58,
+      "end": 83,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.7542242407798767
+     }
+    ],
+    "iban-006": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 40,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.5509682893753052
+     }
+    ],
+    "iban-007": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 23,
+      "raw": "FECHAS",
+      "score": 0.5311318635940552
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 28,
+      "raw": "FECHAS",
+      "score": 0.5751983523368835
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 33,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.7868255972862244
+     },
+     {
+      "unit": "",
+      "start": 34,
+      "end": 43,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9240553379058838
+     },
+     {
+      "unit": "",
+      "start": 44,
+      "end": 52,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.7229512929916382
+     }
+    ],
+    "iban-008": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 44,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9439608454704285
+     }
+    ],
+    "iban-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 4,
+      "raw": "INSTITUCION",
+      "score": 0.9769840836524963
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 38,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9910395741462708
+     }
+    ],
+    "iban-010": [],
+    "iban-011": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 35,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.5139394998550415
+     }
+    ],
+    "iban-012": [],
+    "iban-013": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 31,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.7980027198791504
+     },
+     {
+      "unit": "",
+      "start": 32,
+      "end": 45,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.8643833994865417
+     }
+    ],
+    "email-001": [],
+    "email-002": [],
+    "email-003": [],
+    "email-004": [],
+    "email-005": [],
+    "email-006": [],
+    "email-007": [],
+    "email-008": [],
+    "tel-001": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 21,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9966021776199341
+     }
+    ],
+    "tel-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 18,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.975980281829834
+     }
+    ],
+    "tel-003": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 25,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9956457018852234
+     }
+    ],
+    "tel-004": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 18,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9958186149597168
+     }
+    ],
+    "tel-005": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 20,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9954994320869446
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 35,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9957569241523743
+     }
+    ],
+    "tel-006": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 10,
+      "raw": "TERRITORIO",
+      "score": 0.9985926747322083
+     },
+     {
+      "unit": "",
+      "start": 11,
+      "end": 21,
+      "raw": "TERRITORIO",
+      "score": 0.999190628528595
+     }
+    ],
+    "tel-007": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 25,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9971897602081299
+     }
+    ],
+    "tel-008": [
+     {
+      "unit": "",
+      "start": 21,
+      "end": 37,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.995189905166626
+     }
+    ],
+    "tel-009": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9966483116149902
+     }
+    ],
+    "tel-010": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 21,
+      "raw": "FECHAS",
+      "score": 0.999790608882904
+     }
+    ],
+    "tel-011": [],
+    "tel-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "CALLE",
+      "score": 0.9107348322868347
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.6391161680221558
+     }
+    ],
+    "tel-013": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 8,
+      "raw": "CALLE",
+      "score": 0.5254981517791748
+     },
+     {
+      "unit": "",
+      "start": 9,
+      "end": 12,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.2835327982902527
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 24,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.8491531014442444
+     }
+    ],
+    "tel-014": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 19,
+      "raw": "TERRITORIO",
+      "score": 0.9993663430213928
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "CALLE",
+      "score": 0.8303524255752563
+     }
+    ],
+    "tel-015": [],
+    "tel-016": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 28,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9972602128982544
+     }
+    ],
+    "tel-017": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 31,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.5526511669158936
+     }
+    ],
+    "nombre-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 23,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998027086257935
+     }
+    ],
+    "nombre-002": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 21,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9996762871742249
+     }
+    ],
+    "nombre-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 34,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998717308044434
+     }
+    ],
+    "nombre-004": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 14,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9997196793556213
+     }
+    ],
+    "nombre-005": [],
+    "nombre-006": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 29,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9637548327445984
+     }
+    ],
+    "nombre-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998971819877625
+     }
+    ],
+    "nombre-008": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 30,
+      "raw": "INSTITUCION",
+      "score": 0.9563687443733215
+     }
+    ],
+    "nombre-009": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 28,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998646378517151
+     }
+    ],
+    "nombre-010": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 28,
+      "raw": "CALLE",
+      "score": 0.9992958903312683
+     }
+    ],
+    "nombre-011": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9994929432868958
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 35,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998255968093872
+     },
+     {
+      "unit": "",
+      "start": 39,
+      "end": 55,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998067617416382
+     }
+    ],
+    "mix-001": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 12,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9995313882827759
+     },
+     {
+      "unit": "",
+      "start": 17,
+      "end": 27,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.8233729004859924
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 32,
+      "raw": "OTROS_SUJETO_ASISTENCIA",
+      "score": 0.47312891483306885
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 63,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.96260005235672
+     },
+     {
+      "unit": "",
+      "start": 72,
+      "end": 84,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9934787154197693
+     }
+    ],
+    "mix-002": [
+     {
+      "unit": "",
+      "start": 2,
+      "end": 13,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.999836802482605
+     },
+     {
+      "unit": "",
+      "start": 44,
+      "end": 53,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9969714879989624
+     }
+    ],
+    "clean-001": [],
+    "clean-002": [],
+    "clean-003": [],
+    "args-001": [
+     {
+      "unit": "edits.0.newString",
+      "start": 0,
+      "end": 21,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9975816011428833
+     },
+     {
+      "unit": "edits.1.newString",
+      "start": 0,
+      "end": 24,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.7827392816543579
+     }
+    ],
+    "args-002": [
+     {
+      "unit": "env.TEL",
+      "start": 0,
+      "end": 9,
+      "raw": "TERRITORIO",
+      "score": 0.9879185557365417
+     }
+    ],
+    "args-003": [
+     {
+      "unit": "content",
+      "start": 17,
+      "end": 31,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9518730640411377
+     },
+     {
+      "unit": "content",
+      "start": 37,
+      "end": 50,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9968249201774597
+     }
+    ],
+    "args-004": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 12,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998869895935059
+     },
+     {
+      "unit": "record.contact.ids.0",
+      "start": 0,
+      "end": 9,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.6534562110900879
+     }
+    ],
+    "args-005": [
+     {
+      "unit": "command",
+      "start": 27,
+      "end": 29,
+      "raw": "FECHAS",
+      "score": 0.9075149297714233
+     },
+     {
+      "unit": "command",
+      "start": 30,
+      "end": 39,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9585661292076111
+     }
+    ]
+   },
+   "latency": {
+    "samples": 390,
+    "p50Micros": 39703.2,
+    "p95Micros": 67300.4,
+    "maxMicros": 151771.0
+   }
+  },
+  "es-ext-v1": {
+   "cases": 76,
+   "predictions": {
+    "ooc-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 35,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998783469200134
+     }
+    ],
+    "ooc-002": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 35,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998146891593933
+     }
+    ],
+    "ooc-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 14,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9507651925086975
+     }
+    ],
+    "ooc-004": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 30,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.7051054835319519
+     }
+    ],
+    "ooc-005": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 52,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998943209648132
+     }
+    ],
+    "ooc-006": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 39,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.99989914894104
+     }
+    ],
+    "ooc-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998603463172913
+     }
+    ],
+    "ooc-008": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 24,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9675960540771484
+     }
+    ],
+    "ooc-009": [],
+    "ooc-010": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 21,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998846054077148
+     }
+    ],
+    "ooc-011": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 37,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.999898374080658
+     }
+    ],
+    "ooc-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 13,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.999823808670044
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 28,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998372793197632
+     }
+    ],
+    "ooc-013": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 24,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9493474960327148
+     },
+     {
+      "unit": "",
+      "start": 25,
+      "end": 34,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9927691221237183
+     }
+    ],
+    "ooc-014": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.8660569190979004
+     }
+    ],
+    "ooc-015": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 25,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998375177383423
+     }
+    ],
+    "ooc-016": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9849345684051514
+     },
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998428821563721
+     }
+    ],
+    "ooc-017": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 45,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9999021887779236
+     }
+    ],
+    "ooc-018": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998734593391418
+     }
+    ],
+    "ooc-019": [],
+    "ooc-020": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 28,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9814090728759766
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 43,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9963094592094421
+     },
+     {
+      "unit": "",
+      "start": 49,
+      "end": 59,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9967543482780457
+     }
+    ],
+    "ooc-021": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998514652252197
+     }
+    ],
+    "ooc-022": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9347817897796631
+     }
+    ],
+    "ooc-023": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 19,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9688771367073059
+     }
+    ],
+    "ooc-024": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 10,
+      "raw": "FAMILIARES_SUJETO_ASISTENCIA",
+      "score": 0.9980539083480835
+     },
+     {
+      "unit": "",
+      "start": 11,
+      "end": 16,
+      "raw": "FAMILIARES_SUJETO_ASISTENCIA",
+      "score": 0.9697703123092651
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 42,
+      "raw": "FAMILIARES_SUJETO_ASISTENCIA",
+      "score": 0.955119252204895
+     },
+     {
+      "unit": "",
+      "start": 46,
+      "end": 52,
+      "raw": "FECHAS",
+      "score": 0.9997275471687317
+     }
+    ],
+    "ooc-025": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 22,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998637437820435
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 36,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998534917831421
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 50,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998478889465332
+     }
+    ],
+    "ooc-026": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9969188570976257
+     }
+    ],
+    "ooc-027": [],
+    "ooc-028": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 32,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9996109008789062
+     }
+    ],
+    "ooc-029": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 24,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9997640252113342
+     }
+    ],
+    "ooc-030": [],
+    "ooc-args-001": [
+     {
+      "unit": "content",
+      "start": 0,
+      "end": 24,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9570530652999878
+     }
+    ],
+    "ooc-args-002": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 13,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998815059661865
+     },
+     {
+      "unit": "record.contact.city",
+      "start": 0,
+      "end": 6,
+      "raw": "TERRITORIO",
+      "score": 0.9995911717414856
+     }
+    ],
+    "cat-001": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 33,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9997718930244446
+     },
+     {
+      "unit": "",
+      "start": 38,
+      "end": 51,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9975852966308594
+     }
+    ],
+    "cat-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 12,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9997116327285767
+     },
+     {
+      "unit": "",
+      "start": 21,
+      "end": 43,
+      "raw": "CALLE",
+      "score": 0.9995887875556946
+     },
+     {
+      "unit": "",
+      "start": 44,
+      "end": 49,
+      "raw": "TERRITORIO",
+      "score": 0.9997761845588684
+     },
+     {
+      "unit": "",
+      "start": 50,
+      "end": 57,
+      "raw": "TERRITORIO",
+      "score": 0.9997667670249939
+     }
+    ],
+    "dir-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 47,
+      "raw": "CALLE",
+      "score": 0.9996733069419861
+     },
+     {
+      "unit": "",
+      "start": 48,
+      "end": 53,
+      "raw": "TERRITORIO",
+      "score": 0.9997875094413757
+     },
+     {
+      "unit": "",
+      "start": 54,
+      "end": 61,
+      "raw": "TERRITORIO",
+      "score": 0.999783456325531
+     }
+    ],
+    "dir-002": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 28,
+      "raw": "CALLE",
+      "score": 0.9996388554573059
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 40,
+      "raw": "TERRITORIO",
+      "score": 0.9968224763870239
+     }
+    ],
+    "dir-003": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 45,
+      "raw": "CALLE",
+      "score": 0.9996966123580933
+     }
+    ],
+    "dir-004": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 40,
+      "raw": "CALLE",
+      "score": 0.9994595646858215
+     }
+    ],
+    "dir-005": [
+     {
+      "unit": "",
+      "start": 26,
+      "end": 45,
+      "raw": "CALLE",
+      "score": 0.9982370734214783
+     },
+     {
+      "unit": "",
+      "start": 46,
+      "end": 51,
+      "raw": "TERRITORIO",
+      "score": 0.9997801184654236
+     },
+     {
+      "unit": "",
+      "start": 52,
+      "end": 61,
+      "raw": "TERRITORIO",
+      "score": 0.9997715353965759
+     }
+    ],
+    "dir-006": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 35,
+      "raw": "CALLE",
+      "score": 0.9976215362548828
+     }
+    ],
+    "dir-007": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 34,
+      "raw": "CALLE",
+      "score": 0.9994590878486633
+     },
+     {
+      "unit": "",
+      "start": 35,
+      "end": 40,
+      "raw": "TERRITORIO",
+      "score": 0.999723494052887
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 60,
+      "raw": "TERRITORIO",
+      "score": 0.9993491768836975
+     }
+    ],
+    "dir-008": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 44,
+      "raw": "CALLE",
+      "score": 0.9996576309204102
+     },
+     {
+      "unit": "",
+      "start": 45,
+      "end": 50,
+      "raw": "TERRITORIO",
+      "score": 0.9997404217720032
+     },
+     {
+      "unit": "",
+      "start": 51,
+      "end": 60,
+      "raw": "TERRITORIO",
+      "score": 0.9997715353965759
+     }
+    ],
+    "dir-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 19,
+      "raw": "CALLE",
+      "score": 0.820627748966217
+     },
+     {
+      "unit": "",
+      "start": 20,
+      "end": 46,
+      "raw": "CALLE",
+      "score": 0.9995753765106201
+     }
+    ],
+    "dir-010": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 62,
+      "raw": "CALLE",
+      "score": 0.963545560836792
+     }
+    ],
+    "dir-011": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "CALLE",
+      "score": 0.669183611869812
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 45,
+      "raw": "CALLE",
+      "score": 0.9698130488395691
+     },
+     {
+      "unit": "",
+      "start": 46,
+      "end": 51,
+      "raw": "TERRITORIO",
+      "score": 0.9997805953025818
+     },
+     {
+      "unit": "",
+      "start": 52,
+      "end": 58,
+      "raw": "TERRITORIO",
+      "score": 0.9997794032096863
+     }
+    ],
+    "dir-012": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9998459815979004
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 63,
+      "raw": "CALLE",
+      "score": 0.9996520280838013
+     }
+    ],
+    "dir-013": [
+     {
+      "unit": "",
+      "start": 23,
+      "end": 33,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9999110698699951
+     },
+     {
+      "unit": "",
+      "start": 34,
+      "end": 41,
+      "raw": "CALLE",
+      "score": 0.9992736577987671
+     },
+     {
+      "unit": "",
+      "start": 42,
+      "end": 47,
+      "raw": "TERRITORIO",
+      "score": 0.9995861649513245
+     },
+     {
+      "unit": "",
+      "start": 48,
+      "end": 57,
+      "raw": "TERRITORIO",
+      "score": 0.9997493624687195
+     }
+    ],
+    "dir-014": [
+     {
+      "unit": "",
+      "start": 28,
+      "end": 41,
+      "raw": "CALLE",
+      "score": 0.8766310214996338
+     },
+     {
+      "unit": "",
+      "start": 45,
+      "end": 52,
+      "raw": "TERRITORIO",
+      "score": 0.9996172189712524
+     }
+    ],
+    "dir-015": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 10,
+      "raw": "CALLE",
+      "score": 0.9514368772506714
+     },
+     {
+      "unit": "",
+      "start": 11,
+      "end": 31,
+      "raw": "CALLE",
+      "score": 0.9990679025650024
+     },
+     {
+      "unit": "",
+      "start": 32,
+      "end": 37,
+      "raw": "TERRITORIO",
+      "score": 0.9997807145118713
+     },
+     {
+      "unit": "",
+      "start": 38,
+      "end": 45,
+      "raw": "TERRITORIO",
+      "score": 0.9997873902320862
+     },
+     {
+      "unit": "",
+      "start": 51,
+      "end": 61,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.99687659740448
+     }
+    ],
+    "dir-args-001": [
+     {
+      "unit": "record.address",
+      "start": 0,
+      "end": 19,
+      "raw": "CALLE",
+      "score": 0.999535083770752
+     },
+     {
+      "unit": "record.address",
+      "start": 20,
+      "end": 25,
+      "raw": "TERRITORIO",
+      "score": 0.9997835755348206
+     },
+     {
+      "unit": "record.address",
+      "start": 26,
+      "end": 34,
+      "raw": "TERRITORIO",
+      "score": 0.9997797608375549
+     },
+     {
+      "unit": "record.name",
+      "start": 0,
+      "end": 13,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.9927528500556946
+     }
+    ],
+    "dir-args-002": [
+     {
+      "unit": "content",
+      "start": 16,
+      "end": 30,
+      "raw": "CALLE",
+      "score": 0.9995970726013184
+     },
+     {
+      "unit": "content",
+      "start": 31,
+      "end": 36,
+      "raw": "TERRITORIO",
+      "score": 0.999769389629364
+     },
+     {
+      "unit": "content",
+      "start": 37,
+      "end": 45,
+      "raw": "TERRITORIO",
+      "score": 0.9997624754905701
+     }
+    ],
+    "neg-001": [],
+    "neg-002": [],
+    "neg-003": [],
+    "neg-004": [],
+    "neg-005": [],
+    "neg-006": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 15,
+      "raw": "CALLE",
+      "score": 0.9382351040840149
+     }
+    ],
+    "neg-007": [
+     {
+      "unit": "",
+      "start": 47,
+      "end": 63,
+      "raw": "CALLE",
+      "score": 0.9850642085075378
+     }
+    ],
+    "neg-008": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 42,
+      "raw": "CALLE",
+      "score": 0.9746245741844177
+     }
+    ],
+    "neg-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 15,
+      "raw": "INSTITUCION",
+      "score": 0.9981504678726196
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 33,
+      "raw": "INSTITUCION",
+      "score": 0.9984891414642334
+     }
+    ],
+    "neg-010": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 42,
+      "raw": "HOSPITAL",
+      "score": 0.9992359280586243
+     }
+    ],
+    "neg-011": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 25,
+      "raw": "TERRITORIO",
+      "score": 0.9992794990539551
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 50,
+      "raw": "TERRITORIO",
+      "score": 0.9991315007209778
+     }
+    ],
+    "neg-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 35,
+      "raw": "TERRITORIO",
+      "score": 0.9981433153152466
+     }
+    ],
+    "neg-013": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "TERRITORIO",
+      "score": 0.37666136026382446
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 16,
+      "raw": "NOMBRE_PERSONAL_SANITARIO",
+      "score": 0.3975890576839447
+     },
+     {
+      "unit": "",
+      "start": 17,
+      "end": 24,
+      "raw": "TERRITORIO",
+      "score": 0.8817638158798218
+     }
+    ],
+    "neg-014": [],
+    "neg-015": [],
+    "neg-016": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 18,
+      "raw": "FECHAS",
+      "score": 0.7776779532432556
+     }
+    ],
+    "neg-017": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 8,
+      "raw": "FECHAS",
+      "score": 0.9997251629829407
+     },
+     {
+      "unit": "",
+      "start": 11,
+      "end": 15,
+      "raw": "FECHAS",
+      "score": 0.6861644387245178
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 43,
+      "raw": "FECHAS",
+      "score": 0.9996387958526611
+     }
+    ],
+    "neg-018": [],
+    "neg-019": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 7,
+      "raw": "TERRITORIO",
+      "score": 0.9963627457618713
+     },
+     {
+      "unit": "",
+      "start": 31,
+      "end": 54,
+      "raw": "TERRITORIO",
+      "score": 0.8521025776863098
+     }
+    ],
+    "neg-020": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "INSTITUCION",
+      "score": 0.9853375554084778
+     }
+    ],
+    "neg-021": [],
+    "neg-022": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 27,
+      "raw": "CALLE",
+      "score": 0.8967697620391846
+     }
+    ],
+    "neg-023": [],
+    "neg-024": [],
+    "neg-025": []
+   },
+   "latency": {
+    "samples": 380,
+    "p50Micros": 39148.5,
+    "p95Micros": 71442.9,
+    "maxMicros": 221861.5
+   }
+  }
+ },
+ "rss_peak_mb": 765.6
+}
