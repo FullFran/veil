@@ -59,7 +59,11 @@ func FuzzPipeline(f *testing.F) {
 		if decision.Kind != domain.Rewrite || writeTools[strings.ToLower(event.ToolName)] {
 			return // a write tool gets the real values back on purpose (rehydration)
 		}
-		for _, finding := range registry.DetectAll(event) {
+		findings, err := registry.DetectAll(event)
+		if err != nil {
+			t.Fatalf("DetectAll: %v", err)
+		}
+		for _, finding := range findings {
 			if leaked := findString(out, finding.Match); finding.Match != "" && leaked != "" {
 				t.Fatalf("rewrite of %q sends back the found value %q in %q", raw, finding.Match, leaked)
 			}

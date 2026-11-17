@@ -71,7 +71,11 @@ var separatedUntouched = []string{
 
 func detectSeparated(text string) []domain.Finding {
 	reg := domain.NewRegistry(domain.NewDNIDetector(), domain.NewIBANDetector(), domain.NewPhoneDetector())
-	return reg.DetectAll(domain.Event{Kind: domain.EventPromptSubmit, Text: text})
+	findings, err := reg.DetectAll(domain.Event{Kind: domain.EventPromptSubmit, Text: text})
+	if err != nil {
+		panic(err) // infallible detectors only
+	}
+	return findings
 }
 
 func TestSeparatedForms_AreDetectedWithCompactKey(t *testing.T) {

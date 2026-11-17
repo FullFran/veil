@@ -78,17 +78,31 @@ func capabilityFor(kind EventKind) (Capability, error) {
 // returns a Rewrite built from a guessed or unpseudonymized substitution:
 // any failure to mint a pseudonym token fails the whole call closed.
 func (p *Policy) Evaluate(event Event) (Decision, error) {
+	decision, _, err := p.Assess(event)
+	return decision, err
+}
+
+// Assess is Evaluate that also returns the findings the decision was
+// made on, so a caller that records evidence never runs the detectors a
+// second time (a detector may be a model in another process: a second
+// call costs latency and may fail or answer differently). On error it
+// returns the zero Decision and no findings.
+func (p *Policy) Assess(event Event) (Decision, []Finding, error) {
 	capability, err := capabilityFor(event.Kind)
 	if err != nil {
-		return Decision{}, err
+		return Decision{}, nil, err
 	}
 	if err := RequireCapability(event.Host, capability); err != nil {
-		return Decision{}, err
+		return Decision{}, nil, err
 	}
 
-	decision, err := p.decide(event)
+	findings, err := p.registry.DetectAll(event)
 	if err != nil {
-		return Decision{}, err
+		return Decision{}, nil, err
+	}
+	decision, err := p.decide(event, findings)
+	if err != nil {
+		return Decision{}, nil, err
 	}
 
 	// A tool call that writes to disk gets one more pass: rehydrate any
@@ -96,15 +110,17 @@ func (p *Policy) Evaluate(event Event) (Decision, error) {
 	// file on disk holds real data. This never runs on a Deny: there is
 	// nothing to rehydrate into a call veil is blocking outright.
 	if decision.Kind != Deny && event.Kind == EventToolArgs && isWriteTool(event.ToolName) {
-		return p.rehydrate(event, decision)
+		decision, err = p.rehydrate(event, decision)
+		if err != nil {
+			return Decision{}, nil, err
+		}
 	}
-	return decision, nil
+	return decision, findings, nil
 }
 
-// decide runs the registry's detectors and turns their Findings into an
-// Allow, Deny, or Rewrite Decision, without any rehydration.
-func (p *Policy) decide(event Event) (Decision, error) {
-	findings := p.registry.DetectAll(event)
+// decide turns findings into an Allow, Deny, or Rewrite Decision,
+// without any rehydration.
+func (p *Policy) decide(event Event, findings []Finding) (Decision, error) {
 	if len(findings) == 0 {
 		return AllowDecision(), nil
 	}
@@ -132,6 +148,7 @@ func (p *Policy) decide(event Event) (Decision, error) {
 // finding's Match in event.Text and every entry of event.Fields, and
 // returns the resulting RewriteDecision.
 func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
+	findings = withOverlapRuns(event, findings)
 	firstWritten := firstWrittenForms(event.Text, findings)
 	substitutions := make(map[string]string, len(findings))
 	for _, f := range findings {

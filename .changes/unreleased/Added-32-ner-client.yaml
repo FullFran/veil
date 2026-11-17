@@ -1,0 +1,12 @@
+kind: Added
+body: |-
+  A detector port for detectors that can fail (`domain.FallibleDetector`)
+  and a client for a local NER model sidecar (`internal/ner`): JSON-RPC 2.0,
+  one message per line, over a Unix domain socket, protocol version 1, with
+  a deadline for the whole call (default 2 s), at most 1024 spans per text,
+  overlapping or touching spans joined into one finding, and a socket that
+  must be private to veil's user. Any sidecar failure fails the event
+  closed with a new problem code: `VEIL_NER_UNAVAILABLE`,
+  `VEIL_NER_TIMEOUT`, `VEIL_NER_CRASHED`, `VEIL_NER_PROTOCOL` or
+  `VEIL_NER_MODEL_MISMATCH` (#32). Not enabled by any policy yet.
+time: 2026-11-17T10:00:00Z

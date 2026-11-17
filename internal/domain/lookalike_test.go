@@ -74,7 +74,7 @@ func TestRegistry_DetectAll_Lookalikes(t *testing.T) {
 	}
 	for _, tc := range cases {
 		t.Run(tc.name, func(t *testing.T) {
-			findings := allDetectors().DetectAll(promptEvent(tc.text))
+			findings := detectAll(t, allDetectors(), promptEvent(tc.text))
 			for _, want := range tc.want {
 				assertSingleSpan(t, findings, want)
 			}
@@ -89,7 +89,7 @@ func TestRegistry_DetectAll_Lookalikes(t *testing.T) {
 // before: same Match, and no Key added beyond the phone's own E.164 key.
 func TestRegistry_DetectAll_PlainText_Unchanged(t *testing.T) {
 	text := "Mi DNI es 12345678Z, mail zed@example.org, tel 612345678, María."
-	findings := allDetectors().DetectAll(promptEvent(text))
+	findings := detectAll(t, allDetectors(), promptEvent(text))
 	if len(findings) != 4 {
 		t.Fatalf("got %d findings, want 4: %+v", len(findings), findings)
 	}
@@ -108,7 +108,7 @@ func TestRegistry_DetectAll_PlainText_Unchanged(t *testing.T) {
 // once per written form, both keyed by the same canonical value.
 func TestRegistry_DetectAll_PlainAndLookalike_SameKey(t *testing.T) {
 	text := "12345678Z y １２３４５６７８Ｚ"
-	findings := domain.NewRegistry(domain.NewDNIDetector()).DetectAll(promptEvent(text))
+	findings := detectAll(t, domain.NewRegistry(domain.NewDNIDetector()), promptEvent(text))
 	if len(findings) != 2 {
 		t.Fatalf("got %d findings, want 2: %+v", len(findings), findings)
 	}

@@ -112,7 +112,11 @@ func Run(c *Corpus, p *policy.Policy, opts Options) (Report, error) {
 	var samples, calSamples []float64
 	var evalSum, calSum float64
 	for _, cs := range c.Cases {
-		scores.Add(cs.Gold, predict(raw.DetectAll(cs.Event), cs.Units))
+		found, err := raw.DetectAll(cs.Event)
+		if err != nil {
+			return Report{}, fmt.Errorf("case %s: %w", cs.ID, err)
+		}
+		scores.Add(cs.Gold, predict(found, cs.Units))
 		evalCase := make([]float64, 0, repeats)
 		calCase := make([]float64, 0, repeats)
 		for i := 0; i < repeats; i++ {
