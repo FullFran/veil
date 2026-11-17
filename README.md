@@ -666,8 +666,12 @@ re-verifies the selected model (`VEIL_MODEL_MISSING`,
 `VEIL_MODEL_DIGEST_MISMATCH`), creates the socket's directory (0700) and
 runs `<command>` in the foreground with `VEIL_NER_SOCKET`,
 `VEIL_NER_MODEL_DIR` and `VEIL_NER_ENTRY` (the catalog entry, whose
-SHA-256 the sidecar reports as its entry digest). SIGINT and SIGTERM are
-passed on to it, and `serve` exits with its exit code. The reference
+SHA-256 the sidecar reports as its entry digest). The sidecar gets no
+other variable of veil's environment except `PATH`, `HOME`, `TMPDIR`,
+`LANG`, `LC_*` and `XDG_*`, and no open descriptor beyond stdin, stdout
+and stderr. SIGINT and SIGTERM are passed on to it; a sidecar still
+running 10 s later is killed, and on Linux the kernel kills it if
+`serve` itself dies. `serve` exits with the sidecar's exit code. The reference
 sidecar is [`adapters/ner-sidecar`](adapters/ner-sidecar) (Python, run
 with [uv](https://docs.astral.sh/uv/)):
 

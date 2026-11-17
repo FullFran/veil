@@ -23,14 +23,18 @@ For `spacy-es-core-news-lg` add `--extra spacy` to `uv run`.
   versions are those `research/ner-benchmark` measured.
 - **Socket.** A stale socket at the path is replaced (any other file is
   not); the new one is created 0600. One connection per veil event;
-  inference is serialized.
+  inference is serialized. A connection that sends nothing for 10 s is
+  closed.
+- **Offline.** It sets `HF_HUB_OFFLINE=1` and `TRANSFORMERS_OFFLINE=1`
+  before any model library loads: the files `veil model serve` verified
+  are the only ones used, and nothing is fetched.
 - **Privacy.** Nothing is logged about requests, and error replies never
   echo request text.
 - **Identity.** `initialize` reports the entry's id and revision, and the
   SHA-256 of `VEIL_NER_ENTRY` as `entryDigest`, which veil checks.
 
-Tests (protocol, offsets, windows, socket) need only the standard
-library and a fake model:
+Tests (protocol, offsets, windows, socket, offline) need only the
+standard library and a fake model; CI runs them:
 
 ```bash
 cd adapters/ner-sidecar && python3 -m unittest -v test_sidecar

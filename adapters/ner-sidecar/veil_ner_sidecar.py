@@ -14,7 +14,8 @@ per veil event:
   initialize {protocolVersion: "1"} -> {protocolVersion, model: {id, revision, entryDigest}}
   recognize  {units: [str]}         -> {spans: [[{start, end, label}]]}
 
-Offsets are UTF-8 byte offsets into each unit. The model code follows
+Offsets are UTF-8 byte offsets into each unit. The model libraries run
+offline, and a connection idle for IDLE_TIMEOUT seconds is closed. The model code follows
 research/ner-benchmark/scripts/models.py, which measured these models.
 """
 
@@ -32,8 +33,18 @@ import threading
 import zipfile
 from pathlib import Path
 
+# veil model serve verified the model's files before starting this
+# process: the model libraries must load them and never fetch anything.
+os.environ["HF_HUB_OFFLINE"] = "1"
+os.environ["TRANSFORMERS_OFFLINE"] = "1"
+
 PROTOCOL_VERSION = "1"
 MAX_LINE = 16 << 20
+
+# A connection that sends nothing for this long is closed, so a peer that
+# connects and stalls cannot hold a thread forever. veil sends each line
+# at once, well inside its own deadline (2 s by default).
+IDLE_TIMEOUT = 10.0
 
 # GLiNER2's encoder reads a bounded number of tokens and silently drops
 # the rest, so long text is split into overlapping windows (characters,
@@ -196,9 +207,9 @@ class Server(socketserver.ThreadingMixIn, socketserver.UnixStreamServer):
     daemon_threads = True
 
 
-def listen(socket_path: str, handler: Handler) -> Server:
+def listen(socket_path: str, handler: Handler, idle_timeout: float = IDLE_TIMEOUT) -> Server:
     """Bind socket_path, replacing a stale socket but nothing else, with
-    mode 0600."""
+    mode 0600. A connection idle for idle_timeout seconds is closed."""
     try:
         if stat.S_ISSOCK(os.lstat(socket_path).st_mode):
             os.unlink(socket_path)
@@ -206,8 +217,13 @@ def listen(socket_path: str, handler: Handler) -> Server:
         pass
 
     class Conn(socketserver.StreamRequestHandler):
+        timeout = idle_timeout
+
         def handle(self):
-            serve_connection(handler, self.rfile, self.wfile)
+            try:
+                serve_connection(handler, self.rfile, self.wfile)
+            except OSError:  # includes the idle timeout
+                pass
 
     old = os.umask(0o177)
     try:

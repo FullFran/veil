@@ -14,8 +14,13 @@ import (
 )
 
 // fakeSidecarScript records the environment veil model serve gives it
-// in $OUT and exits 7.
-const fakeSidecarScript = `printf '%s\n%s\n' "$VEIL_NER_SOCKET" "$VEIL_NER_MODEL_DIR" > "$OUT"; printf '%s' "$VEIL_NER_ENTRY" > "$OUT.entry"; exit 7`
+// in the file named by its first argument and exits 7.
+const fakeSidecarScript = `printf '%s\n%s\n' "$VEIL_NER_SOCKET" "$VEIL_NER_MODEL_DIR" > "$1"; printf '%s' "$VEIL_NER_ENTRY" > "$1.entry"; exit 7`
+
+// sidecar is the serve arguments that run script with out as its "$1".
+func sidecar(script, out string) []string {
+	return []string{"serve", "sh", "-c", script, "sh", out}
+}
 
 // serveEnv selects test-model with a policy, optionally pulls it, and
 // returns the cache root, the socket path and the record file.
@@ -27,7 +32,6 @@ func serveEnv(t *testing.T, pull bool) (string, string, string) {
 	socket := filepath.Join(t.TempDir(), "run", "veil", "ner.sock")
 	t.Setenv("VEIL_NER_SOCKET", socket)
 	out := filepath.Join(t.TempDir(), "env")
-	t.Setenv("OUT", out)
 	if pull {
 		if code, _, stderr := runModelCmd(t, "pull", "test-model", "--accept-license", "Apache-2.0"); code != 0 {
 			t.Fatalf("pull: %s", stderr)
@@ -39,7 +43,7 @@ func serveEnv(t *testing.T, pull bool) (string, string, string) {
 func TestModelServe_RunsTheSidecarWithTheVerifiedModel(t *testing.T) {
 	cache, socket, out := serveEnv(t, true)
 
-	code, _, stderr := runModelCmd(t, "serve", "sh", "-c", fakeSidecarScript)
+	code, _, stderr := runModelCmd(t, sidecar(fakeSidecarScript, out)...)
 	if code != 7 {
 		t.Fatalf("exit %d (stderr %s), want the sidecar's exit code 7", code, stderr)
 	}
@@ -78,12 +82,12 @@ func TestModelServe_Failures(t *testing.T) {
 		exit  int
 		want  problem.Code
 	}{
-		"model not pulled": {false, nil, []string{"sh", "-c", fakeSidecarScript}, problem.ExitFailedClosed, problem.ModelMissing},
+		"model not pulled": {false, nil, []string{"sh", "-c", fakeSidecarScript, "sh"}, problem.ExitFailedClosed, problem.ModelMissing},
 		"no command":       {true, nil, nil, problem.ExitUsage, problem.Usage},
 		"no model selected": {true, func(t *testing.T) {
 			t.Setenv("VEIL_POLICY", "")
 			t.Setenv("VEIL_NER_MODEL", "")
-		}, []string{"sh", "-c", fakeSidecarScript}, problem.ExitUsage, problem.Usage},
+		}, []string{"sh", "-c", fakeSidecarScript, "sh"}, problem.ExitUsage, problem.Usage},
 		"command not found": {true, nil, []string{"/nonexistent/veil-sidecar"}, problem.ExitFailedClosed, problem.NERUnavailable},
 	}
 	for name, tc := range cases {
@@ -92,7 +96,11 @@ func TestModelServe_Failures(t *testing.T) {
 			if tc.setup != nil {
 				tc.setup(t)
 			}
-			code, _, stderr := runModelCmd(t, append([]string{"serve"}, tc.args...)...)
+			args := tc.args
+			if len(args) > 1 {
+				args = append(args, out)
+			}
+			code, _, stderr := runModelCmd(t, append([]string{"serve"}, args...)...)
 			if code != tc.exit {
 				t.Fatalf("exit %d (stderr %s), want %d", code, stderr, tc.exit)
 			}
@@ -107,11 +115,11 @@ func TestModelServe_Failures(t *testing.T) {
 func TestModelServe_ForwardsTerminationToTheSidecar(t *testing.T) {
 	_, _, out := serveEnv(t, true)
 	// The sidecar exits 0 on SIGTERM, after saying it is ready.
-	script := `trap 'echo stopped > "$OUT"; exit 0' TERM; echo ready > "$OUT.ready"; while :; do sleep 0.05; done`
+	script := `trap 'echo stopped > "$1"; exit 0' TERM; echo ready > "$1.ready"; while :; do sleep 0.05; done`
 
 	done := make(chan int, 1)
 	go func() {
-		code, _, _ := runModelCmd(t, "serve", "sh", "-c", script)
+		code, _, _ := runModelCmd(t, sidecar(script, out)...)
 		done <- code
 	}()
 	waitFor(t, out+".ready")

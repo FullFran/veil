@@ -78,6 +78,13 @@ class ProtocolTest(unittest.TestCase):
         self.assertNotIn("Íñigo", json.dumps(r, ensure_ascii=False))
 
 
+class OfflineTest(unittest.TestCase):
+    def test_model_libraries_never_reach_the_network(self):
+        # veil model serve verified the files; nothing may be fetched.
+        self.assertEqual(os.environ.get("HF_HUB_OFFLINE"), "1")
+        self.assertEqual(os.environ.get("TRANSFORMERS_OFFLINE"), "1")
+
+
 class WindowsTest(unittest.TestCase):
     def test_short_text_is_one_window(self):
         self.assertEqual(list(sc.windows("hola")), [(0, "hola")])
@@ -120,6 +127,19 @@ class SocketTest(unittest.TestCase):
                 f.write(json.dumps({"jsonrpc": "2.0", "id": rid, "method": method, "params": params}).encode() + b"\n")
                 f.flush()
                 self.assertEqual(json.loads(f.readline())["id"], rid)
+
+    def test_closes_a_connection_that_stays_idle(self):
+        d = tempfile.mkdtemp()
+        path = os.path.join(d, "s")
+        server = sc.listen(path, sc.Handler(ENTRY, FakeRuntime()), idle_timeout=0.2)
+        threading.Thread(target=server.serve_forever, daemon=True).start()
+        self.addCleanup(server.server_close)
+        self.addCleanup(server.shutdown)
+        with socket.socket(socket.AF_UNIX) as c:
+            c.settimeout(5)
+            c.connect(path)
+            # A peer that never sends a line is dropped, not kept forever.
+            self.assertEqual(c.recv(1), b"")
 
     def test_replaces_a_stale_socket_but_not_a_file(self):
         d = tempfile.mkdtemp()

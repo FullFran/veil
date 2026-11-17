@@ -10,6 +10,7 @@ import (
 	"path/filepath"
 	"strings"
 	"syscall"
+	"time"
 
 	"github.com/FullFran/veil/internal/ner"
 	"github.com/FullFran/veil/internal/policy"
@@ -251,27 +252,47 @@ func serveModel(stdout, stderr io.Writer, catalog *ner.Catalog, root, command st
 	if err := os.MkdirAll(filepath.Dir(socket), 0o700); err != nil {
 		return failNER(stderr)
 	}
+	// Only stdin, stdout and stderr reach the sidecar: a descriptor veil
+	// inherited (VEIL_KEY_FD's) is closed in it.
+	if err := closeInheritedDescriptors(); err != nil {
+		return failNER(stderr)
+	}
 	cmd := exec.Command(command, args...) // #nosec G204 G702 -- the operator names the sidecar command to run
 	cmd.Stdout, cmd.Stderr = stdout, stderr
-	cmd.Env = append(os.Environ(),
+	cmd.Env = sidecarEnv(os.Environ(),
 		ner.SocketEnvVar+"="+socket,
 		sidecarModelDirEnv+"="+dir,
 		sidecarEntryEnv+"="+string(entry.Canonical()),
 	)
+	cmd.SysProcAttr = sidecarProcAttr()
 	// SIGINT and SIGTERM (Ctrl-C, systemd, kill) go to the sidecar, which
-	// removes its socket and exits; serve then exits with its code.
+	// removes its socket and exits; serve then exits with its code. A
+	// sidecar still running sidecarGrace later is killed.
 	signals := make(chan os.Signal, 1)
 	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
 	defer signal.Stop(signals)
 	if err := cmd.Start(); err != nil {
 		return failNER(stderr)
 	}
+	exited := make(chan struct{})
 	go func() {
-		for sig := range signals {
-			_ = cmd.Process.Signal(sig)
+		var kill <-chan time.Time
+		for {
+			select {
+			case sig := <-signals:
+				_ = cmd.Process.Signal(sig)
+				if kill == nil {
+					kill = time.After(sidecarGrace)
+				}
+			case <-kill:
+				_ = cmd.Process.Kill()
+			case <-exited:
+				return
+			}
 		}
 	}()
 	err = cmd.Wait()
+	close(exited)
 	var exit *exec.ExitError
 	switch {
 	case err == nil:
@@ -282,6 +303,26 @@ func serveModel(stdout, stderr io.Writer, catalog *ner.Catalog, root, command st
 		return failNER(stderr)
 	}
 }
+
+// sidecarEnv is the sidecar's environment: the variables of environ it
+// needs to run (PATH, HOME, TMPDIR, LANG, LC_*, XDG_*) and then extra.
+// Nothing else veil was given (keys, policy, credentials) reaches it.
+func sidecarEnv(environ []string, extra ...string) []string {
+	var env []string
+	for _, kv := range environ {
+		name, _, _ := strings.Cut(kv, "=")
+		switch {
+		case name == "PATH", name == "HOME", name == "TMPDIR", name == "LANG",
+			strings.HasPrefix(name, "LC_"), strings.HasPrefix(name, "XDG_"):
+			env = append(env, kv)
+		}
+	}
+	return append(env, extra...)
+}
+
+// sidecarGrace is how long a sidecar has to exit after serve forwards
+// SIGINT or SIGTERM to it, before serve kills it.
+var sidecarGrace = 10 * time.Second
 
 // failNER reports a sidecar that could not be started.
 func failNER(stderr io.Writer) int {
