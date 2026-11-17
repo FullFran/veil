@@ -1,0 +1,9 @@
+kind: Fixed
+body: |-
+  DNI/NIE, IBAN, email, phone and catalog name values written with Unicode
+  lookalikes (full-width forms, zero-width and other format characters,
+  no-break spaces, digits of other scripts) are pseudonymized on every host:
+  the detectors also scan an NFKC view of the text (UAX #15) with default
+  ignorable characters (UAX #44) removed, replace the characters as written
+  and key the token by the canonical value (#24).
+time: 2026-11-17T00:00:32Z

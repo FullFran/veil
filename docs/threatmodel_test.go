@@ -9,7 +9,6 @@ import (
 	"os"
 	"path/filepath"
 	"regexp"
-	"strconv"
 	"strings"
 	"testing"
 )
@@ -30,11 +29,12 @@ type row struct {
 var (
 	backticked = regexp.MustCompile("`([^`]+)`")
 	issueRef   = regexp.MustCompile(`#\d+`)
-	// fileLine is a mitigation reference: `path/to/file.ext:123` followed by
-	// the symbol it points at, (`symbol`).
-	fileLine = regexp.MustCompile("`([A-Za-z0-9_./-]+\\.[A-Za-z0-9]+):(\\d+)` \\(`([^`]+)`\\)")
-	goTest   = regexp.MustCompile(`(?m)^func (Test\w+)\(t \*testing\.T\)`)
-	jsTest   = regexp.MustCompile(`(?m)\btest\(\s*"([^"]+)"`)
+	// codeRef is a mitigation reference: `path/to/file.ext` followed by the
+	// symbol or text it points at, (`symbol`). It names no line number, so
+	// unrelated edits to the file never make the document stale.
+	codeRef = regexp.MustCompile("`([A-Za-z0-9_./-]+\\.[A-Za-z0-9]+)` \\(`([^`]+)`\\)")
+	goTest  = regexp.MustCompile(`(?m)^func (Test\w+)\(t \*testing\.T\)`)
+	jsTest  = regexp.MustCompile(`(?m)\btest\(\s*"([^"]+)"`)
 )
 
 var statuses = map[string]bool{"mitigated": true, "accepted": true, "open": true}
@@ -202,36 +202,26 @@ func TestThreatModel_StatusesAreMitigatedAcceptedOrOpen(t *testing.T) {
 	}
 }
 
-// TestThreatModel_FileLineReferencesPointAtTheirSymbol fails when a
-// mitigation's file is gone, its line is past the end of the file, or the
-// symbol it names is no longer on that line.
-func TestThreatModel_FileLineReferencesPointAtTheirSymbol(t *testing.T) {
+// TestThreatModel_CodeReferencesPointAtTheirSymbol fails when a
+// mitigation's file is gone or no longer contains the symbol it names.
+func TestThreatModel_CodeReferencesPointAtTheirSymbol(t *testing.T) {
 	seen := 0
 	for _, r := range threatRows(t) {
-		for _, m := range fileLine.FindAllStringSubmatch(r.cells["Mitigation"], -1) {
+		for _, m := range codeRef.FindAllStringSubmatch(r.cells["Mitigation"], -1) {
 			seen++
-			path, symbol := m[1], m[3]
-			at, err := strconv.Atoi(m[2])
-			if err != nil {
-				t.Fatal(err)
-			}
+			path, symbol := m[1], m[2]
 			raw, err := os.ReadFile(filepath.Join(repoRoot, filepath.FromSlash(path)))
 			if err != nil {
 				t.Errorf("line %d, %s: %s: %v", r.line, r.id, path, err)
 				continue
 			}
-			lines := strings.Split(string(raw), "\n")
-			if at < 1 || at > len(lines) {
-				t.Errorf("line %d, %s: %s:%d is past the end of the file (%d lines)", r.line, r.id, path, at, len(lines))
-				continue
-			}
-			if !strings.Contains(lines[at-1], symbol) {
-				t.Errorf("line %d, %s: %s:%d no longer holds %q", r.line, r.id, path, at, symbol)
+			if !strings.Contains(string(raw), symbol) {
+				t.Errorf("line %d, %s: %s no longer contains %q", r.line, r.id, path, symbol)
 			}
 		}
 	}
 	if seen == 0 {
-		t.Fatal("no file:line reference found")
+		t.Fatal("no code reference found")
 	}
 }
 

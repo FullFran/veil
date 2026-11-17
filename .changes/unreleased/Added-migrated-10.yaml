@@ -1,0 +1,6 @@
+kind: Added
+body: |-
+  Session retention: an optional `store.ttl` (ISO 8601 duration) in the
+  policy, swept at every start and by `veil store sweep`. No TTL deletes
+  nothing (#19).
+time: 2026-11-17T00:00:10Z

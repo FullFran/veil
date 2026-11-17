@@ -1,0 +1,8 @@
+kind: Added
+body: |-
+  Declarative, versioned policy: `VEIL_POLICY=<file>` validated against a
+  JSON Schema 2020-12 document, with an embedded default equal to the previous
+  behaviour; `veil policy [file]` prints its `sha256:` digest over the RFC 8785
+  canonical form. New codes `VEIL_POLICY_UNREADABLE` and `VEIL_POLICY_INVALID`
+  (#15).
+time: 2026-11-17T00:00:06Z

@@ -1,0 +1,5 @@
+kind: Changed
+body: |-
+  Detectors run in a fixed order whatever order the policy lists them in
+  (#15).
+time: 2026-11-17T00:00:22Z

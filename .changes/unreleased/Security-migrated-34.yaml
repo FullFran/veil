@@ -1,0 +1,5 @@
+kind: Security
+body: |-
+  GO-2026-6218 (quadratic complexity in `net/url`, reachable through the
+  policy schema loader): fixed by building with Go 1.26.11.
+time: 2026-11-17T00:00:34Z

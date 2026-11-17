@@ -1,0 +1,6 @@
+kind: Added
+body: |-
+  Failures are reported as RFC 9457 problem details: one JSON line on stderr
+  with a stable `type` (`tag:` URI) and `code`, and never a detected value,
+  path or session id (#13).
+time: 2026-11-17T00:00:05Z

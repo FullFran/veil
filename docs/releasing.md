@@ -7,10 +7,17 @@ change is marked **Breaking** in the changelog.
 
 ## Steps
 
-1. On `main`, with CI green, rename `## [Unreleased]` in
-   [`CHANGELOG.md`](../CHANGELOG.md) to `## [X.Y.Z] - YYYY-MM-DD`, add a new
-   empty `## [Unreleased]`, list every fixed vulnerability under its
-   `### Security` heading, and merge that change through a pull request.
+1. On `main`, with CI green, collect the unreleased change files into the
+   changelog with [changie](https://changie.dev) (the version pinned in
+   [`.github/workflows/hygiene.yml`](../.github/workflows/hygiene.yml)):
+
+   ```bash
+   changie batch vX.Y.Z   # .changes/unreleased/*.yaml -> .changes/vX.Y.Z.md
+   changie merge          # rebuilds CHANGELOG.md from .changes/
+   ```
+
+   Check that every fixed vulnerability is listed under `### Security`, and
+   merge that change through a pull request.
 2. Tag the merge commit and push the tag:
 
    ```bash

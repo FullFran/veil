@@ -1,0 +1,10 @@
+kind: Fixed
+body: |-
+  Rehydration writes back the first form a marker was seen written in,
+  not its canonical key, for phones, separated DNI/NIE and IBAN, and
+  Unicode lookalikes: an edit of a file holding `612345678` or
+  `12.345.678-Z` matches the file's bytes again, and a write keeps the
+  value as the agent wrote it. The form is kept inside the encrypted
+  session file (optional `written` member, format version unchanged);
+  files written earlier rehydrate to the key as before (#27).
+time: 2026-11-17T00:00:25Z
