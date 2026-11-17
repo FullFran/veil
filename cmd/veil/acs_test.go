@@ -169,6 +169,55 @@ func TestRun_ACS_ContextHooks_PseudonymizeBeforeTheModel(t *testing.T) {
 	}
 }
 
+// TestRun_ACS_UnicodeLookalikes_ArePseudonymized sends DNIs disguised with
+// full-width characters or a zero-width space inside, through a tool call
+// and a user message: the real engine must rewrite them, never allow the
+// value, and neither the disguised nor the plain form may come back.
+func TestRun_ACS_UnicodeLookalikes_ArePseudonymized(t *testing.T) {
+	values := map[string]string{
+		"full-width digits": "\uff11\uff12\uff13\uff14\uff15\uff16\uff17\uff18\uff3a",
+		"zero-width space":  "1234\u200b5678Z",
+	}
+	hooks := map[string]func(value string) (string, map[string]any){
+		"toolCallRequest": func(value string) (string, map[string]any) {
+			return "steps/toolCallRequest", map[string]any{"tool": map[string]any{"name": "Bash"},
+				"arguments": map[string]any{"command": map[string]any{"value": "echo dni " + value}}}
+		},
+		"userMessage": func(value string) (string, map[string]any) {
+			return "steps/userMessage", map[string]any{"content": []any{map[string]any{"type": "text", "value": "my DNI is " + value}}}
+		},
+	}
+	for vname, value := range values {
+		for hname, hook := range hooks {
+			t.Run(hname+"/"+vname, func(t *testing.T) {
+				isolateACS(t)
+				method, payload := hook(value)
+				var stdout, stderr bytes.Buffer
+				exit := run([]string{"acs"}, strings.NewReader(acsHook(t, method, payload)), &stdout, &stderr)
+				if exit != problem.ExitDecision || stderr.Len() != 0 {
+					t.Fatalf("exit = %d, stderr = %q, want a decision", exit, stderr.String())
+				}
+				var a acsAnswer
+				if err := json.Unmarshal(stdout.Bytes(), &a); err != nil {
+					t.Fatal(err)
+				}
+				if a.Result == nil || a.Result.Decision != "modify" {
+					t.Fatalf("answer = %s, want modify", stdout.String())
+				}
+				mods, err := json.Marshal(a.Result.Modifications)
+				if err != nil {
+					t.Fatal(err)
+				}
+				for _, leaked := range []string{value, "12345678Z"} {
+					if strings.Contains(string(mods), leaked) {
+						t.Fatalf("modifications = %s, still carry %q", mods, leaked)
+					}
+				}
+			})
+		}
+	}
+}
+
 // TestRun_ACS_FailsClosed covers the failures the acs mode adds: each is
 // one problem line on stderr, exit 1, and an answer that is never allow.
 func TestRun_ACS_FailsClosed(t *testing.T) {
