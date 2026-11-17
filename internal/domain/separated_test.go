@@ -1,6 +1,7 @@
 package domain_test
 
 import (
+	"regexp"
 	"strings"
 	"testing"
 
@@ -153,5 +154,55 @@ func TestSeparatedForms_LinearTime(t *testing.T) {
 	text := strings.Repeat(chunk, 1<<20/len(chunk))
 	if findings := detectSeparated(text); len(findings) != 0 {
 		t.Fatalf("got %d findings on near misses", len(findings))
+	}
+}
+
+// TestPolicy_PhoneWithAndWithoutPrefix_NeitherLeaks is the threat model's
+// check for one phone written bare and with its +34 prefix in the same
+// event: both forms are replaced, so neither reaches the model in clear,
+// and each marker rehydrates to a form of that same number. Whether the
+// two forms should share one marker is open (see docs/threat-model.md),
+// so this test does not pin the marker numbers.
+func TestPolicy_PhoneWithAndWithoutPrefix_NeitherLeaks(t *testing.T) {
+	registry := domain.NewRegistry(domain.NewPhoneDetector())
+	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
+
+	decision, err := policy.Evaluate(domain.Event{
+		Kind:      domain.EventPromptSubmit,
+		Host:      domain.HostOpenCode,
+		SessionID: "s1",
+		Text:      "tel 600123456 o +34 600 123 456",
+	})
+	if err != nil {
+		t.Fatalf("Evaluate: %v", err)
+	}
+	if decision.Kind != domain.Rewrite {
+		t.Fatalf("Kind = %v, want Rewrite", decision.Kind)
+	}
+	for _, clear := range []string{"600123456", "600 123 456"} {
+		if strings.Contains(decision.RedactedText, clear) {
+			t.Fatalf("RedactedText = %q still holds %q", decision.RedactedText, clear)
+		}
+	}
+	markers := regexp.MustCompile(`\[TEL-\d{3}\]`).FindAllString(decision.RedactedText, -1)
+	if len(markers) != 2 {
+		t.Fatalf("RedactedText = %q, want both forms replaced by a TEL marker", decision.RedactedText)
+	}
+
+	for _, marker := range markers {
+		write, err := policy.Evaluate(domain.Event{
+			Kind:      domain.EventToolArgs,
+			Host:      domain.HostOpenCode,
+			SessionID: "s1",
+			ToolName:  "write",
+			Text:      "content=" + marker,
+			Fields:    map[string]string{"content": marker},
+		})
+		if err != nil {
+			t.Fatalf("Evaluate write: %v", err)
+		}
+		if got := write.RedactedFields["content"]; !strings.HasSuffix(got, "600123456") {
+			t.Errorf("%s rehydrates to %q, want a form of 600123456", marker, got)
+		}
 	}
 }

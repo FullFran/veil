@@ -164,3 +164,50 @@ func TestFileStore_Forget_RemovesV1TmpLeftover(t *testing.T) {
 		t.Fatal("the v1 temp file (plaintext) survived Forget")
 	}
 }
+
+// TestFileStore_HostileSessionID_StaysInsideTheStoreDir is the threat
+// model's tampering check on the session id, which names files on disk:
+// a session id carrying path separators or ".." must never create, read
+// or remove a file outside the store directory, whatever command touches
+// it (write, reveal, forget). The sanitized names may collide; that is
+// tracked separately in docs/threat-model.md.
+func TestFileStore_HostileSessionID_StaysInsideTheStoreDir(t *testing.T) {
+	root := t.TempDir()
+	dir := filepath.Join(root, "store", "sessions")
+	if err := os.MkdirAll(dir, 0o700); err != nil {
+		t.Fatal(err)
+	}
+	victim := filepath.Join(root, "victim.txt")
+	if err := os.WriteFile(victim, []byte("not veil's"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	store := newStore(t, dir, newFakeKeyring())
+
+	hostile := []string{"../../victim", "..", "../", `..\..\victim`, "a/../../victim", "/etc/passwd", "./../x"}
+	// Failing closed on a hostile id is fine; touching a file outside the
+	// store directory is not, so the errors are not what this test checks.
+	for _, id := range hostile {
+		_, _ = store.Token(id, "DNI", "12345678Z")
+		_, _ = store.Reveal(id)
+		_ = store.Forget(id)
+	}
+
+	if got, err := os.ReadFile(victim); err != nil || string(got) != "not veil's" {
+		t.Fatalf("file outside the store dir was touched: %q, %v", got, err)
+	}
+	err := filepath.WalkDir(root, func(path string, d os.DirEntry, err error) error {
+		if err != nil {
+			return err
+		}
+		if d.IsDir() || path == victim {
+			return nil
+		}
+		if rel, _ := filepath.Rel(dir, path); rel == ".." || len(rel) > 2 && rel[:3] == ".."+string(filepath.Separator) {
+			t.Errorf("veil wrote %s outside the store dir", path)
+		}
+		return nil
+	})
+	if err != nil {
+		t.Fatal(err)
+	}
+}
