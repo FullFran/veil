@@ -3,6 +3,7 @@ package domain
 import (
 	"fmt"
 	"regexp"
+	"slices"
 	"sort"
 	"strings"
 )
@@ -192,18 +193,34 @@ func findingKey(f Finding) string {
 // first one the model was shown a token for, whatever order the
 // detectors reported their findings in. A form that is not in text (only
 // in a field) comes after every form that is.
+//
+// Only a key written in more than one form needs a position, so text is
+// searched once per distinct form of such a key and never for the common
+// key with a single form: searching for every finding made a rewrite
+// quadratic in the number of findings.
 func firstWrittenForms(text string, findings []Finding) map[string]string {
-	first := make(map[string]string, len(findings))
-	at := make(map[string]int, len(findings))
+	forms := make(map[string][]string, len(findings))
 	for _, f := range findings {
 		id := f.Category + ":" + findingKey(f)
-		pos := strings.Index(text, f.Match)
-		if pos < 0 {
-			pos = len(text)
+		if !slices.Contains(forms[id], f.Match) {
+			forms[id] = append(forms[id], f.Match)
 		}
-		if prev, seen := at[id]; !seen || pos < prev {
-			first[id], at[id] = f.Match, pos
+	}
+	first := make(map[string]string, len(forms))
+	for id, written := range forms {
+		best, bestAt := written[0], -1
+		if len(written) > 1 {
+			for _, form := range written {
+				at := strings.Index(text, form)
+				if at < 0 {
+					at = len(text)
+				}
+				if bestAt < 0 || at < bestAt {
+					best, bestAt = form, at
+				}
+			}
 		}
+		first[id] = best
 	}
 	return first
 }
