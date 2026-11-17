@@ -22,6 +22,14 @@ func writeV1(t *testing.T, dir string) string {
 	return legacy
 }
 
+// mkIDsDir creates the directory current session files live in.
+func mkIDsDir(t *testing.T, dir string) {
+	t.Helper()
+	if err := os.MkdirAll(filepath.Dir(pseudonymstore.SessionPath(dir, "x")), 0o700); err != nil {
+		t.Fatal(err)
+	}
+}
+
 // TestFileStore_Migration_IsDurableBeforeThePlaintextGoes proves the v1
 // file is removed only after the encrypted file's data and its directory
 // entry reached stable storage: a failed fsync of either keeps the v1
@@ -41,7 +49,7 @@ func TestFileStore_Migration_IsDurableBeforeThePlaintextGoes(t *testing.T) {
 			if !errors.Is(err, errDisk) {
 				t.Fatalf("err = %v, want the fsync failure", err)
 			}
-			if !exists(t, legacy) {
+			if !exists(t, legacy) && !exists(t, pseudonymstore.SessionPath(dir, "session-1")+".json") {
 				t.Fatal("the v1 file was removed although the encrypted copy was not durable")
 			}
 		})
@@ -74,7 +82,8 @@ func TestFileStore_StaleTmp_IsNeverFollowedOrKept(t *testing.T) {
 		if err := os.WriteFile(target, []byte("untouched"), 0o644); err != nil {
 			t.Fatal(err)
 		}
-		if err := os.Symlink(target, filepath.Join(dir, "session-1.age.tmp")); err != nil {
+		mkIDsDir(t, dir)
+		if err := os.Symlink(target, pseudonymstore.SessionPath(dir, "session-1")+".age.tmp"); err != nil {
 			t.Fatal(err)
 		}
 
@@ -83,20 +92,21 @@ func TestFileStore_StaleTmp_IsNeverFollowedOrKept(t *testing.T) {
 		if raw, _ := os.ReadFile(target); string(raw) != "untouched" {
 			t.Fatalf("the symlink target was written: %q", raw)
 		}
-		info, err := os.Lstat(filepath.Join(dir, "session-1.age"))
+		info, err := os.Lstat(pseudonymstore.SessionPath(dir, "session-1") + ".age")
 		if err != nil || !info.Mode().IsRegular() {
 			t.Fatalf("session file is not a regular file: %v %v", info, err)
 		}
 	})
 	t.Run("0644 file", func(t *testing.T) {
 		dir := t.TempDir()
-		if err := os.WriteFile(filepath.Join(dir, "session-1.age.tmp"), []byte("stale"), 0o644); err != nil {
+		mkIDsDir(t, dir)
+		if err := os.WriteFile(pseudonymstore.SessionPath(dir, "session-1")+".age.tmp", []byte("stale"), 0o644); err != nil {
 			t.Fatal(err)
 		}
 
 		mintOne(t, newStore(t, dir, newFakeKeyring()))
 
-		info, err := os.Stat(filepath.Join(dir, "session-1.age"))
+		info, err := os.Stat(pseudonymstore.SessionPath(dir, "session-1") + ".age")
 		if err != nil {
 			t.Fatal(err)
 		}

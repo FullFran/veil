@@ -93,7 +93,7 @@ func TestFileStore_CorruptAgeFile_FailsClosedWithCorrupt(t *testing.T) {
 	store := newStore(t, dir, kr)
 	mintOne(t, store)
 
-	path := filepath.Join(dir, "session-1.age")
+	path := pseudonymstore.SessionPath(dir, "session-1") + ".age"
 	raw, err := os.ReadFile(path)
 	if err != nil {
 		t.Fatalf("ReadFile failed: %v", err)
@@ -117,7 +117,7 @@ func TestFileStore_NoKeyring_FailsClosedWithKeyringUnavailable(t *testing.T) {
 			dir := t.TempDir()
 			_, err := newStore(t, dir, kr).Token("session-1", "DNI", "12345678Z")
 			wantErr(t, err, pseudonymstore.ErrKeyringUnavailable)
-			if exists(t, filepath.Join(dir, "session-1.age")) {
+			if exists(t, pseudonymstore.SessionPath(dir, "session-1")+".age") {
 				t.Fatal("a session file was written without a key")
 			}
 		})
@@ -133,7 +133,7 @@ func TestFileStore_HostKeyByFD_WinsOverKeyring(t *testing.T) {
 	keys := &pseudonymstore.KeyChain{FD: keyFD(t, "# host key\n"+host.String()+"\n"), Keyring: kr}
 	mintOne(t, pseudonymstore.NewFileStore(dir, keys))
 
-	raw, err := os.ReadFile(filepath.Join(dir, "session-1.age"))
+	raw, err := os.ReadFile(pseudonymstore.SessionPath(dir, "session-1") + ".age")
 	if err != nil {
 		t.Fatalf("ReadFile failed: %v", err)
 	}
@@ -178,7 +178,7 @@ func TestFileStore_SystemdCredential_WinsOverKeyring_AndAbsentOneFallsThrough(t 
 	kr := newFakeKeyring()
 	dir := t.TempDir()
 	mintOne(t, pseudonymstore.NewFileStore(dir, &pseudonymstore.KeyChain{CredentialsDir: creds, Keyring: kr}))
-	raw, _ := os.ReadFile(filepath.Join(dir, "session-1.age"))
+	raw, _ := os.ReadFile(pseudonymstore.SessionPath(dir, "session-1") + ".age")
 	if _, err := age.Decrypt(bytesReader(raw), cred); err != nil {
 		t.Fatalf("session file does not open with the systemd credential: %v", err)
 	}
@@ -209,7 +209,7 @@ func TestFileStore_MigratesV1Plaintext_AndRemovesIt(t *testing.T) {
 	if exists(t, legacy) {
 		t.Fatal("the v1 plaintext file is still on disk after migration")
 	}
-	if !exists(t, filepath.Join(dir, "session-1.age")) {
+	if !exists(t, pseudonymstore.SessionPath(dir, "session-1")+".age") {
 		t.Fatal("no v2 age file after migration")
 	}
 	next, err := store.Token("session-1", "DNI", "87654321X")
@@ -227,7 +227,7 @@ func TestFileStore_UnparsableV1_FailsClosedAndKeepsIt(t *testing.T) {
 
 	_, err := newStore(t, dir, newFakeKeyring()).Token("session-1", "DNI", "12345678Z")
 	wantErr(t, err, pseudonymstore.ErrCorrupt)
-	if !exists(t, legacy) {
+	if !exists(t, legacy) && !exists(t, pseudonymstore.SessionPath(dir, "session-1")+".json") {
 		t.Fatal("an unmigratable v1 file was removed")
 	}
 }
@@ -284,7 +284,7 @@ func TestFileStore_Forget_RemovesStoreAndLock(t *testing.T) {
 			t.Errorf("%s still exists after Forget", name)
 		}
 	}
-	if !exists(t, filepath.Join(dir, "session-1.ctr")) {
+	if !exists(t, pseudonymstore.SessionPath(dir, "session-1")+".ctr") {
 		t.Error("Forget removed the counters file")
 	}
 	// Same value, new mapping: the old marker is never minted again.
@@ -305,7 +305,7 @@ func TestFileStore_HeldLock_FailsClosedWithLocked(t *testing.T) {
 	dir := t.TempDir()
 	store := newStore(t, dir, newFakeKeyring())
 	mintOne(t, store)
-	pseudonymstore.HoldLock(t, filepath.Join(dir, "session-1.json.lock"))
+	pseudonymstore.HoldLock(t, pseudonymstore.SessionPath(dir, "session-1")+".lock")
 
 	_, err := store.Token("session-1", "DNI", "87654321X")
 	wantErr(t, err, pseudonymstore.ErrLocked)

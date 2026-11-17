@@ -13,10 +13,10 @@
 // file.
 //
 // Format v2: each session is one age v1 file (C2SP age-encryption.org/v1)
-// at <dir>/<session>.age, encrypted to the store's X25519 identity (see
+// at <dir>/ids/<stem>.age (see naming.go for the stem), encrypted to the store's X25519 identity (see
 // Keys). The plaintext inside is the JSON sessionFile below, so no real
 // value and no "category:original" key is on disk in clear. A v1
-// plaintext <session>.json is migrated on first access and then removed.
+// plaintext <stem>.json is migrated on first access and then removed.
 //
 // Retention: a session file's mtime is its last use. Every write sets it,
 // and so does every token lookup and rehydration, without rewriting the
@@ -80,7 +80,8 @@ type Marker struct {
 }
 
 // FileStore implements domain.PseudonymStore by keeping one age file per
-// session, at <dir>/<sessionID>.age, created with 0600 permissions.
+// session, at <dir>/ids/<stem>.age (see naming.go), created with 0600
+// permissions.
 type FileStore struct {
 	dir  string
 	keys Keys
@@ -112,60 +113,42 @@ func DefaultDir() string {
 	return filepath.Join(os.TempDir(), "veil-sessions")
 }
 
-// basePath returns the session's path without extension, sanitized to a
-// safe filename so a hostile or malformed session ID can never escape dir
-// via a path separator or "..".
-func (s *FileStore) basePath(sessionID string) string {
-	safe := strings.NewReplacer("/", "_", "\\", "_", "..", "_").Replace(sessionID)
-	if safe == "" {
-		safe = "unknown-session"
-	}
-	return filepath.Join(s.dir, safe)
-}
-
-func (s *FileStore) agePath(sessionID string) string      { return s.basePath(sessionID) + ".age" }
-func (s *FileStore) countersPath(sessionID string) string { return s.basePath(sessionID) + ".ctr" }
-func (s *FileStore) legacyPath(sessionID string) string   { return s.basePath(sessionID) + ".json" }
-
-// lockPath returns the process-mutex lock file path for sessionID. It
-// keeps the v1 name, so a v1 and a v2 binary running side by side during
-// an upgrade still serialize on the same lock.
-func (s *FileStore) lockPath(sessionID string) string {
-	return s.legacyPath(sessionID) + ".lock"
-}
-
 // Token implements domain.PseudonymStore. It takes the session lock (see
 // acquireLock) around the read-modify-write cycle, so two veil processes
 // racing to handle two hook calls from the same OpenCode session in close succession cannot
-// interleave and corrupt each other's counters.
+// interleave and corrupt each other's counters. An empty session id fails
+// closed with ErrSessionIDMissing.
 func (s *FileStore) Token(sessionID, category, original string) (string, error) {
 	return s.TokenFor(sessionID, category, original, original)
 }
 
 // TokenFor implements domain.PseudonymStore.TokenFor (see Token for the
-// locking).
+// locking and the empty session id).
 func (s *FileStore) TokenFor(sessionID, category, original, written string) (string, error) {
-	if err := os.MkdirAll(s.dir, 0o700); err != nil {
-		return "", fmt.Errorf("pseudonymstore: create %s: %w", s.dir, err)
+	if sessionID == "" {
+		return "", ErrSessionIDMissing
 	}
-	if err := securePrivateDir(s.dir); err != nil {
+	if err := s.ensureDirs(); err != nil {
 		return "", err
 	}
-
-	unlock, err := acquireLock(s.lockPath(sessionID))
+	c := s.current(sessionID)
+	unlock, err := acquireLock(c.lockPath())
 	if err != nil {
 		return "", err
 	}
 	defer unlock()
+	if err := s.migrate(c, true); err != nil {
+		return "", err
+	}
 
-	data, err := s.open(sessionID)
+	data, err := s.open(c)
 	if err != nil {
 		return "", err
 	}
 
 	key := category + ":" + original
 	if token, ok := data.Mapping[key]; ok {
-		if err := s.touch(sessionID); err != nil {
+		if err := s.touch(c); err != nil {
 			return "", err
 		}
 		return token, nil
@@ -182,7 +165,7 @@ func (s *FileStore) TokenFor(sessionID, category, original, written string) (str
 		data.Written[token] = w
 	}
 
-	if err := s.save(sessionID, data); err != nil {
+	if err := s.save(c, data); err != nil {
 		return "", err
 	}
 	return token, nil
@@ -230,26 +213,70 @@ func (s *FileStore) Reveal(sessionID string) ([]Marker, error) {
 // Forget removes the session's store (the age file, any v1 plaintext file
 // and an interrupted write) and then its lock. It holds the lock while it
 // deletes, so it never removes a file under a writer. Forgetting an
-// unknown session succeeds. It needs no key.
+// unknown session succeeds. It needs no key. It reaches only this
+// session's files: a legacy file several ids shared is removed with
+// ForgetLegacy, never through one of them.
 func (s *FileStore) Forget(sessionID string) error {
+	if sessionID == "" {
+		return ErrSessionIDMissing
+	}
 	if _, err := os.Stat(s.dir); errors.Is(err, fs.ErrNotExist) {
 		return nil
 	}
 	if err := securePrivateDir(s.dir); err != nil {
 		return err
 	}
-
-	unlock, err := acquireLock(s.lockPath(sessionID))
+	if !exists(s.idsPath()) && !s.adoptable(sessionID) {
+		return nil
+	}
+	if err := s.ensureDirs(); err != nil {
+		return err
+	}
+	c := s.current(sessionID)
+	unlock, err := acquireLock(c.lockPath())
 	if err != nil {
 		return err
 	}
 	defer unlock()
-	return s.removeLocked(sessionID)
+	if err := s.migrate(c, false); err != nil {
+		return err
+	}
+	return s.removeLocked(c)
+}
+
+// ForgetLegacy removes the store files a veil before #26 left under stem
+// in the store directory, as Forget does for a session, keeping its
+// counters file. It is how a stem several session ids shared (see
+// ambiguousLegacy) is erased, since no session id reaches it. A stem
+// that is not a plain file name fails with ErrLegacyStemInvalid.
+func (s *FileStore) ForgetLegacy(stem string) error {
+	if stem == "" || stem == "." || stem == ".." || strings.ContainsAny(stem, `/\`) || filepath.Base(stem) != stem {
+		return ErrLegacyStemInvalid
+	}
+	if _, err := os.Stat(s.dir); errors.Is(err, fs.ErrNotExist) {
+		return nil
+	}
+	if err := securePrivateDir(s.dir); err != nil {
+		return err
+	}
+	l := s.legacyAt(stem)
+	unlock, err := acquireLock(l.lockPath())
+	if err != nil {
+		return err
+	}
+	defer unlock()
+	return s.removeLocked(l)
+}
+
+// adoptable reports whether sessionID has legacy files migrate would move.
+func (s *FileStore) adoptable(sessionID string) bool {
+	l := s.legacyOf(sessionID)
+	return !ambiguousLegacy(l.stem) && (l.hasAny() || l.hasLeftover())
 }
 
 // removeLocked deletes every file of the session's store. The caller holds
-// the session lock. It is the one deletion path: Forget and Sweep both
-// use it.
+// the session lock. It is the one deletion path: Forget, ForgetLegacy and
+// Sweep all use it.
 //
 // It keeps the session's counters file (see countersFile), so a session
 // resumed after removal never mints a marker number it used before. A
@@ -258,24 +285,24 @@ func (s *FileStore) Forget(sessionID string) error {
 // hand; without either, the session is retired (a tombstone), and removal
 // still goes ahead, since erasure must never be blocked. The directory is
 // synced afterwards, so a removed file cannot come back after a crash.
-func (s *FileStore) removeLocked(sessionID string) error {
-	if !exists(s.countersPath(sessionID)) && (exists(s.agePath(sessionID)) || exists(s.legacyPath(sessionID))) {
-		data, err := s.readOnly(sessionID)
+func (s *FileStore) removeLocked(l loc) error {
+	if !exists(l.countersPath()) && l.hasStore() {
+		data, err := s.readOnly(l)
 		switch {
 		case err != nil:
-			if err := s.retire(sessionID); err != nil {
+			if err := s.retire(l); err != nil {
 				return err
 			}
 		case len(data.Counters) > 0:
-			if err := s.writeCounters(sessionID, data.Counters); err != nil {
+			if err := s.writeCounters(l, data.Counters); err != nil {
 				return err
 			}
 		}
 	}
 	paths := []string{
-		s.agePath(sessionID), s.agePath(sessionID) + ".tmp",
+		l.agePath(), l.agePath() + ".tmp",
 		// v1 files, including an interrupted v1 write: both hold plaintext.
-		s.legacyPath(sessionID), s.legacyPath(sessionID) + ".tmp",
+		l.v1Path(), l.v1Path() + ".tmp",
 	}
 	removed := false
 	for _, path := range paths {
@@ -288,53 +315,65 @@ func (s *FileStore) removeLocked(sessionID string) error {
 		}
 	}
 	if removed {
-		if err := syncDir(s.dir); err != nil {
+		if err := syncDir(l.dir); err != nil {
 			return fmt.Errorf("pseudonymstore: sync dir: %w", err)
 		}
 	}
 	return nil
 }
 
-// peek reads a session under its lock without writing anything (see
-// readOnly). A session with no file is empty.
-func (s *FileStore) peek(sessionID string) (*sessionFile, error) {
-	if !exists(s.agePath(sessionID)) && !exists(s.legacyPath(sessionID)) {
+// peek reads a location under its lock without writing anything (see
+// readOnly). A location with no file is empty.
+func (s *FileStore) peek(l loc) (*sessionFile, error) {
+	if !l.hasStore() {
 		return emptySession(), nil
 	}
-	if err := securePrivateDir(s.dir); err != nil {
+	if err := securePrivateDir(l.dir); err != nil {
 		return nil, err
 	}
-	unlock, err := acquireLock(s.lockPath(sessionID))
+	unlock, err := acquireLock(l.lockPath())
 	if err != nil {
 		return nil, err
 	}
 	defer unlock()
-	return s.readOnly(sessionID)
+	return s.readOnly(l)
 }
 
 // load loads a session for a read-only operation, refreshing its last-use
 // time when use is set. A session with no file at all is empty and needs
-// neither the lock nor a key, so a read never generates a key.
+// neither the lock nor a key, so a read never generates a key. A legacy
+// file only this session can have written is migrated first; one several
+// ids shared is never read (see migrate).
 func (s *FileStore) load(sessionID string, use bool) (*sessionFile, error) {
-	if !exists(s.agePath(sessionID)) && !exists(s.legacyPath(sessionID)) {
+	if sessionID == "" {
+		return nil, ErrSessionIDMissing
+	}
+	c := s.current(sessionID)
+	if !c.hasStore() && !s.adoptable(sessionID) {
 		return emptySession(), nil
 	}
-	if err := securePrivateDir(s.dir); err != nil {
+	if err := s.ensureDirs(); err != nil {
 		return nil, err
 	}
 
-	unlock, err := acquireLock(s.lockPath(sessionID))
+	unlock, err := acquireLock(c.lockPath())
 	if err != nil {
 		return nil, err
 	}
 	defer unlock()
+	if err := s.migrate(c, false); err != nil {
+		return nil, err
+	}
+	if !c.hasStore() {
+		return emptySession(), nil
+	}
 
-	data, err := s.open(sessionID)
+	data, err := s.open(c)
 	if err != nil {
 		return nil, err
 	}
 	if use {
-		if err := s.touch(sessionID); err != nil {
+		if err := s.touch(c); err != nil {
 			return nil, err
 		}
 	}
@@ -343,9 +382,9 @@ func (s *FileStore) load(sessionID string, use bool) (*sessionFile, error) {
 
 // touch sets the session file's mtime, its last-use time, to now. The
 // caller holds the session lock.
-func (s *FileStore) touch(sessionID string) error {
+func (s *FileStore) touch(l loc) error {
 	now := s.now()
-	if err := os.Chtimes(s.agePath(sessionID), now, now); err != nil {
+	if err := os.Chtimes(l.agePath(), now, now); err != nil {
 		return fmt.Errorf("pseudonymstore: touch: %w", err)
 	}
 	return nil
@@ -358,26 +397,26 @@ func (s *FileStore) touch(sessionID string) error {
 // closed: veil must never silently start over on a mapping it cannot
 // read, since that could reuse a token number already sent to the model
 // for a different original value.
-func (s *FileStore) open(sessionID string) (*sessionFile, error) {
-	raw, err := os.ReadFile(s.agePath(sessionID))
+func (s *FileStore) open(l loc) (*sessionFile, error) {
+	raw, err := os.ReadFile(l.agePath())
 	switch {
 	case err == nil:
 		data, err := s.decrypt(raw)
 		if err != nil {
 			return nil, err
 		}
-		if err := removeIfExists(s.legacyPath(sessionID)); err != nil {
+		if err := removeIfExists(l.v1Path()); err != nil {
 			return nil, err
 		}
-		return data, s.raiseCounters(sessionID, data)
+		return data, s.raiseCounters(l, data)
 	case !errors.Is(err, fs.ErrNotExist):
 		return nil, fmt.Errorf("pseudonymstore: read: %w", err)
 	}
 
-	legacy, err := os.ReadFile(s.legacyPath(sessionID))
+	legacy, err := os.ReadFile(l.v1Path())
 	if errors.Is(err, fs.ErrNotExist) {
 		data := emptySession()
-		return data, s.raiseCounters(sessionID, data)
+		return data, s.raiseCounters(l, data)
 	}
 	if err != nil {
 		return nil, fmt.Errorf("pseudonymstore: read v1: %w", err)
@@ -386,13 +425,13 @@ func (s *FileStore) open(sessionID string) (*sessionFile, error) {
 	if err != nil {
 		return nil, err
 	}
-	if err := s.raiseCounters(sessionID, data); err != nil {
+	if err := s.raiseCounters(l, data); err != nil {
 		return nil, err
 	}
-	if err := s.save(sessionID, data); err != nil {
+	if err := s.save(l, data); err != nil {
 		return nil, err
 	}
-	if err := removeIfExists(s.legacyPath(sessionID)); err != nil {
+	if err := removeIfExists(l.v1Path()); err != nil {
 		return nil, err
 	}
 	return data, nil
@@ -453,7 +492,7 @@ func parse(raw []byte) (*sessionFile, error) {
 // power loss mid-write can leave a half-written session file behind, and
 // the new file is durable when save returns. It may generate the store key (keyring
 // first use): only a write, under the session lock, ever does.
-func (s *FileStore) save(sessionID string, data *sessionFile) error {
+func (s *FileStore) save(l loc, data *sessionFile) error {
 	id, err := s.keys.Identity(true)
 	if err != nil {
 		return err
@@ -461,7 +500,7 @@ func (s *FileStore) save(sessionID string, data *sessionFile) error {
 
 	// The counters file is durable before the session file that uses its
 	// numbers, so a crash can skip a number but never reuse one.
-	if err := s.writeCounters(sessionID, data.Counters); err != nil {
+	if err := s.writeCounters(l, data.Counters); err != nil {
 		return err
 	}
 
@@ -483,7 +522,7 @@ func (s *FileStore) save(sessionID string, data *sessionFile) error {
 		return fmt.Errorf("pseudonymstore: encrypt: %w", err)
 	}
 
-	path := s.agePath(sessionID)
+	path := l.agePath()
 	tmp := path + ".tmp"
 	if err := writeSynced(tmp, buf.Bytes()); err != nil {
 		return err
@@ -491,13 +530,13 @@ func (s *FileStore) save(sessionID string, data *sessionFile) error {
 	if err := os.Rename(tmp, path); err != nil {
 		return fmt.Errorf("pseudonymstore: rename: %w", err)
 	}
-	if err := s.touch(sessionID); err != nil {
+	if err := s.touch(l); err != nil {
 		return err
 	}
 	// The rename is durable only once the directory entry is: until then
 	// a power loss can bring back the old file, so a caller must not
 	// remove a v1 plaintext file before this returns.
-	if err := syncDir(s.dir); err != nil {
+	if err := syncDir(l.dir); err != nil {
 		return fmt.Errorf("pseudonymstore: sync dir: %w", err)
 	}
 	return nil
@@ -513,7 +552,7 @@ func writeSynced(path string, data []byte) error {
 	if err := removeIfExists(path); err != nil {
 		return err
 	}
-	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600) // #nosec G304 -- path is built from the sessions directory and a sanitized session id (basePath)
+	f, err := os.OpenFile(path, os.O_WRONLY|os.O_CREATE|os.O_EXCL, 0o600) // #nosec G304 -- path is the store directory plus a base32 stem or a legacy stem read from it (naming.go)
 	if err != nil {
 		return fmt.Errorf("pseudonymstore: write: %w", err)
 	}

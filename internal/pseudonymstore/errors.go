@@ -24,4 +24,11 @@ var (
 	// could not be read, so it can never mint again without risking a
 	// repeated marker. The host must use a new session id.
 	ErrSessionRetired = errors.New("pseudonymstore: session retired")
+	// ErrSessionIDMissing: the host gave no session id. The store never
+	// keys a mapping by an empty id: a shared bucket would link unrelated
+	// conversations.
+	ErrSessionIDMissing = errors.New("pseudonymstore: session id missing")
+	// ErrLegacyStemInvalid: ForgetLegacy was given something that is not
+	// a plain file name in the store directory.
+	ErrLegacyStemInvalid = errors.New("pseudonymstore: legacy stem invalid")
 )
