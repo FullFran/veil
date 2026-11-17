@@ -171,3 +171,18 @@ func TestRelease_GoReleaserOnlyBuilds(t *testing.T) {
 		}
 	}
 }
+
+// TestCI_EnforcesStatementCoverage: ci.yml measures statement coverage over
+// the whole module on every pull request and fails below 80% (OpenSSF Best
+// Practices silver, test_statement_coverage80).
+func TestCI_EnforcesStatementCoverage(t *testing.T) {
+	body, ok := workflows(t)["ci.yml"]
+	if !ok {
+		t.Fatal("ci.yml not found")
+	}
+	for _, want := range []string{"-coverpkg=./...", "-coverprofile=", "go tool cover -func", "MIN_COVERAGE: \"80\""} {
+		if !strings.Contains(body, want) {
+			t.Errorf("ci.yml does not contain %q", want)
+		}
+	}
+}
