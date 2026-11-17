@@ -321,6 +321,10 @@ veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped"
   [Retention](#retention-and-data-subject-requests)). It needs no key, on purpose: a lost key must never
   block an erasure, and without the key the file is unreadable anyway. An
   unknown session succeeds. It reaches only that session id's files.
+  **The session id itself outlives `forget`:** a file stem is the id in
+  base32, which anyone can decode, and the counters file (and, for a long
+  id, the `.id` file) stays. Hosts must not put personal data in session
+  ids; use random ones such as UUIDs.
   `forget --legacy-stem <stem>` does the same for a store left under a
   shared pre-#26 name (see [Migration](#migration-from-the-lossy-file-names));
   a stem that is not a plain file name is bad usage.
@@ -331,7 +335,10 @@ veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped"
   [Retention and data subject requests](#retention-and-data-subject-requests).
 - `sweep` removes the sessions unused for longer than the policy's
   `store.ttl`. See below. Shared pre-#26 stores are reported apart, under
-  `legacy_stems`, by their stem.
+  `legacy_stems`, by their stem. A file in `ids/` whose name maps to no
+  session id (tampered, or a long id whose `.id` file is gone) is
+  reported under `failed` as `ids/<stem>` with `VEIL_STORE_CORRUPT`, and
+  the sweep goes on with the others; `find` fails closed on it instead.
 - All exit 0 on success, 1 with a problem line on a store failure, 2 on
   bad arguments. On a failure stdout is empty, except for a `sweep` that
   failed on some sessions: it still prints its answer (session ids only,
@@ -475,6 +482,14 @@ old lock name (`<stem>.json.lock`), with no command to run:
 
 Stop every older veil before the first new one runs (see Format): an
 older veil does not know `ids/`.
+
+On a case-insensitive filesystem (the macOS and Windows defaults), two
+session ids that differ only in case (`Sess-1`, `sess-1`) already shared
+one legacy file before #26, and the stem cannot tell which wrote it: the
+first of them used after the upgrade adopts it, and the other starts
+empty, with no counters. New files never fold (base32 is single-case);
+this only concerns stores written before, by hosts whose ids differ only
+in case.
 
 ### Threat model
 

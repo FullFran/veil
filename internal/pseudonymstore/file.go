@@ -398,6 +398,11 @@ func (s *FileStore) touch(l loc) error {
 // read, since that could reuse a token number already sent to the model
 // for a different original value.
 func (s *FileStore) open(l loc) (*sessionFile, error) {
+	// A hashed stem is checked against its .id file on every opening, not
+	// only when the file is first written (see claim).
+	if err := s.claim(l); err != nil {
+		return nil, err
+	}
 	raw, err := os.ReadFile(l.agePath())
 	switch {
 	case err == nil:

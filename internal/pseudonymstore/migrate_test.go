@@ -294,3 +294,115 @@ func TestForgetLegacy_RefusesAnythingButAPlainName(t *testing.T) {
 		}
 	}
 }
+
+// TestMigration_UnambiguousLegacy_KeepsItsWrittenForms proves the
+// migration carries each marker's first written form (#27) over with the
+// file: after the move the marker still rehydrates to "612 345 678", not
+// to its canonical key, and a later form of the same key keeps it.
+func TestMigration_UnambiguousLegacy_KeepsItsWrittenForms(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	const session = "5b7a6e2a-6a2e-4b7a"
+	token, err := newStore(t, dir, kr).TokenFor(session, "TEL", "+34612345678", "612 345 678")
+	if err != nil {
+		t.Fatal(err)
+	}
+	for _, suffix := range []string{".age", ".ctr"} {
+		if err := os.Rename(pseudonymstore.SessionPath(dir, session)+suffix, legacyFile(dir, session, suffix)); err != nil {
+			t.Fatal(err)
+		}
+	}
+	store := newStore(t, dir, kr)
+
+	again, err := store.TokenFor(session, "TEL", "+34612345678", "+34 612 345 678")
+	if err != nil || again != token {
+		t.Fatalf("TokenFor after migration = %q, %v; want %s", again, err, token)
+	}
+	got, ok, err := store.Original(session, token)
+	if err != nil || !ok || got != "612 345 678" {
+		t.Fatalf("Original = %q, %v, %v; want the first written form", got, ok, err)
+	}
+	if _, err := os.Stat(legacyFile(dir, session, ".age")); !os.IsNotExist(err) {
+		t.Fatal("the legacy age file was not moved")
+	}
+}
+
+// TestHashedStem_TamperedIDFile_FailsClosed proves the .id file of a
+// hashed stem is checked on every opening of the session, not only when
+// it is first written: one naming another id fails Token, Original and
+// Reveal closed with ErrCorrupt.
+func TestHashedStem_TamperedIDFile_FailsClosed(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	long := strings.Repeat("x", 200)
+	token := mint(t, newStore(t, dir, kr), long, "DNI", "12345678Z")
+	if err := os.WriteFile(pseudonymstore.SessionPath(dir, long)+".id", []byte(long+"y"), 0o600); err != nil {
+		t.Fatal(err)
+	}
+	store := newStore(t, dir, kr)
+
+	if _, err := store.Token(long, "DNI", "12345678Z"); !errors.Is(err, pseudonymstore.ErrCorrupt) {
+		t.Errorf("Token = %v, want ErrCorrupt", err)
+	}
+	if _, _, err := store.Original(long, token); !errors.Is(err, pseudonymstore.ErrCorrupt) {
+		t.Errorf("Original = %v, want ErrCorrupt", err)
+	}
+	if _, err := store.Reveal(long); !errors.Is(err, pseudonymstore.ErrCorrupt) {
+		t.Errorf("Reveal = %v, want ErrCorrupt", err)
+	}
+}
+
+// TestHashedStem_MissingIDFile_IsRestored proves a deleted .id file is
+// written again on the next use: the stem is the SHA-256 of the id the
+// caller names, so that id is provably the session's (barring a
+// collision), and reports name it again.
+func TestHashedStem_MissingIDFile_IsRestored(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	long := strings.Repeat("x", 200)
+	token := mint(t, newStore(t, dir, kr), long, "DNI", "12345678Z")
+	idFile := pseudonymstore.SessionPath(dir, long) + ".id"
+	if err := os.Remove(idFile); err != nil {
+		t.Fatal(err)
+	}
+
+	got, ok, err := newStore(t, dir, kr).Original(long, token)
+	if err != nil || !ok || got != "12345678Z" {
+		t.Fatalf("Original = %q, %v, %v", got, ok, err)
+	}
+	if raw, err := os.ReadFile(idFile); err != nil || string(raw) != long {
+		t.Fatalf(".id file = %q, %v; want the session id", raw, err)
+	}
+}
+
+// TestSweep_UnnameableEntry_IsReportedAsFailedAndTheRestIsSwept proves one
+// file in ids/ that names no session (bad base32, or a hashed stem whose
+// .id file is gone) does not stop retention: it is reported under failed
+// by its file stem, the error is ErrCorrupt, and every other expired
+// session is still removed. Find, which must not answer partially, fails
+// closed instead.
+func TestSweep_UnnameableEntry_IsReportedAsFailedAndTheRestIsSwept(t *testing.T) {
+	dir := t.TempDir()
+	kr := newFakeKeyring()
+	t0 := time.Date(2026, 1, 1, 0, 0, 0, 0, time.UTC)
+	long := strings.Repeat("x", 200)
+	for _, id := range []string{"sess-1", long} {
+		mint(t, clockAt(t, dir, kr, t0), id, "DNI", "12345678Z")
+	}
+	stem := filepath.Base(pseudonymstore.SessionPath(dir, long))
+	if err := os.Remove(pseudonymstore.SessionPath(dir, long) + ".id"); err != nil {
+		t.Fatal(err)
+	}
+
+	got, err := clockAt(t, dir, kr, t0.Add(48*time.Hour)).Sweep(time.Hour, 0)
+
+	if !errors.Is(err, pseudonymstore.ErrCorrupt) {
+		t.Fatalf("Sweep err = %v, want ErrCorrupt", err)
+	}
+	if !reflect.DeepEqual(got.Forgotten, []string{"sess-1"}) || !reflect.DeepEqual(got.Failed, []string{"ids/" + stem}) {
+		t.Fatalf("Sweep = %+v, want sess-1 forgotten and ids/%s failed", got, stem)
+	}
+	if _, err := newStore(t, dir, kr).Find([]string{"12345678Z"}); !errors.Is(err, pseudonymstore.ErrCorrupt) {
+		t.Fatalf("Find = %v, want ErrCorrupt", err)
+	}
+}

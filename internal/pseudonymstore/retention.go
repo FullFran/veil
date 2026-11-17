@@ -85,12 +85,18 @@ func (e entry) name() string {
 // Legacy files are swept where they are, without migrating them.
 func (s *FileStore) Sweep(ttl time.Duration, limit int) (SweepResult, error) {
 	result := NewSweepResult()
-	entries, err := s.entries()
+	entries, unnamed, err := s.entries()
 	if err != nil {
 		return result, err
 	}
 	now := s.now()
 	var failures []error
+	// A file that names no session must not stop retention for the
+	// others: it is reported by its file name and the sweep goes on.
+	for _, stem := range unnamed {
+		result.Failed = append(result.Failed, idsDir+"/"+stem)
+		failures = append(failures, fmt.Errorf("%w: a store file name maps to no session id", ErrCorrupt))
+	}
 	done := 0
 	for _, e := range entries {
 		if limit > 0 && done >= limit {
@@ -170,9 +176,12 @@ func (s *FileStore) Find(values []string) ([]Holding, error) {
 	for _, v := range values {
 		want[v] = struct{}{}
 	}
-	entries, err := s.entries()
+	entries, unnamed, err := s.entries()
 	if err != nil {
 		return nil, err
+	}
+	if len(unnamed) > 0 { // an incomplete answer is worse than none
+		return nil, fmt.Errorf("%w: a store file name maps to no session id", ErrCorrupt)
 	}
 
 	holdings := []Holding{}
@@ -221,22 +230,24 @@ func (s *FileStore) Find(values []string) ([]Holding, error) {
 // legacy ones in the store directory, sorted by stem. A legacy stem only
 // one session id can have produced is that session id; an ambiguous one
 // has none. A current file whose stem veil cannot map back to a session
-// id fails closed (ErrCorrupt). A missing directory has none.
-func (s *FileStore) entries() ([]entry, error) {
+// id (not canonical base32, or a hashed stem without a matching .id file)
+// is returned in unnamed, by stem: Sweep reports it as failed and goes
+// on, Find fails closed. A missing directory has none.
+func (s *FileStore) entries() (out []entry, unnamed []string, err error) {
 	legacy, err := s.stems(s.dir)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	current, err := s.stems(s.idsPath())
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 
-	var out []entry
 	for _, stem := range current {
 		id, ok := s.idOf(stem)
 		if !ok {
-			return nil, fmt.Errorf("%w: a store file name maps to no session id", ErrCorrupt)
+			unnamed = append(unnamed, stem)
+			continue
 		}
 		stem, hashed := encodeStem(id)
 		out = append(out, entry{loc: loc{dir: s.idsPath(), stem: stem, id: id, hashed: hashed}, id: id})
@@ -249,7 +260,7 @@ func (s *FileStore) entries() ([]entry, error) {
 		}
 		out = append(out, e)
 	}
-	return out, nil
+	return out, unnamed, nil
 }
 
 // stems lists the stems of the mapping files (age or v1) in dir, sorted.

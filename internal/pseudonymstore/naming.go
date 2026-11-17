@@ -175,9 +175,11 @@ func (s *FileStore) idOf(stem string) (string, bool) {
 }
 
 // claim writes a hashed location's .id file before any other file of the
-// session, so the stem can always be named. A plain stem needs none. An
-// .id file naming another id fails closed: it would be a SHA-256
-// collision, or tampering. The caller holds the session lock.
+// session, so the stem can always be named, and checks it on every
+// opening. A plain stem needs none. An .id file naming another id fails
+// closed: it would be a SHA-256 collision, or tampering. A missing one is
+// written again: the stem is the SHA-256 of the id the caller names, so
+// that id is provably the session's. The caller holds the session lock.
 func (s *FileStore) claim(l loc) error {
 	if !l.hashed {
 		return nil
