@@ -84,7 +84,7 @@ func rehydrate(t *testing.T, policy *domain.Policy, session, content string) str
 
 // TestPolicy_OnePhoneEveryForm_OneMarker is issue #27: the same phone
 // written bare and with its country code is one contact to the model, and
-// the marker rehydrates to the canonical E.164 form.
+// the marker rehydrates to the first form written.
 func TestPolicy_OnePhoneEveryForm_OneMarker(t *testing.T) {
 	policy := domain.NewPolicy(domain.NewRegistry(domain.NewPhoneDetector()), domain.NewMemoryPseudonymStore())
 
@@ -103,15 +103,15 @@ func TestPolicy_OnePhoneEveryForm_OneMarker(t *testing.T) {
 	if want := "a [TEL-001] b [TEL-001] c [TEL-001] d [TEL-001]"; decision.RedactedText != want {
 		t.Errorf("RedactedText = %q, want %q", decision.RedactedText, want)
 	}
-	if got := rehydrate(t, policy, "s1", "[TEL-001]"); got != e164 {
-		t.Errorf("[TEL-001] rehydrates to %q, want %q", got, e164)
+	if got := rehydrate(t, policy, "s1", "[TEL-001]"); got != "612345678" {
+		t.Errorf("[TEL-001] rehydrates to %q, want the first written form 612345678", got)
 	}
 }
 
 // TestPolicy_ExistingSessionPhoneMarkers_KeepTheirMeaning covers a session
 // whose store already holds a phone under the old bare key: that marker is
 // never merged or renumbered and still rehydrates to what it was minted
-// for; the number seen again gets the session's E.164 marker.
+// for; the number seen again gets a new marker keyed by its E.164 form.
 func TestPolicy_ExistingSessionPhoneMarkers_KeepTheirMeaning(t *testing.T) {
 	store := domain.NewMemoryPseudonymStore()
 	old, err := store.Token("s1", "TEL", "612345678")
@@ -138,7 +138,7 @@ func TestPolicy_ExistingSessionPhoneMarkers_KeepTheirMeaning(t *testing.T) {
 	if got := rehydrate(t, policy, "s1", "[TEL-001]"); got != "612345678" {
 		t.Errorf("[TEL-001] rehydrates to %q, want the value it was minted for", got)
 	}
-	if got := rehydrate(t, policy, "s1", "[TEL-002]"); got != e164 {
-		t.Errorf("[TEL-002] rehydrates to %q, want %q", got, e164)
+	if got := rehydrate(t, policy, "s1", "[TEL-002]"); got != "612345678" {
+		t.Errorf("[TEL-002] rehydrates to %q, want its first written form 612345678", got)
 	}
 }

@@ -97,10 +97,16 @@ Each release's notes on GitHub are its section of this file
 
 - One Spanish phone is one marker however it is written: `612345678`,
   `612 345 678`, `0034612345678` and `(+34) 612-345-678` are keyed by their
-  ITU-T E.164 form, `+34612345678`, which is also what rehydration writes
-  back and what `veil store find` matches. The compact `0034` prefix is now
-  detected. Markers an existing session already holds are not merged or
-  renumbered (#27).
+  ITU-T E.164 form, `+34612345678`, which is what `veil store find`
+  matches. The compact `0034` prefix is now detected. Markers an existing
+  session already holds are not merged or renumbered (#27).
+- Rehydration writes back the first form a marker was seen written in,
+  not its canonical key, for phones, separated DNI/NIE and IBAN, and
+  Unicode lookalikes: an edit of a file holding `612345678` or
+  `12.345.678-Z` matches the file's bytes again, and a write keeps the
+  value as the agent wrote it. The form is kept inside the encrypted
+  session file (optional `written` member, format version unchanged);
+  files written earlier rehydrate to the key as before (#27).
 - Catalog names are cut at rune offsets: inputs such as `¿Ana García` no
   longer leak in clear or panic on multibyte runes (#4).
 - IBAN, DNI/NIE and Spanish phone numbers written with separators are

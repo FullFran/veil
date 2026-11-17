@@ -110,7 +110,8 @@ func TestSeparatedForms_NearMissesAreLeftAlone(t *testing.T) {
 }
 
 // TestPolicy_SeparatedAndCompact_ShareOneToken proves the same DNI written
-// two ways is one person to the model, and rehydrates to the compact form.
+// two ways is one person to the model, and rehydrates to the form first
+// written.
 func TestPolicy_SeparatedAndCompact_ShareOneToken(t *testing.T) {
 	registry := domain.NewRegistry(domain.NewDNIDetector(), domain.NewIBANDetector(), domain.NewPhoneDetector())
 	policy := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
@@ -143,8 +144,8 @@ func TestPolicy_SeparatedAndCompact_ShareOneToken(t *testing.T) {
 	if err != nil {
 		t.Fatalf("Evaluate write: %v", err)
 	}
-	if got := write.RedactedFields["content"]; !strings.Contains(got, "12345678Z") {
-		t.Errorf("rehydrated content = %q, want the compact DNI", got)
+	if got := write.RedactedFields["content"]; got != "12.345.678-Z" {
+		t.Errorf("rehydrated content = %q, want the DNI as first written", got)
 	}
 }
 

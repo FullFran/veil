@@ -132,16 +132,14 @@ func (p *Policy) decide(event Event) (Decision, error) {
 // finding's Match in event.Text and every entry of event.Fields, and
 // returns the resulting RewriteDecision.
 func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
+	firstWritten := firstWrittenForms(event.Text, findings)
 	substitutions := make(map[string]string, len(findings))
 	for _, f := range findings {
 		if _, done := substitutions[f.Match]; done {
 			continue
 		}
-		key := f.Key
-		if key == "" {
-			key = f.Match
-		}
-		token, err := p.pseudonyms.Token(event.SessionID, f.Category, key)
+		key := findingKey(f)
+		token, err := p.pseudonyms.TokenFor(event.SessionID, f.Category, key, firstWritten[f.Category+":"+key])
 		if err != nil {
 			return Decision{}, fmt.Errorf("veil: mint pseudonym token for %s finding: %w", f.Category, err)
 		}
@@ -163,6 +161,34 @@ func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
 	}
 
 	return RewriteDecision(redactedText, redactedFields), nil
+}
+
+func findingKey(f Finding) string {
+	if f.Key == "" {
+		return f.Match
+	}
+	return f.Key
+}
+
+// firstWrittenForms returns, per "category:key", the written form that
+// comes first in text, so the form a token keeps for rehydration is the
+// first one the model was shown a token for, whatever order the
+// detectors reported their findings in. A form that is not in text (only
+// in a field) comes after every form that is.
+func firstWrittenForms(text string, findings []Finding) map[string]string {
+	first := make(map[string]string, len(findings))
+	at := make(map[string]int, len(findings))
+	for _, f := range findings {
+		id := f.Category + ":" + findingKey(f)
+		pos := strings.Index(text, f.Match)
+		if pos < 0 {
+			pos = len(text)
+		}
+		if prev, seen := at[id]; !seen || pos < prev {
+			first[id], at[id] = f.Match, pos
+		}
+	}
+	return first
 }
 
 // substituteAll replaces every occurrence of each substitutions key in s

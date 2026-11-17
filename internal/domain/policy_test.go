@@ -272,6 +272,10 @@ func (failingPseudonymStore) Token(sessionID, category, original string) (string
 	return "", errors.New("boom: store unavailable")
 }
 
+func (failingPseudonymStore) TokenFor(sessionID, category, key, written string) (string, error) {
+	return "", errors.New("boom: store unavailable")
+}
+
 func (failingPseudonymStore) Original(sessionID, token string) (string, bool, error) {
 	return "", false, errors.New("boom: store unavailable")
 }

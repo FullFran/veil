@@ -50,19 +50,21 @@ of finding:
   checked, and never as part of a date, an amount or a longer run of digit
   groups. A separated IBAN of any country must also have that country's
   length in the SWIFT IBAN Registry (ISO 13616). A value written two ways
-  shares one token, and rehydration gives back its compact form
-  (`12345678Z`, `+34612345670`). A Spanish phone is keyed by its ITU-T
+  shares one token, keyed by its canonical form (`12345678Z`,
+  `ES9121000418450200051332`). A Spanish phone is keyed by its ITU-T
   E.164 form whether it is written bare or with `+34`, `0034`, `(+34)` or
   `(0034)`: `612345678`, `612 345 678`, `0034612345678` and
-  `(+34) 612-345-678` are one `[TEL-001]`, which rehydrates to
-  `+34612345678`. So a file that held `612 345 678` gets `+34612345678`
-  if the agent writes the marker back (the same number, reformatted), and
-  an edit whose old text carries the marker no longer matches the file's
-  `612 345 678`: it fails instead of writing the wrong bytes. A session
-  that already holds separate markers for the bare and the prefixed form
-  (minted before this keying) keeps them, since a marker never changes
-  meaning within a session: each still rehydrates to what it was minted
-  for, and a new mention of the number gets the E.164 marker. Email addresses may carry non-ASCII
+  `(+34) 612-345-678` are one `[TEL-001]`. **Rehydration writes back the
+  first written form** the session saw for that marker, not the key: if
+  the model first read `612 345 678` from a file, `[TEL-001]` comes back
+  as `612 345 678` in a later write or edit, so an edit whose old text
+  carries the marker matches the file's bytes. Later forms of the same
+  number share the marker and never change what it rehydrates to. A
+  session that already holds separate markers for the bare and the
+  prefixed form (minted before this keying) keeps them, since a marker
+  never changes meaning within a session: each still rehydrates to what it
+  was minted for, and a new mention of the number gets a marker keyed by
+  its E.164 form. Email addresses may carry non-ASCII
   letters in the local part and the domain (`josé@bücher.example.de`,
   RFC 6531). Unicode lookalikes are found too: compatibility forms such as
   full-width digits and letters (`１２３４５６７８Ｚ`, `zed＠example.org`),
@@ -71,8 +73,9 @@ of finding:
   other scripts. veil scans an NFKC view of the text (Unicode UAX #15)
   with Default_Ignorable_Code_Point characters (UAX #44) removed, replaces
   exactly the characters that were written, leaves unrelated text as it
-  was, and keys the token by the canonical value, so rehydration writes
-  `12345678Z` and `zed@example.org`. UTS #39 confusable skeletons are not
+  was, and keys the token by the canonical value, so `１２３４５６７８Ｚ`
+  and `12345678Z` are one token; rehydration writes back the form first
+  written, as for every other value. UTS #39 confusable skeletons are not
   used: they are meant only for comparing strings and map digits to
   letters.
 - **Hard-deny** (a tool call targeting a known secrets-bearing file, or
@@ -201,7 +204,10 @@ separately, under technical measures. veil keeps it encrypted at rest.
 Each session is one [age v1](https://c2sp.org/age) file
 (`age-encryption.org/v1`, Go library `filippo.io/age`) at
 `<state>/veil/sessions/<session>.age`, mode 0600, encrypted to one X25519
-recipient. The plaintext inside is a JSON mapping (`"version": 2`). No real
+recipient. The plaintext inside is a JSON mapping (`"version": 2`): each
+marker's canonical key and, when it differs, the first written form it
+rehydrates to (the optional `written` member; a file without it, written
+by an earlier veil, rehydrates each marker to its key). No real
 value and no `category:original` key is on disk in clear. Writes go
 through a new temp file (created with `O_EXCL`, mode 0600, after removing
 any leftover or planted link), `fsync`, a rename and an `fsync` of the
@@ -274,7 +280,8 @@ veil store sweep                     # stdout: {"forgotten":["sess-0"],"skipped"
 ```
 
 - `reveal` prints every marker of the session and the real value it
-  stands for, sorted by category and number, for a host's own "what veil
+  stands for (its canonical key, e.g. `12345678Z`; a write rehydrates the
+  form first written), sorted by category and number, for a host's own "what veil
   hid" view. It needs the key, like any read. An unknown session prints
   `{"markers":[]}`.
 - `forget` removes each named session's age file, any v1 file, any

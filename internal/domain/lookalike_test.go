@@ -139,9 +139,10 @@ func TestPolicy_Evaluate_Lookalikes_RewritesWrittenSpan(t *testing.T) {
 	}
 }
 
-// Rehydration into a file writes the canonical value, not the
-// lookalike form the user typed.
-func TestPolicy_Evaluate_Lookalikes_RehydratesCanonical(t *testing.T) {
+// Rehydration into a file writes the lookalike form as it was first
+// written, so the bytes match the text the model was shown a token for;
+// the token itself is keyed by the canonical value.
+func TestPolicy_Evaluate_Lookalikes_RehydratesAsWritten(t *testing.T) {
 	policy := domain.NewPolicy(allDetectors(), domain.NewMemoryPseudonymStore())
 	first, err := policy.Evaluate(domain.Event{
 		Kind: domain.EventPromptSubmit, Host: domain.HostOpenCode, SessionID: "s1",
@@ -159,7 +160,7 @@ func TestPolicy_Evaluate_Lookalikes_RehydratesCanonical(t *testing.T) {
 	if err != nil {
 		t.Fatalf("write: %v", err)
 	}
-	if got := write.RedactedFields["content"]; got != "zed@example.org" {
-		t.Fatalf("rehydrated content = %q, want the canonical value", got)
+	if got := write.RedactedFields["content"]; got != "zed＠example.org" {
+		t.Fatalf("rehydrated content = %q, want the form first written", got)
 	}
 }

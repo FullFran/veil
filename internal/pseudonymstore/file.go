@@ -39,6 +39,8 @@ import (
 	"time"
 
 	"filippo.io/age"
+
+	"github.com/FullFran/veil/internal/domain"
 )
 
 // formatVersion is the version of the plaintext inside an age session
@@ -55,6 +57,13 @@ type sessionFile struct {
 	// Reverse is keyed by token and holds the original value, for
 	// rehydrating a tool call that writes real data to disk.
 	Reverse map[string]string `json:"reverse"`
+	// Written is keyed by token and holds the first written form seen
+	// when the token was minted ("612 345 678" for the key
+	// "+34612345678"), only when it differs from the original value: it
+	// is what rehydration writes back. A token without one (every token
+	// of a file written before this field existed) rehydrates to its
+	// original value. Optional, so the format version stays 2.
+	Written map[string]string `json:"written,omitempty"`
 	// Counters holds the next-token counter per category.
 	Counters map[string]int `json:"counters"`
 }
@@ -130,6 +139,12 @@ func (s *FileStore) lockPath(sessionID string) string {
 // racing to handle two hook calls from the same OpenCode session in close succession cannot
 // interleave and corrupt each other's counters.
 func (s *FileStore) Token(sessionID, category, original string) (string, error) {
+	return s.TokenFor(sessionID, category, original, original)
+}
+
+// TokenFor implements domain.PseudonymStore.TokenFor (see Token for the
+// locking).
+func (s *FileStore) TokenFor(sessionID, category, original, written string) (string, error) {
 	if err := os.MkdirAll(s.dir, 0o700); err != nil {
 		return "", fmt.Errorf("pseudonymstore: create %s: %w", s.dir, err)
 	}
@@ -160,6 +175,12 @@ func (s *FileStore) Token(sessionID, category, original string) (string, error) 
 	token := fmt.Sprintf("[%s-%03d]", category, data.Counters[category])
 	data.Mapping[key] = token
 	data.Reverse[token] = original
+	if w := domain.WrittenForm(original, written); w != "" {
+		if data.Written == nil {
+			data.Written = map[string]string{}
+		}
+		data.Written[token] = w
+	}
 
 	if err := s.save(sessionID, data); err != nil {
 		return "", err
@@ -176,7 +197,7 @@ func (s *FileStore) Original(sessionID, token string) (string, bool, error) {
 		return "", false, err
 	}
 	original, found := data.Reverse[token]
-	return original, found, nil
+	return domain.Rehydrated(original, data.Written[token]), found, nil
 }
 
 // Reveal returns every marker of the session and its real value, sorted

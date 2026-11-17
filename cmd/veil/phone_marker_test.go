@@ -2,6 +2,7 @@ package main
 
 import (
 	"bytes"
+	"encoding/json"
 	"reflect"
 	"strings"
 	"testing"
@@ -13,10 +14,7 @@ import (
 // Issue #27: one Spanish phone written bare and with its country code is
 // one marker on every host mode, keyed by its E.164 form. Values are
 // synthetic.
-const (
-	onePhoneManyForms = "a 612345678 b +34 612 345 678 c 0034612345678 d (+34) 612-345-678"
-	onePhoneE164      = "+34612345678"
-)
+const onePhoneManyForms = "a 612345678 b +34 612 345 678 c 0034612345678 d (+34) 612-345-678"
 
 var onePhoneWritten = []string{"612345678", "612 345 678", "612-345-678"}
 
@@ -43,14 +41,14 @@ func TestRun_OpenCode_OnePhoneEveryForm_OneMarker(t *testing.T) {
 	}
 	assertOnePhoneMarker(t, stdout.String())
 
-	// The marker rehydrates to the canonical E.164 form in a write tool.
+	// The marker rehydrates to the first form written in a write tool.
 	stdout.Reset()
 	write := `{"event": "tool.execute.before", "sessionID": "ses-1", "tool": "write", "args": {"filePath": "notes.txt", "content": "tel [TEL-001]"}}`
 	if exit := run([]string{"opencode"}, strings.NewReader(write), &stdout, &stderr); exit != 0 {
 		t.Fatalf("write exit = %d, stderr = %q, want 0", exit, stderr.String())
 	}
-	if !strings.Contains(stdout.String(), "tel "+onePhoneE164) {
-		t.Errorf("write output = %s, want [TEL-001] rehydrated to %s", stdout.String(), onePhoneE164)
+	if !strings.Contains(stdout.String(), "tel 612345678") {
+		t.Errorf("write output = %s, want [TEL-001] rehydrated to 612345678", stdout.String())
 	}
 
 	// find reports the session whichever way the phone is written.
@@ -93,5 +91,35 @@ func TestRun_ACS_OnePhoneEveryForm_OneMarker(t *testing.T) {
 	replacement, _ := redactions[0].(map[string]any)["replacement"].(string)
 	if want := "a [TEL-001] b [TEL-001] c [TEL-001] d [TEL-001]"; replacement != want {
 		t.Errorf("replacement = %q, want %q", replacement, want)
+	}
+}
+
+// TestRun_OpenCode_EditOfAFileWithAPhone_MatchesItsBytes: the model reads
+// a file holding 612345678 as [TEL-001]; its edit's oldString must come
+// back as the file's own bytes, or the edit no longer matches.
+func TestRun_OpenCode_EditOfAFileWithAPhone_MatchesItsBytes(t *testing.T) {
+	t.Setenv("XDG_STATE_HOME", t.TempDir())
+	var stdout, stderr bytes.Buffer
+	read := `{"event": "tool.execute.after", "sessionID": "ses-1", "tool": "read", "fields": {"output": "tel: 612345678"}}`
+	if exit := run([]string{"opencode"}, strings.NewReader(read), &stdout, &stderr); exit != 0 {
+		t.Fatalf("read exit = %d, stderr = %q, want 0", exit, stderr.String())
+	}
+	if !strings.Contains(stdout.String(), "tel: [TEL-001]") {
+		t.Fatalf("read output = %s, want the phone as [TEL-001]", stdout.String())
+	}
+
+	stdout.Reset()
+	edit := `{"event": "tool.execute.before", "sessionID": "ses-1", "tool": "edit", "args": {"filePath": "a.txt", "oldString": "tel: [TEL-001]", "newString": "tel: [TEL-001] (mobile)"}}`
+	if exit := run([]string{"opencode"}, strings.NewReader(edit), &stdout, &stderr); exit != 0 {
+		t.Fatalf("edit exit = %d, stderr = %q, want 0", exit, stderr.String())
+	}
+	var out struct {
+		Args map[string]string `json:"args"`
+	}
+	if err := json.Unmarshal(stdout.Bytes(), &out); err != nil {
+		t.Fatalf("edit output %q is not JSON: %v", stdout.String(), err)
+	}
+	if out.Args["oldString"] != "tel: 612345678" || out.Args["newString"] != "tel: 612345678 (mobile)" {
+		t.Errorf("edit args = %v, want the file's own bytes back", out.Args)
 	}
 }
