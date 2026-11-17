@@ -11,6 +11,10 @@ updates:
       interval: weekly
     commit-message:
       prefix: "build(deps)"
+    # Indirect modules too: golang.org/x/crypto reaches veil only through
+    # filippo.io/age, and OSV-based checks flag it all the same.
+    allow:
+      - dependency-type: all
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions

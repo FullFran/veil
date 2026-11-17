@@ -154,6 +154,12 @@ Each release's notes on GitHub are its section of this file
 
 - GO-2026-6218 (quadratic complexity in `net/url`, reachable through the
   policy schema loader): fixed by building with Go 1.26.11.
+- GO-2026-5932 (`golang.org/x/crypto/openpgp` unmaintained), GO-2026-6354
+  and GO-2026-6355 (denial of service in `golang.org/x/crypto/ssh`): veil
+  never imports either package (`golang.org/x/crypto` comes in through
+  `filippo.io/age`), but the module version was affected; fixed by upgrading
+  to `golang.org/x/crypto` v0.59.0. CI now also runs osv-scanner without
+  reachability analysis, the check OpenSSF Scorecard runs (#33).
 
 ## [0.1.0] - 2026-09-26
 
