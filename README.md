@@ -157,37 +157,26 @@ using it, not a clean reason the way Claude Code's exit-code-2 does.
 
 ## What this cannot do
 
-- **Claude Code: no output redaction.** `PostToolUse` cannot block or
-  redact what a tool already returned. If a tool call itself was allowed,
-  its output is not filtered by veil on this host.
-- **Claude Code: no history or system-prompt rewrite.** There is no hook
-  for either, so pseudonym tokens already sent in an earlier turn are the
-  only protection for anything Claude Code resends from history.
-- **Chat display still shows tokens.** No hook on either host rewrites
-  the model's own streamed reply as it is displayed to the person using
-  the agent. If the model itself echoes a pseudonym token back in its
-  answer, that token — not the real value — is what appears on screen.
-  This is intentional: the model never saw the real value to begin with.
-- **Attachments and binary content: fail closed, not scanned.** A regex
-  detector cannot inspect raw binary bytes or a base64-encoded blob (e.g.
-  an MCP tool returning file bytes as text). veil's `binary-content`
-  detector flags exactly this shape (invalid UTF-8, or a long run of
-  base64-alphabet characters) on a tool's output and denies it outright:
-  there is no safe rewrite for content that cannot be inspected.
-- The pseudonym mapping (`internal/pseudonymstore`) is per-session, on
-  disk, encrypted, in a 0600 file under `XDG_STATE_HOME/veil/sessions` (or
-  the OS temp dir); see [The pseudonym store](#the-pseudonym-store). It
-  exists because OpenCode's shim spawns a fresh `veil` process per hook
-  call, so an in-memory mapping could not survive between calls. Losing
-  that directory (e.g. a temp-dir cleanup mid session) means veil mints
-  fresh tokens from `-001` again for anything seen again — it will not
-  reuse a stale numbering, but it also will not remember that `[DNI-001]`
-  used to mean a specific DNI in an already-completed conversation.
-- veil ships detectors for Spanish DNI/NIE (mod-23 checksum), IBAN
-  (mod-97 checksum), email, Spanish phone numbers, a sensitive-file-path
-  detector (`.env`, SSH private keys, and similar), a client name catalog
-  (optional, see below), and unscannable binary/base64 tool output. It is
-  not a general-purpose PII scanner.
+The full list of what veil does not protect against, who owns each
+residual risk, and the test behind every claim it does make is in the
+[threat model](docs/threat-model.md) (LINDDUN and STRIDE over a data-flow
+diagram of veil as a guard). The limits you are most likely to hit:
+
+- **Claude Code: no output, history or system-prompt redaction.** The host
+  has no hook for them (threat model DD1).
+- **Detection is pattern-based.** veil detects Spanish DNI/NIE, IBAN,
+  email, Spanish phone numbers, sensitive file paths, an optional client
+  name catalog, and unscannable binary/base64 output, which it denies. It
+  is not a general-purpose PII scanner: unstructured data is missed
+  (threat model L4, I4; NER under study in #3).
+- **The chat still shows tokens.** No hook rewrites the model's own reply
+  as it is displayed, so an echoed `[DNI-001]` appears as the token.
+- **Egress that bypasses veil is the host's job** (HCS-0008-R019; threat
+  model DD2).
+- **Losing the store directory loses the mapping.** veil then mints
+  tokens from `-001` again for anything seen again: it never reuses a
+  stale numbering, but it no longer knows what an earlier `[DNI-001]`
+  meant (see [The pseudonym store](#the-pseudonym-store)).
 
 ## The pseudonym store
 
@@ -407,6 +396,9 @@ left in place.
   memory. Real separation needs the host to keep the run's processes away
   from both the key and the keyring (for HagaHarness, its sandbox), and to
   pass the key by descriptor only to veil.
+
+The store's rows (DD4, DD5, T1 to T3, T8, T9, DOS1, DOS4) are part of the
+whole [threat model](docs/threat-model.md).
 
 ## Configuring the name catalog
 

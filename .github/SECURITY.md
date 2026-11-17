@@ -22,6 +22,10 @@ published with credit to the reporter unless they prefer otherwise.
 
 Only the latest release receives fixes.
 
+## Threat model
+
+See the [threat model](../docs/threat-model.md).
+
 ## Verifying a release
 
 Releases built by the current release workflow carry SLSA build provenance

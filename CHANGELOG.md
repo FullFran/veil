@@ -49,6 +49,16 @@ Each release's notes on GitHub are its section of this file
   golangci-lint (gosec) and govulncheck.
 - OpenCode plugin: `VEIL_TIMEOUT_MS` (default 30000) and a 64 MiB output
   limit (#4).
+- Threat model (`docs/threat-model.md`): LINDDUN and STRIDE over a data-flow
+  diagram of veil as a guard, each threat with its mitigation, the test that
+  proves it, and its status (mitigated, accepted with its owner, or open with
+  its issue), mapped to HCS-0005/0006/0008 and GDPR articles 5, 15, 17, 25 and
+  32. `docs/threatmodel_test.go` fails CI when a cited test, status, issue or
+  `file:line` reference drifts. New tests cover a hostile session id staying
+  inside the store directory, a phone written with and without `+34`, the
+  OpenCode plugin redacting the copy of tool output kept in `metadata`, and
+  the release workflow's pinned actions, read-only tokens and verification
+  before publishing (`test/supplychain`) (#12).
 
 ### Changed
 
