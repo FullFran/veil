@@ -50,6 +50,7 @@ type engine struct {
 	policyDigest    string
 	policyVersion   string
 	catalogRevision string
+	ner             *ner.Detector
 	nerModel        *evidence.NERModel
 	evidenceFile    string
 }
@@ -75,7 +76,7 @@ func newEngine() (*engine, error) {
 	if err != nil {
 		return nil, err
 	}
-	nerModel, err := wireNER(p, registry)
+	nerDetector, nerModel, err := wireNER(p, registry)
 	if err != nil {
 		return nil, err
 	}
@@ -94,6 +95,7 @@ func newEngine() (*engine, error) {
 		policyDigest:    p.Digest(),
 		policyVersion:   p.Version,
 		catalogRevision: revision,
+		ner:             nerDetector,
 		nerModel:        nerModel,
 		evidenceFile:    os.Getenv(evidenceFileEnv),
 	}, nil
@@ -106,6 +108,7 @@ func newEngine() (*engine, error) {
 // is ever acted on without its record.
 func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, []byte, problem.Code) {
 	start := time.Now()
+	served := e.nerServed()
 	decision, findings, err := e.evaluator.Assess(event)
 	if err != nil {
 		return domain.Decision{}, nil, classifyEvaluateError(err)
@@ -128,7 +131,7 @@ func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, 
 		PolicyDigest:    e.policyDigest,
 		PolicyVersion:   e.policyVersion,
 		CatalogRevision: e.catalogRevision,
-		NERModel:        e.nerModel,
+		NERModel:        e.nerModelIfRan(served),
 		Duration:        elapsed,
 	})
 	if err != nil {
@@ -405,26 +408,45 @@ func runPolicy(args []string, stdout, stderr io.Writer) int {
 
 // wireNER registers the NER sidecar detector when the policy enables it,
 // with the model the policy or VEIL_NER_MODEL selects from the catalog,
-// and returns what evidence records about that model (nil when off).
-func wireNER(p *policy.Policy, registry *domain.Registry) (*evidence.NERModel, error) {
+// and returns it with what evidence records about that model (nil, nil
+// when off).
+func wireNER(p *policy.Policy, registry *domain.Registry) (*ner.Detector, *evidence.NERModel, error) {
 	rule, enabled, err := p.NER(os.Getenv(ner.ModelEnvVar))
 	if err != nil || !enabled {
-		return nil, err
+		return nil, nil, err
 	}
 	catalog, err := ner.LoadCatalog(os.Getenv(ner.CatalogEnvVar))
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	entry, err := catalog.Lookup(rule.Model)
 	if err != nil {
-		return nil, err
+		return nil, nil, err
 	}
 	model := entry.Model()
-	registry.RegisterFallible(policy.WithAction(ner.NewDetector(ner.Config{
+	detector := ner.NewDetector(ner.Config{
 		Socket:  ner.SocketPath(),
 		Timeout: rule.Timeout,
 		Model:   model,
 		Labels:  entry.Labels,
-	}), rule.Action))
-	return &evidence.NERModel{ID: model.ID, Revision: model.Revision, EntryDigest: model.EntryDigest}, nil
+	})
+	registry.RegisterFallible(policy.WithAction(detector, rule.Action))
+	return detector, &evidence.NERModel{ID: model.ID, Revision: model.Revision, EntryDigest: model.EntryDigest}, nil
+}
+
+// nerServed is how many calls the NER sidecar has answered so far.
+func (e *engine) nerServed() uint64 {
+	if e.ner == nil {
+		return 0
+	}
+	return e.ner.Served()
+}
+
+// nerModelIfRan is the model to record for an event when the sidecar
+// answered for it (its count moved past before), else nil.
+func (e *engine) nerModelIfRan(before uint64) *evidence.NERModel {
+	if e.nerServed() > before {
+		return e.nerModel
+	}
+	return nil
 }

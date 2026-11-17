@@ -33,6 +33,7 @@ import (
 	"os"
 	"path/filepath"
 	"sort"
+	"sync/atomic"
 	"time"
 
 	"github.com/FullFran/veil/internal/domain"
@@ -120,7 +121,8 @@ type Config struct {
 
 // Detector is a domain.FallibleDetector backed by a sidecar.
 type Detector struct {
-	cfg Config
+	cfg    Config
+	served atomic.Uint64
 }
 
 var _ domain.FallibleDetector = (*Detector)(nil)
@@ -165,8 +167,14 @@ func (d *Detector) Detect(event domain.Event) ([]domain.Finding, error) {
 	if time.Now().After(deadline) {
 		return nil, fmt.Errorf("%w: answer not processed before the deadline", ErrTimeout)
 	}
+	d.served.Add(1)
 	return findings, nil
 }
+
+// Served returns how many calls the sidecar has answered: a caller that
+// compares it before and after an event knows whether the model ran for
+// it (an event with nothing to scan never reaches the sidecar).
+func (d *Detector) Served() uint64 { return d.served.Load() }
 
 // unitsOf returns the texts to send: the non-empty values of a tool
 // call's fields, ordered by key, or else the event's text. Hosts build

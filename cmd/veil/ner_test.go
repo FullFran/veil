@@ -32,6 +32,10 @@ func fakeSidecar(t *testing.T, model ner.Model) string {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = l.Close() })
+	// A sidecar makes its socket private, whatever the umask.
+	if err := os.Chmod(socket, 0o600); err != nil {
+		t.Fatal(err)
+	}
 	go func() {
 		for {
 			conn, err := l.Accept()
@@ -210,5 +214,25 @@ func TestRun_NER_FailsClosed(t *testing.T) {
 			}
 			assertProblem(t, stderr, tc.want)
 		})
+	}
+}
+
+// The model is recorded only for an event the sidecar answered: one with
+// nothing to scan never reaches it.
+func TestRun_NER_RecordsTheModelOnlyWhenTheSidecarRan(t *testing.T) {
+	evidencePath := nerEnv(t, "rewrite", "gliner2-pii")
+	t.Setenv("VEIL_NER_SOCKET", fakeSidecar(t, gliner(t).Model()))
+
+	code, _, stderr := runNER(t, `{"event":"tool.execute.before","sessionID":"s1","tool":"bash","args":{}}`)
+	if code != 0 || stderr != "" {
+		t.Fatalf("exit %d, stderr %q; want an allow", code, stderr)
+	}
+	records := readRecords(t, evidencePath)
+	if len(records) != 1 {
+		t.Fatalf("records = %d, want 1", len(records))
+	}
+	veil := member(t, records[0], "data", "unmapped", "veil").(map[string]any)
+	if _, recorded := veil["ner_model"]; recorded {
+		t.Fatalf("veil = %v, want no ner_model for an event the sidecar never saw", veil)
 	}
 }

@@ -95,8 +95,9 @@ type Input struct {
 	PolicyDigest    string
 	PolicyVersion   string
 	CatalogRevision string
-	// NERModel identifies the NER model the decision ran, or nil when the
-	// policy does not enable ner.
+	// NERModel identifies the NER model that answered for this decision,
+	// or nil when the policy does not enable ner or the event never
+	// reached the sidecar (nothing to scan).
 	NERModel *NERModel
 	Duration time.Duration
 }

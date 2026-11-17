@@ -1131,7 +1131,7 @@ event in structured JSON mode whose `data` is an
 | `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
 | `data_security.category_id` | 1 Personal when any personal data detector fired, 6 Security when only `secret-path`/`binary-content` did, absent otherwise |
 | `duration` | Evaluation time in milliseconds |
-| `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision`, `ner_model` (`id`, `revision`, `entry_digest` of the NER model, when the policy enables `ner`) |
+| `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision`, `ner_model` (`id`, `revision`, `entry_digest` of the NER model, when the sidecar answered for this event) |
 
 DPV 2.3 is a W3C Community Group report, not a W3C Standard, and has no
 DNI/NIE-specific concept: `rule.name` keeps veil's own label next to the
