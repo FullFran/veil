@@ -205,7 +205,7 @@ var details = map[Code]string{
 	ACSTimestampOutOfWindow: "The request timestamp is outside the skew window; data.skew_window_ms carries the window.",
 	ACSKeyInvalid:           "VEIL_ACS_KEY_ID and a secret of at least 32 bytes (base64, from VEIL_ACS_KEY_FD or the veil-acs-key credential) must be set together.",
 	ACSUnredactable:         "veil would pseudonymize data in a member name, metadata, the tool name or raw_command, which no ACS modification can be trusted to replace, so it denies the step.",
-	NERUnavailable:          "The policy enables the ner detector and no sidecar listens on its socket; veil fails closed.",
+	NERUnavailable:          "The policy enables the ner detector and no sidecar listens on its socket, or the socket or its directory is not private to this user; veil fails closed.",
 	NERTimeout:              "The NER sidecar did not answer before the detector's deadline; veil fails closed.",
 	NERCrashed:              "The NER sidecar closed the connection before answering; veil fails closed.",
 	NERProtocol:             "The NER sidecar answered something that is not a valid protocol version 1 answer; veil fails closed.",

@@ -148,6 +148,7 @@ func (p *Policy) decide(event Event, findings []Finding) (Decision, error) {
 // finding's Match in event.Text and every entry of event.Fields, and
 // returns the resulting RewriteDecision.
 func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
+	findings = withOverlapRuns(event, findings)
 	firstWritten := firstWrittenForms(event.Text, findings)
 	substitutions := make(map[string]string, len(findings))
 	for _, f := range findings {

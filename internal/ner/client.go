@@ -9,6 +9,8 @@ import (
 	"fmt"
 	"net"
 	"os"
+	"sort"
+	"time"
 	"unicode/utf8"
 )
 
@@ -48,12 +50,14 @@ type recognizeResult struct {
 }
 
 // exchange runs one initialize and one recognize on a fresh connection,
-// all within the configured timeout, and returns the validated spans of
-// each unit.
-func (d *Detector) exchange(units []string) ([][]Span, error) {
-	ctx, cancel := context.WithTimeout(context.Background(), d.cfg.Timeout)
+// all before deadline, and returns the validated spans of each unit, with
+// overlapping or touching spans joined into one.
+func (d *Detector) exchange(deadline time.Time, units []string) ([][]Span, error) {
+	if err := checkSocket(d.cfg.Socket); err != nil {
+		return nil, err
+	}
+	ctx, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
-	deadline, _ := ctx.Deadline()
 
 	var dialer net.Dialer
 	conn, err := dialer.DialContext(ctx, "unix", d.cfg.Socket)
@@ -67,7 +71,7 @@ func (d *Detector) exchange(units []string) ([][]Span, error) {
 	if err := conn.SetDeadline(deadline); err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrUnavailable, err)
 	}
-	c := &rpcConn{conn: conn, r: bufio.NewReaderSize(conn, 64<<10)}
+	c := &rpcConn{conn: conn, r: bufio.NewReaderSize(conn, 64<<10), deadline: deadline}
 
 	var init initializeResult
 	if err := c.call(1, "initialize", map[string]string{"protocolVersion": ProtocolVersion}, &init); err != nil {
@@ -88,13 +92,52 @@ func (d *Detector) exchange(units []string) ([][]Span, error) {
 		return nil, fmt.Errorf("%w: %d span lists for %d units", ErrProtocol, len(rec.Spans), len(units))
 	}
 	for i, spans := range rec.Spans {
+		if len(spans) > MaxSpansPerUnit {
+			return nil, fmt.Errorf("%w: %d spans in one unit, more than %d", ErrProtocol, len(spans), MaxSpansPerUnit)
+		}
 		for _, sp := range spans {
 			if err := d.validSpan(units[i], sp); err != nil {
 				return nil, err
 			}
 		}
+		rec.Spans[i] = joinSpans(spans)
 	}
 	return rec.Spans, nil
+}
+
+// joinSpans returns spans with every run of overlapping or touching spans
+// joined into one, ordered by start. Replacing two overlapping names one
+// at a time would leave part of one in clear ("Ana Ruiz" and "Ruiz López"
+// in "Ana Ruiz López"). A joined span takes the label of its longest
+// member (the earliest on a tie).
+func joinSpans(spans []Span) []Span {
+	if len(spans) < 2 {
+		return spans
+	}
+	sorted := append([]Span(nil), spans...)
+	sort.Slice(sorted, func(i, j int) bool {
+		if sorted[i].Start != sorted[j].Start {
+			return sorted[i].Start < sorted[j].Start
+		}
+		return sorted[i].End > sorted[j].End
+	})
+	out := []Span{sorted[0]}
+	longest := sorted[0].End - sorted[0].Start
+	for _, sp := range sorted[1:] {
+		last := &out[len(out)-1]
+		if sp.Start > last.End {
+			out = append(out, sp)
+			longest = sp.End - sp.Start
+			continue
+		}
+		if n := sp.End - sp.Start; n > longest {
+			last.Label, longest = sp.Label, n
+		}
+		if sp.End > last.End {
+			last.End = sp.End
+		}
+	}
+	return out
 }
 
 // validSpan checks that sp names a non-empty run of whole characters
@@ -113,8 +156,9 @@ func (d *Detector) validSpan(unit string, sp Span) error {
 }
 
 type rpcConn struct {
-	conn net.Conn
-	r    *bufio.Reader
+	conn     net.Conn
+	r        *bufio.Reader
+	deadline time.Time
 }
 
 // call sends one request line and decodes the result of its answer
@@ -131,6 +175,23 @@ func (c *rpcConn) call(id int, method string, params, out any) error {
 	if err != nil {
 		return err
 	}
+	// Decoding a long answer can outlast the connection's deadline, which
+	// only bounds reads: wait for it no longer than the deadline. A late
+	// decode finishes in the background into a result nobody reads.
+	done := make(chan error, 1)
+	go func() { done <- decodeAnswer(answer, id, method, out) }()
+	timer := time.NewTimer(time.Until(c.deadline))
+	defer timer.Stop()
+	select {
+	case err := <-done:
+		return err
+	case <-timer.C:
+		return fmt.Errorf("%w: %s answer not decoded before the deadline", ErrTimeout, method)
+	}
+}
+
+// decodeAnswer checks one answer line and decodes its result into out.
+func decodeAnswer(answer []byte, id int, method string, out any) error {
 	var resp rpcResponse
 	if err := json.Unmarshal(answer, &resp); err != nil {
 		return fmt.Errorf("%w: %s answer is not JSON", ErrProtocol, method)

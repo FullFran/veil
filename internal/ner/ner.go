@@ -13,7 +13,15 @@
 //	-> {"jsonrpc":"2.0","id":2,"method":"recognize","params":{"units":["..."]}}
 //	<- {"jsonrpc":"2.0","id":2,"result":{"spans":[[{"start":0,"end":8,"label":"person"}]]}}
 //
-// Span offsets are UTF-8 byte offsets into their unit. Anything other
+// Span offsets are UTF-8 byte offsets into their unit; at most
+// MaxSpansPerUnit per unit, and overlapping or touching spans become one
+// finding. Each answer is the first line after its request: a line the
+// sidecar sends early fails the id check of the request it is read for,
+// and anything after the recognize answer is never read, since veil
+// closes the connection. veil connects only to a socket that is its own
+// user's and writable by no one else, in a directory that is too
+// (ErrUnavailable otherwise). The timeout covers the whole call, from
+// dialing to the last finding built. Anything other
 // than a well-formed answer for the expected model before the deadline
 // is an error, and veil fails the event closed on it (HCS-0008-R020):
 // the sidecar is never optional once the policy enables it.
@@ -21,6 +29,7 @@ package ner
 
 import (
 	"errors"
+	"fmt"
 	"sort"
 	"time"
 
@@ -29,6 +38,10 @@ import (
 
 // ProtocolVersion is the sidecar protocol version this client speaks.
 const ProtocolVersion = "1"
+
+// MaxSpansPerUnit bounds the spans a sidecar may return for one unit;
+// more is a protocol error. A real model finds a handful per text.
+const MaxSpansPerUnit = 1024
 
 // DefaultTimeout bounds one exchange (dial, initialize and recognize):
 // about 11 times the measured GLiNER2-PII p95 per event (176 ms,
@@ -42,7 +55,8 @@ const DetectorName = "ner"
 // Failure classes. Every error Detect returns wraps exactly one of them;
 // callers branch with errors.Is, never on the message.
 var (
-	// ErrUnavailable: no sidecar listens on the socket.
+	// ErrUnavailable: no sidecar listens on the socket, or the socket or
+	// its directory is not private to veil's user.
 	ErrUnavailable = errors.New("ner: sidecar unavailable")
 	// ErrTimeout: the exchange did not finish before the deadline.
 	ErrTimeout = errors.New("ner: sidecar timed out")
@@ -106,7 +120,8 @@ func (d *Detector) Detect(event domain.Event) ([]domain.Finding, error) {
 	if len(units) == 0 {
 		return nil, nil
 	}
-	spans, err := d.exchange(units)
+	deadline := time.Now().Add(d.cfg.Timeout)
+	spans, err := d.exchange(deadline, units)
 	if err != nil {
 		return nil, err
 	}
@@ -121,6 +136,10 @@ func (d *Detector) Detect(event domain.Event) ([]domain.Finding, error) {
 				Category: d.cfg.Labels[sp.Label],
 			})
 		}
+	}
+	// The timeout covers the whole call, building findings included.
+	if time.Now().After(deadline) {
+		return nil, fmt.Errorf("%w: answer not processed before the deadline", ErrTimeout)
 	}
 	return findings, nil
 }

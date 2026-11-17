@@ -55,6 +55,10 @@ func newSidecar(t *testing.T, a answer) *sidecar {
 		t.Fatal(err)
 	}
 	t.Cleanup(func() { _ = l.Close() })
+	// A sidecar makes its socket private, whatever the umask.
+	if err := os.Chmod(s.socket, 0o600); err != nil {
+		t.Fatal(err)
+	}
 	go func() {
 		for {
 			conn, err := l.Accept()
@@ -326,6 +330,96 @@ func TestDetect_ProtocolErrors(t *testing.T) {
 			d := ner.NewDetector(ner.Config{Socket: s.socket, Timeout: 5 * time.Second, Model: testModel, Labels: map[string]string{"person": "NOMBRE"}})
 			if _, err := d.Detect(prompt(text)); !errors.Is(err, ner.ErrProtocol) {
 				t.Fatalf("err = %v, want ErrProtocol", err)
+			}
+		})
+	}
+}
+
+func TestDetect_OverlappingOrAdjacentSpansAreOneFinding(t *testing.T) {
+	const text = "Hola Ana Ruiz López fin" // UTF-8 byte offsets: "ó" is two bytes
+	cases := map[string][]span{
+		"left first":  {{5, 13, "person"}, {9, 20, "person"}},
+		"right first": {{9, 20, "person"}, {5, 13, "person"}},
+		"adjacent":    {{5, 9, "person"}, {9, 20, "person"}},
+		"nested":      {{9, 13, "person"}, {5, 20, "person"}},
+	}
+	for name, spans := range cases {
+		t.Run(name, func(t *testing.T) {
+			s := newSidecar(t, spansFor([][]span{spans}))
+			findings, err := detector(s.socket).Detect(prompt(text))
+			if err != nil {
+				t.Fatal(err)
+			}
+			if len(findings) != 1 || findings[0].Match != "Ana Ruiz López" || findings[0].Category != "NOMBRE" {
+				t.Fatalf("findings = %+v, want one NOMBRE finding for the whole run", findings)
+			}
+		})
+	}
+}
+
+func TestDetect_TooManySpans_IsAProtocolErrorWithinTheTimeout(t *testing.T) {
+	cases := map[string]int{"over the cap": ner.MaxSpansPerUnit + 1, "hostile": 200000}
+	for name, n := range cases {
+		t.Run(name, func(t *testing.T) {
+			spans := make([]span, n)
+			for i := range spans {
+				spans[i] = span{0, 4, "person"}
+			}
+			s := newSidecar(t, spansFor([][]span{spans}))
+			d := ner.NewDetector(ner.Config{Socket: s.socket, Timeout: 2 * time.Second, Model: testModel, Labels: map[string]string{"person": "NOMBRE"}})
+			start := time.Now()
+			_, err := d.Detect(prompt("Ana Ruiz"))
+			// Rejected by the cap, or, where decoding the answer alone
+			// outlasts the timeout (a slow or instrumented machine), timed
+			// out: never later than the timeout.
+			timedOut := n > ner.MaxSpansPerUnit+1 && errors.Is(err, ner.ErrTimeout)
+			if !errors.Is(err, ner.ErrProtocol) && !timedOut {
+				t.Fatalf("err = %v, want ErrProtocol", err)
+			}
+			if elapsed := time.Since(start); elapsed > 2*time.Second+250*time.Millisecond {
+				t.Fatalf("Detect took %v, want it within the 2 s timeout", elapsed)
+			}
+		})
+	}
+}
+
+func TestDetect_UnsafeSocket_IsUnavailable(t *testing.T) {
+	cases := map[string]func(t *testing.T, s *sidecar){
+		"world-writable socket": func(t *testing.T, s *sidecar) {
+			if err := os.Chmod(s.socket, 0o777); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"group-writable directory": func(t *testing.T, s *sidecar) {
+			if err := os.Chmod(filepath.Dir(s.socket), 0o770); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"not a socket": func(t *testing.T, s *sidecar) {
+			s.socket = filepath.Join(filepath.Dir(s.socket), "file")
+			if err := os.WriteFile(s.socket, nil, 0o600); err != nil {
+				t.Fatal(err)
+			}
+		},
+		"symlink to the socket": func(t *testing.T, s *sidecar) {
+			link := filepath.Join(filepath.Dir(s.socket), "link")
+			if err := os.Symlink(s.socket, link); err != nil {
+				t.Fatal(err)
+			}
+			s.socket = link
+		},
+	}
+	for name, unsafe := range cases {
+		t.Run(name, func(t *testing.T) {
+			s := newSidecar(t, spansFor([][]span{{}}))
+			unsafe(t, s)
+			if _, err := detector(s.socket).Detect(prompt("hola")); !errors.Is(err, ner.ErrUnavailable) {
+				t.Fatalf("err = %v, want ErrUnavailable", err)
+			}
+			select {
+			case req := <-s.requests:
+				t.Fatalf("veil sent %s to an unsafe socket", req.Method)
+			default:
 			}
 		})
 	}
