@@ -103,7 +103,12 @@ jobs:
       # fails here even when govulncheck finds no call to it. A finding that does
       # not apply is accepted in an osv-scanner.toml next to its lockfile
       # ([[IgnoredVulns]] with a reason and ignoreUntil), never by skipping this.
+      # osv-scanner v2.7.1 needs Go 1.27.3 to build; setup-go sets
+      # GOTOOLCHAIN=local, so name that toolchain (downloaded and checked
+      # against sum.golang.org). veil itself still builds with go.mod's.
       - name: osv-scanner
+        env:
+          GOTOOLCHAIN: go1.27.3
         run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.1 scan source --no-call-analysis=go --recursive .
 
   plugin:
