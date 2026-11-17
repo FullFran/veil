@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"hook_event_name\":\"PreToolUse\",\"tool_name\":\"Bash\",\"session_id\":\"s\",\"tool_input\":{\"\":\"700 000 000\",\"0\":1E700}}")

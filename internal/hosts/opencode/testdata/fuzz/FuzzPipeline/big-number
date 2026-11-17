@@ -1,0 +1,2 @@
+go test fuzz v1
+[]byte("{\"event\":\"tool.execute.before\",\"Args\":{\"\":\"700 000 000\",\"0\":1E700}}")

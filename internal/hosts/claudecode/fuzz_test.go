@@ -1,6 +1,7 @@
 package claudecode_test
 
 import (
+	"bytes"
 	"encoding/json"
 	"strings"
 	"testing"
@@ -52,8 +53,12 @@ func FuzzPipeline(f *testing.F) {
 		if len(result.Stdout) == 0 {
 			return
 		}
+		// UseNumber: a number outside float64 (1E700) is valid JSON
+		// (RFC 8259) and is passed through as the host sent it.
+		dec := json.NewDecoder(bytes.NewReader(result.Stdout))
+		dec.UseNumber()
 		var out any
-		if err := json.Unmarshal(result.Stdout, &out); err != nil {
+		if err := dec.Decode(&out); err != nil {
 			t.Fatalf("Encode(%q) stdout is not JSON: %v", raw, err)
 		}
 		if decision.Kind != domain.Rewrite || writeTools[strings.ToLower(event.ToolName)] {
