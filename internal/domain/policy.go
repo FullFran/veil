@@ -148,13 +148,17 @@ func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
 		substitutions[f.Match] = token
 	}
 
-	redactedText := substituteAll(event.Text, substitutions)
+	// One replacer for the text and every field: building it costs the
+	// number of substitutions, so one per field would make the rewrite
+	// fields × findings.
+	replacer := newSubstituter(substitutions)
+	redactedText := replacer.Replace(event.Text)
 
 	var redactedFields map[string]string
 	if event.Fields != nil {
 		redactedFields = make(map[string]string, len(event.Fields))
 		for key, value := range event.Fields {
-			redactedFields[key] = substituteAll(value, substitutions)
+			redactedFields[key] = replacer.Replace(value)
 		}
 	}
 
@@ -168,9 +172,12 @@ func (p *Policy) rewrite(event Event, findings []Finding) (Decision, error) {
 // longer match apart, which would leave the rest in clear, and a token
 // already written is never scanned again.
 func substituteAll(s string, substitutions map[string]string) string {
-	if len(substitutions) == 0 {
-		return s
-	}
+	return newSubstituter(substitutions).Replace(s)
+}
+
+// newSubstituter is the replacer substituteAll applies, built once so it
+// can be reused across many strings.
+func newSubstituter(substitutions map[string]string) *strings.Replacer {
 	originals := make([]string, 0, len(substitutions))
 	for original := range substitutions {
 		originals = append(originals, original)
@@ -185,7 +192,7 @@ func substituteAll(s string, substitutions map[string]string) string {
 	for _, original := range originals {
 		pairs = append(pairs, original, substitutions[original])
 	}
-	return strings.NewReplacer(pairs...).Replace(s)
+	return strings.NewReplacer(pairs...)
 }
 
 // rehydrate reverses every pseudonym token in decision's effective fields

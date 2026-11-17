@@ -96,3 +96,23 @@ func TestSupports_UnknownHost_ReturnsFalse(t *testing.T) {
 		t.Fatal("Supports returned true for an unknown host, want false")
 	}
 }
+
+// TestCapabilityMatrix_ACS pins what an ACS host can enforce: ACS v0.1
+// allows deny and modify at steps/userMessage and steps/agentTrigger
+// (prompts), steps/toolCallRequest (tool arguments), and
+// steps/toolCallResult and the retrieval hooks (tool output). veil maps no
+// hook to a history or system prompt event, so those stay unsupported.
+func TestCapabilityMatrix_ACS(t *testing.T) {
+	want := map[domain.Capability]bool{
+		domain.CapabilityPromptBlock:         true,
+		domain.CapabilityToolArgsBlock:       true,
+		domain.CapabilityToolOutputRedact:    true,
+		domain.CapabilityHistoryRewrite:      false,
+		domain.CapabilitySystemPromptRewrite: false,
+	}
+	for capability, supported := range want {
+		if got := domain.Supports(domain.HostACS, capability); got != supported {
+			t.Errorf("domain.Supports(domain.HostACS, %s) = %v, want %v", capability, got, supported)
+		}
+	}
+}

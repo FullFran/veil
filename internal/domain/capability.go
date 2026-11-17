@@ -18,6 +18,10 @@ const (
 	// JS/TS modules that block by throwing and rewrite by mutating the
 	// tool call's arguments in place.
 	HostOpenCode Host = "opencode"
+	// HostACS is any host speaking the OWASP Agent Control Standard to
+	// veil as its Guardian. The ACS wire format lives entirely in
+	// internal/hosts/acs; the domain only knows this identity.
+	HostACS Host = "acs"
 )
 
 // Capability identifies a single, distinct enforcement guarantee veil can
@@ -75,6 +79,13 @@ const (
 //     later turn (verified against the real part shape OpenCode sends:
 //     {type:"tool", state:{output, metadata:{output}}}).
 //     experimental.chat.system.transform can rewrite the system prompt.
+//   - ACS (OWASP Agent Control Standard v0.1.0, docs/spec/instrument/
+//     hooks.md): steps/userMessage and steps/agentTrigger (prompts),
+//     steps/toolCallRequest (tool arguments), steps/toolCallResult,
+//     steps/knowledgeRetrieval and steps/memoryContextRetrieval (tool
+//     output) all accept ALLOW/DENY/MODIFY, so each can be blocked and
+//     rewritten. No ACS v0.1.0 hook carries the history or system prompt
+//     resent to the model, so those stay unsupported here.
 var capabilityMatrix = map[Host]map[Capability]bool{
 	HostClaudeCode: {
 		CapabilityPromptBlock:         true,
@@ -89,6 +100,13 @@ var capabilityMatrix = map[Host]map[Capability]bool{
 		CapabilityToolOutputRedact:    true,
 		CapabilityHistoryRewrite:      true,
 		CapabilitySystemPromptRewrite: true,
+	},
+	HostACS: {
+		CapabilityPromptBlock:         true,
+		CapabilityToolArgsBlock:       true,
+		CapabilityToolOutputRedact:    true,
+		CapabilityHistoryRewrite:      false,
+		CapabilitySystemPromptRewrite: false,
 	},
 }
 

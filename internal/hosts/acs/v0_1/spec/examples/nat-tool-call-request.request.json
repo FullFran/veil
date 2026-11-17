@@ -1,0 +1,21 @@
+{
+  "jsonrpc": "2.0",
+  "id": "00000000-0000-0000-0000-000000000004",
+  "method": "steps/toolCallRequest",
+  "params": {
+    "acs_version": "0.1.0",
+    "request_id": "00000000-0000-0000-0000-000000000005",
+    "timestamp": "2026-11-03T09:39:08.582Z",
+    "metadata": {
+      "agent_id": "nat:00000000",
+      "session_id": "00000000-0000-4000-8000-000000000000",
+      "platform": "nat",
+      "adapter_version": "0.2.0"
+    },
+    "payload": {
+      "tool": {"name": "Bash"},
+      "arguments": {"command": {"value": "echo hello"}}
+    },
+    "signature": {"algorithm": "HMAC-SHA256", "value": "<base64 HMAC>", "key_id": "2026-11"}
+  }
+}

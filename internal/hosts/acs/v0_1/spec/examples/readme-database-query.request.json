@@ -1,0 +1,18 @@
+{
+  "jsonrpc": "2.0",
+  "method": "steps/toolCallRequest",
+  "id": "2",
+  "params": {
+    "acs_version": "0.1.0",
+    "request_id": "c4f2d0a1-4c32-4c8b-a03f-7b7e3f7b0b33",
+    "timestamp": "2026-09-09T14:03:47Z",
+    "metadata": {
+      "agent_id": "research-assistant",
+      "session_id": "5b7a6e2a-6a2e-4b7a-9f2e-6a6d2e6a9a22"
+    },
+    "payload": {
+      "tool": { "name": "database_query" },
+      "arguments": { "query": { "value": "SELECT * FROM customers" } }
+    }
+  }
+}

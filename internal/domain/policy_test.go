@@ -2,8 +2,10 @@ package domain_test
 
 import (
 	"errors"
+	"fmt"
 	"strings"
 	"testing"
+	"time"
 
 	"github.com/FullFran/veil/internal/domain"
 )
@@ -332,4 +334,40 @@ func TestPolicy_Evaluate_UnsupportedCapability_ChecksEvenWithoutFindings(t *test
 	if !errors.As(err, &capErr) {
 		t.Fatalf("error = %v, want *domain.UnsupportedCapabilityError", err)
 	}
+}
+
+// TestEvaluate_RewriteScalesLinearlyWithFields rewrites an event with one
+// distinct DNI in each of many fields. Substituting them must not cost
+// fields × findings (a replacer built per field over every finding): at
+// this size that is minutes, linear work is well under a second.
+func TestEvaluate_RewriteScalesLinearlyWithFields(t *testing.T) {
+	const n = 20000
+	letters := "TRWAGMYFPDXBNJZSQVHLCKE"
+	fields := make(map[string]string, n)
+	var text strings.Builder
+	for i := 0; i < n; i++ {
+		number := 10000000 + i
+		dni := fmt.Sprintf("%d%c", number, letters[number%23])
+		key := fmt.Sprintf("arg%d", i)
+		fields[key] = "dni " + dni
+		fmt.Fprintf(&text, "%s: dni %s\n", key, dni)
+	}
+	policy := domain.NewPolicy(domain.NewRegistry(domain.NewDNIDetector()), domain.NewMemoryPseudonymStore())
+	start := time.Now()
+	d, err := policy.Evaluate(domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode, SessionID: "s",
+		ToolName: "Bash", Text: text.String(), Fields: fields})
+	elapsed := time.Since(start)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if d.Kind != domain.Rewrite || len(d.RedactedFields) != n {
+		t.Fatalf("decision = %s with %d fields, want a rewrite of %d", d.Kind, len(d.RedactedFields), n)
+	}
+	if strings.Contains(d.RedactedFields["arg7"], "10000007") {
+		t.Fatalf("arg7 = %q, still in clear", d.RedactedFields["arg7"])
+	}
+	if elapsed > 10*time.Second {
+		t.Fatalf("rewrite of %d fields took %v, want linear work", n, elapsed)
+	}
+	t.Logf("rewrite of %d fields: %v", n, elapsed)
 }

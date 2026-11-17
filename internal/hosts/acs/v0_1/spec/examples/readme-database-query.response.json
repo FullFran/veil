@@ -1,0 +1,16 @@
+{
+  "jsonrpc": "2.0",
+  "id": "2",
+  "result": {
+    "type": "final",
+    "acs_version": "0.1.0",
+    "request_id": "c4f2d0a1-4c32-4c8b-a03f-7b7e3f7b0b33",
+    "decision": "modify",
+    "reasoning": "Unbounded SELECT against customers exceeds the row-limit policy. Query capped at 100 rows.",
+    "modifications": {
+      "parameter_overrides": {
+        "query": "SELECT id, name FROM customers LIMIT 100"
+      }
+    }
+  }
+}
