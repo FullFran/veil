@@ -1,0 +1,8 @@
+kind: Changed
+body: |-
+  **Breaking (exit codes):** the exit code carries only the class: 0 decision
+  (allow, deny or rewrite), 2 usage, 1 failed closed; `veil claude-code` fails
+  closed with 2, because Claude Code treats other nonzero codes as
+  non-blocking. An OpenCode deny now exits 0 with the action on stdout. Hosts
+  that treated exit 1 as deny must read the action instead (#13).
+time: 2026-11-17T00:00:18Z

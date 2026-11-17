@@ -1,0 +1,7 @@
+kind: Changed
+body: |-
+  Release binaries are built by GoReleaser (`.goreleaser.yaml`) instead of a
+  shell loop, with the same names, flags and bytes; checksums, provenance,
+  signing and publishing are unchanged. The build is reproducible, and
+  [`docs/releasing.md`](docs/releasing.md) documents how a release is cut (#33).
+time: 2026-11-17T00:00:01Z

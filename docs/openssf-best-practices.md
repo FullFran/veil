@@ -76,7 +76,7 @@ this repository today.
 | `version_semver` | Met | Releases follow Semantic Versioning 2.0.0 (`vMAJOR.MINOR.PATCH` tags). |
 | `version_tags` | Met | Every release is a git tag: https://github.com/FullFran/veil/tags |
 | `release_notes` | Met | Human-readable release notes for every release, in Keep a Changelog 1.1.0 format, with breaking changes marked: https://github.com/FullFran/veil/blob/main/CHANGELOG.md. The release workflow publishes each version's section as the GitHub release notes. |
-| `release_notes_vulns` | Met | The "Security" subsection of each CHANGELOG version lists every publicly known vulnerability fixed in it, e.g. GO-2026-6218 under Unreleased: https://github.com/FullFran/veil/blob/main/CHANGELOG.md |
+| `release_notes_vulns` | Met | The "Security" subsection of each CHANGELOG version lists every publicly known vulnerability fixed in it, and an unreleased fix is a `Security` change file until its release, e.g. GO-2026-6218 in https://github.com/FullFran/veil/blob/main/.changes/unreleased/Security-migrated-34.yaml |
 
 ## Reporting
 

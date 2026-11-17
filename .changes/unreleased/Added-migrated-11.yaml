@@ -1,0 +1,9 @@
+kind: Added
+body: |-
+  Decision evidence with no personal data: one CloudEvents 1.0.2 record per
+  decision carrying an OCSF 1.9.0 Data Security Finding (class 2006) and W3C
+  DPV categories. `veil opencode` adds an `evidence` member to its answer;
+  `VEIL_EVIDENCE_FILE` appends JSONL; `VEIL_CATALOG_REVISION` labels the
+  catalog. New codes `VEIL_EVIDENCE_WRITE` and `VEIL_CATALOG_REVISION_INVALID`
+  (#18).
+time: 2026-11-17T00:00:11Z

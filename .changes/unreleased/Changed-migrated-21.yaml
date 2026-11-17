@@ -1,0 +1,5 @@
+kind: Changed
+body: |-
+  The lock timeout reports `VEIL_STORE_LOCKED` instead of `VEIL_INTERNAL`
+  (#17).
+time: 2026-11-17T00:00:21Z

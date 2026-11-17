@@ -1,0 +1,5 @@
+kind: Fixed
+body: |-
+  A failure on the OpenCode `tool.execute.after` hook withholds the tool
+  output instead of passing it through (#13).
+time: 2026-11-17T00:00:29Z

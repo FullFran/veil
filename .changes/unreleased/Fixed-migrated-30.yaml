@@ -1,0 +1,7 @@
+kind: Fixed
+body: |-
+  Detector misses recorded by the Spanish corpus baseline: separated IBANs of
+  any ISO 13616 country (SWIFT IBAN Registry length and mod-97), Unicode email
+  addresses, `(+34)` / `(0034)` and dot-separated phone numbers, and catalog
+  names joined by a hyphen or apostrophe (`García-López`, `O'Neill`) (#21).
+time: 2026-11-17T00:00:30Z

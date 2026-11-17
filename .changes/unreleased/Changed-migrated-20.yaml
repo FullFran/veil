@@ -1,0 +1,7 @@
+kind: Changed
+body: |-
+  **Breaking (store locks):** session locks are now kernel locks (`flock`,
+  `LockFileEx`) that are released when the holder dies. Do not run two veil
+  versions on the same store at once: old and new locks do not exclude each
+  other (#19).
+time: 2026-11-17T00:00:20Z

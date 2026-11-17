@@ -4,3 +4,8 @@
 *.out
 .DS_Store
 .goreleaser-dist/
+
+# Agent scratch directories: never part of a change.
+/.atl/
+/.claude/
+/.cursor/

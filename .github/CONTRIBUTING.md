@@ -22,6 +22,25 @@ do not: report them privately as [`SECURITY.md`](SECURITY.md) explains.
    format.
 6. Use [Conventional Commits](https://www.conventionalcommits.org/)
    (`feat:`, `fix:`, `docs:`, `ci:`, ...).
+7. Describe a user-visible change in one new file under
+   [`.changes/unreleased/`](../.changes/unreleased/), never in
+   `CHANGELOG.md` (a release builds it, so pull requests never conflict on
+   it). Run `changie new`, or write the file by hand with a name no other
+   branch will use:
+
+   ```yaml
+   # .changes/unreleased/Fixed-<issue>-<short-slug>.yaml
+   kind: Fixed   # Added, Changed, Deprecated, Removed, Fixed or Security
+   body: |-
+     What changed for a user of veil, in Markdown, ending with the issue (#123).
+     Mark a change that breaks hosts with **Breaking:** and what they must do.
+   time: 2026-11-17T10:00:00Z
+   ```
+
+8. Branch from the current `origin/main` and rebase on it right before you
+   open the pull request. Keep pull requests independent of each other where
+   you can: a stack of pull requests has to be rebased every time one of
+   them merges.
 
 ## Checks
 

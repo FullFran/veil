@@ -1,0 +1,52 @@
+# Repository hygiene on every pull request: no agent scratch directories are
+# tracked, and CHANGELOG.md is exactly what changie builds from .changes/, so
+# release notes are written as one file per change in .changes/unreleased/
+# and pull requests never conflict on CHANGELOG.md (CONTRIBUTING.md).
+name: hygiene
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+
+permissions:
+  contents: read
+
+concurrency:
+  group: hygiene-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  hygiene:
+    name: hygiene (agent files, changelog)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      - name: No agent scratch directories
+        run: |
+          tracked="$(git ls-files | grep -E '^\.(atl|claude|cursor)/' || true)"
+          if [ -n "$tracked" ]; then
+            echo "Agent scratch files must not be committed:" >&2
+            echo "$tracked" >&2
+            exit 1
+          fi
+
+      - name: Change files are valid
+        run: go run github.com/miniscruff/changie@v1.26.0 batch v0.0.0-check --dry-run > /dev/null
+
+      - name: CHANGELOG.md is built from .changes/
+        run: |
+          go run github.com/miniscruff/changie@v1.26.0 merge
+          if ! git diff --exit-code -- CHANGELOG.md; then
+            echo "CHANGELOG.md differs from what changie builds from .changes/." >&2
+            echo "Add a file to .changes/unreleased/ instead of editing CHANGELOG.md." >&2
+            exit 1
+          fi

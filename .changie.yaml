@@ -1,0 +1,25 @@
+# Release notes are kept as one file per change in .changes/unreleased/, so
+# pull requests never edit CHANGELOG.md and never conflict on it. Add one
+# with `changie new` or by writing the YAML by hand (see CONTRIBUTING.md).
+# A release runs `changie batch <version>` and `changie merge`
+# (docs/releasing.md), which rebuild CHANGELOG.md in Keep a Changelog form.
+changesDir: .changes
+unreleasedDir: unreleased
+headerPath: header.tpl.md
+changelogPath: CHANGELOG.md
+versionExt: md
+versionFormat: '## [{{.VersionNoPrefix}}] - {{.Time.Format "2006-01-02"}}'
+kindFormat: '### {{.Kind}}'
+changeFormat: '- {{ .Body | replace "\n" "\n  " }}'
+kinds:
+  - label: Added
+  - label: Changed
+  - label: Deprecated
+  - label: Removed
+  - label: Fixed
+  - label: Security
+newlines:
+  afterChangelogHeader: 1
+  beforeKind: 1
+  afterKind: 1
+  endOfVersion: 1

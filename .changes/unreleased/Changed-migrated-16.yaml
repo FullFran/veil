@@ -1,0 +1,7 @@
+kind: Changed
+body: |-
+  **Breaking (rewrite args shape):** a tool-call `rewrite` keeps the original
+  JSON types in `args` (OpenCode) and `updatedInput` (Claude Code); arrays
+  stay arrays and numbers and booleans keep their type unless rewritten.
+  Hosts that expected every value as a string must read typed values (#4).
+time: 2026-11-17T00:00:16Z

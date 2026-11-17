@@ -1,0 +1,7 @@
+kind: Added
+body: |-
+  Release assets: prebuilt binaries for Linux, macOS and Windows (amd64,
+  arm64), the OpenCode plugin and `SHA256SUMS` (#2), plus SLSA v1 build
+  provenance (`veil.intoto.jsonl`) and a keyless Sigstore signature of
+  `SHA256SUMS` (#14).
+time: 2026-11-17T00:00:12Z

@@ -1,0 +1,9 @@
+kind: Security
+body: |-
+  GO-2026-5932 (`golang.org/x/crypto/openpgp` unmaintained), GO-2026-6354
+  and GO-2026-6355 (denial of service in `golang.org/x/crypto/ssh`): veil
+  never imports either package (`golang.org/x/crypto` comes in through
+  `filippo.io/age`), but the module version was affected; fixed by upgrading
+  to `golang.org/x/crypto` v0.59.0. CI now also runs osv-scanner without
+  reachability analysis, the check OpenSSF Scorecard runs (#33).
+time: 2026-11-17T00:00:35Z

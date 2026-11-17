@@ -1,0 +1,5 @@
+kind: Added
+body: |-
+  Store key sources: `VEIL_KEY_FD`, the systemd credential `veil-store-key`
+  and the OS keyring (#17).
+time: 2026-11-17T00:00:09Z

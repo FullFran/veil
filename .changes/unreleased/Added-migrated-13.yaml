@@ -1,0 +1,6 @@
+kind: Added
+body: |-
+  Pull request CI (gofmt, vet, tests, plugin test), an archsieve architecture
+  gate, OpenSSF Scorecard and Dependabot (#14); static analysis with CodeQL,
+  golangci-lint (gosec) and govulncheck.
+time: 2026-11-17T00:00:13Z

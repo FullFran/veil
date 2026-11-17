@@ -1,0 +1,6 @@
+kind: Fixed
+body: |-
+  If the answer cannot be written to stdout, veil now fails closed
+  (`VEIL_INTERNAL`) instead of exiting 0 with no answer, which Claude Code
+  read as "proceed with the original input".
+time: 2026-11-17T00:00:33Z

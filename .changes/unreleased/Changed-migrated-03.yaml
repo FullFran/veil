@@ -1,0 +1,6 @@
+kind: Changed
+body: |-
+  **Breaking:** an event that needs a pseudonym and carries no session id
+  fails closed with the new code `VEIL_SESSION_ID_MISSING` instead of
+  sharing the `unknown-session` store (#26).
+time: 2026-11-17T00:00:03Z
