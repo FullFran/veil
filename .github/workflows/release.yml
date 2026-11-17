@@ -1,6 +1,7 @@
 # Publishes prebuilt veil binaries, the OpenCode plugin and SHA256SUMS as
 # release assets, so consumers (for example a bundle builder) can install
-# veil without a Go toolchain.
+# veil without a Go toolchain. GoReleaser (.goreleaser.yaml) builds the
+# binaries reproducibly; this workflow does everything else.
 #
 # Supply chain: every asset listed in SHA256SUMS gets SLSA v1 build provenance
 # (an in-toto statement, Sigstore-signed with this workflow's GitHub OIDC
@@ -86,15 +87,25 @@ jobs:
       - name: Test
         run: go test ./...
 
-      - name: Build binaries
+      # GoReleaser only builds (.goreleaser.yaml disables its release,
+      # checksums and changelog): the binaries go through the same checksum,
+      # provenance, signature and verification steps below as before.
+      - name: Build binaries (GoReleaser)
+        uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: v2.20.2
+          args: release --clean --skip=publish
+        env:
+          GORELEASER_CURRENT_TAG: ${{ env.TAG }}
+
+      - name: Collect the assets
         run: |
           mkdir -p dist
-          for target in linux/amd64 linux/arm64 darwin/amd64 darwin/arm64 windows/amd64 windows/arm64; do
-            os="${target%/*}"; arch="${target#*/}"
-            ext=""; [ "$os" = windows ] && ext=".exe"
-            CGO_ENABLED=0 GOOS="$os" GOARCH="$arch" \
-              go build -trimpath -ldflags "-s -w" -o "dist/veil-${os}-${arch}${ext}" ./cmd/veil
-          done
+          jq -r '.[] | select(.type == "Binary" and (.name | startswith("veil-"))) | "\(.path) \(.name)"' \
+            .goreleaser-dist/artifacts.json |
+            while read -r path name; do cp "$path" "dist/$name"; done
+          test "$(find dist -type f | wc -l)" -eq 6
           cp adapters/opencode/veil-plugin.js dist/veil-plugin.js
           (cd dist && sha256sum * > SHA256SUMS && cat SHA256SUMS)
 

@@ -1,0 +1,42 @@
+# GoReleaser builds the release binaries for .github/workflows/release.yml.
+# It only builds: checksums, SLSA provenance, the Sigstore signature,
+# verification and publishing stay in release.yml, so this file adds no
+# second path to a release.
+#
+# The binaries are the ones the workflow built by hand before: CGO off,
+# -trimpath, -ldflags "-s -w", one per target, named veil-<os>-<arch>[.exe].
+# mod_timestamp pins file times to the commit, so a build is reproducible.
+version: 2
+
+project_name: veil
+
+dist: .goreleaser-dist
+
+builds:
+  - id: veil
+    main: ./cmd/veil
+    binary: veil
+    env:
+      - CGO_ENABLED=0
+    goos: [linux, darwin, windows]
+    goarch: [amd64, arm64]
+    flags:
+      - -trimpath
+    ldflags:
+      - -s -w
+    mod_timestamp: "{{ .CommitTimestamp }}"
+
+archives:
+  - id: binaries
+    ids: [veil]
+    formats: [binary]
+    name_template: "veil-{{ .Os }}-{{ .Arch }}"
+
+checksum:
+  disable: true
+
+changelog:
+  disable: true
+
+release:
+  disable: true

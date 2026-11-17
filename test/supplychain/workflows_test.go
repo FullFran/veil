@@ -132,3 +132,42 @@ func TestRelease_VerifiesSignatureAndProvenanceBeforePublishing(t *testing.T) {
 		}
 	}
 }
+
+// TestRelease_GoReleaserOnlyBuilds: release.yml builds the binaries with
+// GoReleaser (the packaging step OpenSSF Scorecard detects) BEFORE the
+// provenance attestation, so every binary is covered by it, and
+// .goreleaser.yaml never publishes, signs or checksums anything itself: the
+// one publishing path stays the verified gh release step.
+func TestRelease_GoReleaserOnlyBuilds(t *testing.T) {
+	body, ok := workflows(t)["release.yml"]
+	if !ok {
+		t.Fatal("release.yml not found")
+	}
+	build := strings.Index(body, "goreleaser/goreleaser-action@")
+	attest := strings.Index(body, "actions/attest@")
+	if build < 0 || attest < 0 || build > attest {
+		t.Fatalf("release.yml goreleaser at %d, attest at %d: want GoReleaser to build before the attestation", build, attest)
+	}
+
+	raw, err := os.ReadFile("../../.goreleaser.yaml")
+	if err != nil {
+		t.Fatal(err)
+	}
+	config := string(raw)
+	for _, section := range []string{"release", "checksum", "changelog"} {
+		if !regexp.MustCompile(`(?m)^` + section + `:\n\s+disable: true$`).MatchString(config) {
+			t.Errorf(".goreleaser.yaml: %s is not disabled", section)
+		}
+	}
+	for _, forbidden := range []string{"signs:", "sboms:", "dockers:", "brews:", "nfpms:", "publishers:", "blobs:"} {
+		if strings.Contains(config, forbidden) {
+			t.Errorf(".goreleaser.yaml has %q: signing and publishing belong to release.yml", forbidden)
+		}
+	}
+	// Reproducible: no build path or file time in the binaries.
+	for _, setting := range []string{"-trimpath", "mod_timestamp: \"{{ .CommitTimestamp }}\"", "CGO_ENABLED=0"} {
+		if !strings.Contains(config, setting) {
+			t.Errorf(".goreleaser.yaml does not set %s", setting)
+		}
+	}
+}

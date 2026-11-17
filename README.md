@@ -645,7 +645,8 @@ Every release publishes, as assets, `veil-<os>-<arch>` binaries built with
 `CGO_ENABLED=0` (`linux`, `darwin` and `windows`, each on `amd64` and
 `arm64`; Windows files end in `.exe`), the OpenCode plugin `veil-plugin.js`,
 and a `SHA256SUMS` file covering all of them
-(`.github/workflows/release.yml`). What changed in each release, including
+(`.github/workflows/release.yml`; [GoReleaser](https://goreleaser.com/)
+builds the binaries from [`.goreleaser.yaml`](.goreleaser.yaml)). What changed in each release, including
 the changes a host must act on, is in [`CHANGELOG.md`](CHANGELOG.md).
 Verify before use:
 
@@ -711,6 +712,26 @@ sha256sum --check SHA256SUMS
 ```
 
 The release workflow runs both checks on the files before it publishes them.
+
+### Reproducing a release build
+
+The binaries are reproducible: the same commit, built from a clean checkout
+with the same Go toolchain, gives the same bytes (`-trimpath`, no build
+time or path in the binary). `go version -m` on an asset prints the Go
+version and the commit it was built from. To rebuild one and compare it with
+the release's `SHA256SUMS`:
+
+```bash
+TAG=v0.3.0
+git clone --depth 1 --branch "$TAG" https://github.com/FullFran/veil && cd veil
+go version -m ../veil-linux-amd64 | head -1   # use this Go version
+CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o ../rebuilt ./cmd/veil
+sha256sum ../rebuilt ../veil-linux-amd64
+```
+
+Build from a checkout with no untracked files: Go records whether the tree
+was modified (`vcs.modified`) in the binary, and a modified tree gives
+different bytes. How a release is cut is in [`docs/releasing.md`](docs/releasing.md).
 
 ## Installing on OpenCode
 
