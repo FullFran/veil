@@ -54,9 +54,14 @@ const (
 	ActionDeny Action = "deny"
 )
 
-// DetectorRule is one detector's entry in the policy.
+// DetectorRule is one detector's entry in the policy. Model and
+// TimeoutMs are only valid for the ner detector (the schema enforces it).
 type DetectorRule struct {
 	Action Action `json:"action"`
+	Model  string `json:"model,omitempty"`
+	// TimeoutMs is a float64 because JSON writes 1500 also as 1.5e3; the
+	// schema admits integers only.
+	TimeoutMs float64 `json:"timeoutMs,omitempty"`
 }
 
 // CatalogRef points at the name catalog file.

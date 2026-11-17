@@ -42,6 +42,8 @@ var wantCodes = []Code{
 	NERCrashed,
 	NERProtocol,
 	NERModelMismatch,
+	ModelUnknown,
+	ModelCatalogInvalid,
 	Timeout,
 	OutputTooLarge,
 	Unavailable,

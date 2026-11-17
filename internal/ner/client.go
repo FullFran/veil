@@ -59,6 +59,9 @@ func (d *Detector) exchange(deadline time.Time, units []string) ([][]Span, error
 	ctx, cancel := context.WithDeadline(context.Background(), deadline)
 	defer cancel()
 
+	if d.cfg.Socket == "" {
+		return nil, fmt.Errorf("%w: no socket: set %s or XDG_RUNTIME_DIR", ErrUnavailable, SocketEnvVar)
+	}
 	var dialer net.Dialer
 	conn, err := dialer.DialContext(ctx, "unix", d.cfg.Socket)
 	if err != nil {

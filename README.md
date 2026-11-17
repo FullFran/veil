@@ -575,6 +575,16 @@ Set `VEIL_POLICY` to a policy file to use your own:
   `name-catalog` runs only when a catalog is set, by `catalog.path` or by
   `VEIL_CATALOG`. Setting both, or setting either while the policy does not
   enable `name-catalog`, is rejected as ambiguous rather than ignoring one.
+- **NER model (opt-in).** `"ner": {"action": "rewrite", "model":
+  "gliner2-pii", "timeoutMs": 2000}` finds person names (category
+  `NOMBRE`, DPV `pd:Name`) with a local model running in a sidecar (see
+  [Local NER models](#local-ner-models)). `model` is an id of the model
+  catalog; without it `VEIL_NER_MODEL` selects the model, and setting both,
+  setting `VEIL_NER_MODEL` while the policy does not enable `ner`, or
+  enabling `ner` with neither, is rejected as ambiguous. `timeoutMs`
+  (1 to 30000, default 2000) bounds one sidecar exchange. The default
+  policy does not enable it. Any sidecar failure fails the event closed
+  (`VEIL_NER_*`, see [Failures](#failures)).
 - **Retention.** `store.ttl` deletes sessions unused for longer than an
   ISO 8601 duration; without it nothing is deleted (see
   [Retention and data subject requests](#retention-and-data-subject-requests)).
@@ -603,6 +613,39 @@ veil policy                  # the embedded default policy
 
 On failure it writes one problem line on stderr and exits 1 (2 for bad
 arguments).
+
+## Local NER models
+
+The regex and catalog detectors only find names someone listed. With the
+`ner` detector a local named-entity recognition model finds the rest. The
+model never runs inside veil: veil is one short process per hook event and
+a model takes seconds to load, so the model runs in a long-lived local
+**sidecar** that veil asks on each event, over a Unix domain socket
+(`$VEIL_NER_SOCKET`, else `$XDG_RUNTIME_DIR/veil/ner.sock`).
+
+- **Protocol.** JSON-RPC 2.0, one message per line, protocol version `1`.
+  `initialize` returns the model the sidecar serves (catalog id, revision
+  and catalog entry digest), which must equal the selected one;
+  `recognize` takes the event's texts (the tool's argument values, else
+  the text) and returns spans as UTF-8 byte offsets. veil checks every
+  span (inside its text, on character boundaries, a label it asked for).
+- **Catalog.** Models are pinned in
+  [`internal/ner/catalog.json`](internal/ner/catalog.json) (schema
+  [`internal/ner/catalog.schema.json`](internal/ner/catalog.schema.json)):
+  source revision, licence (SPDX), labels, and the size and SHA-256 of
+  every file. `VEIL_NER_CATALOG` names a file with more entries; it can
+  never replace an embedded id.
+
+| id | source | licence | disk | cold start | p50 / p95 per event |
+|---|---|---|---|---|---|
+| `gliner2-pii` | `fastino/gliner2-privacy-filter-PII-multi` @ `1cb41660` | Apache-2.0 | 1.2 GB | 7.2 s | 90 / 176 ms |
+| `spacy-es-core-news-lg` | `es_core_news_lg-3.8.0` wheel | GPL-3.0-only | 0.6 GB | 5.8 s | 4 / 7 ms |
+
+Costs are CPU measurements from [`research/ner-benchmark`](research/ner-benchmark).
+
+- **Fails closed.** Once the policy enables `ner`, the sidecar is not
+  optional: no sidecar, a late answer, a dropped connection, an invalid
+  answer or another model each block the event with its own code.
 
 ## Installing on Claude Code
 
@@ -765,6 +808,7 @@ Environment variables the plugin and binary read:
 | --------------- | --------------------------------- | ------------------------------------------------------------------------ |
 | `VEIL_BINARY`   | `adapters/opencode/veil-plugin.js` | Path to the `veil` binary. Defaults to `veil` (resolved via `PATH`).      |
 | `VEIL_CATALOG`  | the `veil` binary (`cmd/veil`)     | Path to a name catalog file (JSON array or one-name-per-line). Optional.  |
+| `VEIL_NER_MODEL`, `VEIL_NER_SOCKET`, `VEIL_NER_CATALOG` | the `veil` binary (`cmd/veil`) | NER model selection, sidecar socket and extra model catalog (see [Local NER models](#local-ner-models)). Optional. |
 | `VEIL_POLICY`   | the `veil` binary (`cmd/veil`)     | Path to a policy file (see [Policy](#policy)). Optional; unset means the embedded default policy. |
 | `XDG_STATE_HOME`| the `veil` binary (`cmd/veil`)     | Base directory for the per-session pseudonym store. Falls back to the OS temp dir. |
 | `VEIL_KEY_FD`   | the `veil` binary (`cmd/veil`)     | Number of an inherited descriptor holding the store key (an age identity). Set by a host; wins over every other key source. See [Key sources](#key-sources). |
@@ -1087,7 +1131,7 @@ event in structured JSON mode whose `data` is an
 | `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
 | `data_security.category_id` | 1 Personal when any personal data detector fired, 6 Security when only `secret-path`/`binary-content` did, absent otherwise |
 | `duration` | Evaluation time in milliseconds |
-| `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision` |
+| `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision`, `ner_model` (`id`, `revision`, `entry_digest` of the NER model, when the policy enables `ner`) |
 
 DPV 2.3 is a W3C Community Group report, not a W3C Standard, and has no
 DNI/NIE-specific concept: `rule.name` keeps veil's own label next to the
@@ -1186,6 +1230,8 @@ line on stderr is what tells a failure apart.
 | `VEIL_NER_CRASHED` | `ner-crashed` | The NER sidecar closed the connection before answering |
 | `VEIL_NER_PROTOCOL` | `ner-protocol` | The NER sidecar's answer is not a valid protocol version 1 answer (bad JSON, error reply, other version, span outside its unit or off a character boundary, label not asked for) |
 | `VEIL_NER_MODEL_MISMATCH` | `ner-model-mismatch` | The NER sidecar serves another model, revision or catalog entry than the policy selects |
+| `VEIL_MODEL_UNKNOWN` | `model-unknown` | The policy's `detectors.ner.model` or `VEIL_NER_MODEL` names no catalog entry |
+| `VEIL_MODEL_CATALOG_INVALID` | `model-catalog-invalid` | The NER model catalog in `VEIL_NER_CATALOG` is unreadable, breaks its schema, repeats an id or reuses an embedded id |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
 | `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
 | `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |

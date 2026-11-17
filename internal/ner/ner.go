@@ -30,6 +30,8 @@ package ner
 import (
 	"errors"
 	"fmt"
+	"os"
+	"path/filepath"
 	"sort"
 	"time"
 
@@ -47,6 +49,28 @@ const MaxSpansPerUnit = 1024
 // about 11 times the measured GLiNER2-PII p95 per event (176 ms,
 // research/ner-benchmark), and far below a host's own hook deadline.
 const DefaultTimeout = 2 * time.Second
+
+// Environment variables that configure the client.
+const (
+	// SocketEnvVar overrides the sidecar's socket path.
+	SocketEnvVar = "VEIL_NER_SOCKET"
+	// ModelEnvVar selects the model when the policy enables ner without
+	// one.
+	ModelEnvVar = "VEIL_NER_MODEL"
+)
+
+// SocketPath returns $VEIL_NER_SOCKET, else $XDG_RUNTIME_DIR/veil/ner.sock
+// (a per-user directory only its owner can enter), else "": with no path
+// the detector reports ErrUnavailable rather than guess a shared one.
+func SocketPath() string {
+	if s := os.Getenv(SocketEnvVar); s != "" {
+		return s
+	}
+	if dir := os.Getenv("XDG_RUNTIME_DIR"); dir != "" {
+		return filepath.Join(dir, "veil", "ner.sock")
+	}
+	return ""
+}
 
 // DetectorName is the detector id of NER findings, in Finding.Detector,
 // the policy and evidence.

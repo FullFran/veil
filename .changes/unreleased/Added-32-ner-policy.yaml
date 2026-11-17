@@ -1,0 +1,9 @@
+kind: Added
+body: |-
+  The `ner` detector in the policy (`detectors.ner`: `action`, `model`,
+  `timeoutMs`), off unless a policy enables it. `VEIL_NER_MODEL` selects
+  the model when the policy names none; `VEIL_NER_SOCKET` overrides the
+  socket. Evidence records the model in `unmapped.veil.ner_model`
+  (`id`, `revision`, `entry_digest`), never text or spans. New codes:
+  `VEIL_MODEL_UNKNOWN`, `VEIL_MODEL_CATALOG_INVALID` (#32).
+time: 2026-11-17T14:00:00Z

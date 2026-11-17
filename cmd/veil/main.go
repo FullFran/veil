@@ -50,6 +50,7 @@ type engine struct {
 	policyDigest    string
 	policyVersion   string
 	catalogRevision string
+	nerModel        *evidence.NERModel
 	evidenceFile    string
 }
 
@@ -74,6 +75,10 @@ func newEngine() (*engine, error) {
 	if err != nil {
 		return nil, err
 	}
+	nerModel, err := wireNER(p, registry)
+	if err != nil {
+		return nil, err
+	}
 	store := newStore()
 	if ttl, ok := p.Retention(); ok {
 		// Retention runs at every start. It is maintenance, not part of
@@ -89,6 +94,7 @@ func newEngine() (*engine, error) {
 		policyDigest:    p.Digest(),
 		policyVersion:   p.Version,
 		catalogRevision: revision,
+		nerModel:        nerModel,
 		evidenceFile:    os.Getenv(evidenceFileEnv),
 	}, nil
 }
@@ -122,6 +128,7 @@ func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, 
 		PolicyDigest:    e.policyDigest,
 		PolicyVersion:   e.policyVersion,
 		CatalogRevision: e.catalogRevision,
+		NERModel:        e.nerModel,
 		Duration:        elapsed,
 	})
 	if err != nil {
@@ -226,7 +233,8 @@ func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 }
 
 // classifyPolicyError maps a newEngine error to its problem code by error
-// type: a *policy.Error carries its own code (policy or catalog).
+// type: a *policy.Error carries its own code (policy or catalog); the NER
+// model catalog has its own sentinels.
 func classifyPolicyError(err error) problem.Code {
 	var perr *policy.Error
 	switch {
@@ -234,6 +242,10 @@ func classifyPolicyError(err error) problem.Code {
 		return perr.Code
 	case errors.Is(err, evidence.ErrRevisionInvalid):
 		return problem.CatalogRevisionInvalid
+	case errors.Is(err, ner.ErrModelUnknown):
+		return problem.ModelUnknown
+	case errors.Is(err, ner.ErrCatalogInvalid):
+		return problem.ModelCatalogInvalid
 	default:
 		return problem.Internal
 	}
@@ -389,4 +401,30 @@ func runPolicy(args []string, stdout, stderr io.Writer) int {
 		return problem.ExitFailedClosed
 	}
 	return problem.ExitDecision
+}
+
+// wireNER registers the NER sidecar detector when the policy enables it,
+// with the model the policy or VEIL_NER_MODEL selects from the catalog,
+// and returns what evidence records about that model (nil when off).
+func wireNER(p *policy.Policy, registry *domain.Registry) (*evidence.NERModel, error) {
+	rule, enabled, err := p.NER(os.Getenv(ner.ModelEnvVar))
+	if err != nil || !enabled {
+		return nil, err
+	}
+	catalog, err := ner.LoadCatalog(os.Getenv(ner.CatalogEnvVar))
+	if err != nil {
+		return nil, err
+	}
+	entry, err := catalog.Lookup(rule.Model)
+	if err != nil {
+		return nil, err
+	}
+	model := entry.Model()
+	registry.RegisterFallible(policy.WithAction(ner.NewDetector(ner.Config{
+		Socket:  ner.SocketPath(),
+		Timeout: rule.Timeout,
+		Model:   model,
+		Labels:  entry.Labels,
+	}), rule.Action))
+	return &evidence.NERModel{ID: model.ID, Revision: model.Revision, EntryDigest: model.EntryDigest}, nil
 }
