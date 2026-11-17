@@ -1,7 +1,7 @@
 # Pull request checks: formatting, vet, Go tests under the race detector
 # (including the domain import rule in internal/domain/imports_test.go), static
-# analysis (golangci-lint with gosec, and govulncheck), the OpenCode plugin
-# test, and an architecture gate that compares archsieve snapshots of the base
+# analysis (golangci-lint with gosec), known vulnerabilities (govulncheck and
+# osv-scanner), the OpenCode plugin test, and an architecture gate that compares archsieve snapshots of the base
 # and the head. CodeQL runs in codeql.yml.
 name: ci
 
@@ -83,6 +83,33 @@ jobs:
       # vulnerability database. The version is checked against sum.golang.org.
       - name: govulncheck
         run: go run golang.org/x/vuln/cmd/govulncheck@v1.9.0 ./...
+
+  osv:
+    name: known vulnerabilities (osv-scanner)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # The check OpenSSF Scorecard's Vulnerabilities check runs: every
+      # lockfile in the repository (go.mod and research/ner-benchmark/uv.lock)
+      # against OSV.dev, WITHOUT reachability analysis, so a vulnerable module
+      # fails here even when govulncheck finds no call to it. A finding that does
+      # not apply is accepted in an osv-scanner.toml next to its lockfile
+      # ([[IgnoredVulns]] with a reason and ignoreUntil), never by skipping this.
+      # osv-scanner v2.7.1 needs Go 1.27.3 to build; setup-go sets
+      # GOTOOLCHAIN=local, so name that toolchain (downloaded and checked
+      # against sum.golang.org). veil itself still builds with go.mod's.
+      - name: osv-scanner
+        env:
+          GOTOOLCHAIN: go1.27.3
+        run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.1 scan source --no-call-analysis=go --recursive .
 
   plugin:
     name: opencode plugin test
