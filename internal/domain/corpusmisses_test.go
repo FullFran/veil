@@ -117,7 +117,7 @@ func TestPhoneDetector_ParenthesizedPrefix(t *testing.T) {
 func TestPhoneDetector_DotSeparated(t *testing.T) {
 	cases := []spanCase{
 		// tel-005
-		{"Contacto 699.123.457.", "699.123.457", "TEL", "699123457"},
+		{"Contacto 699.123.457.", "699.123.457", "TEL", "+34699123457"},
 		{"Tel. +34 699.123.457", "+34 699.123.457", "TEL", "+34699123457"},
 	}
 	for _, tc := range cases {

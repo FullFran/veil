@@ -10,7 +10,7 @@
   "report": {
     "corpus": "testdata/corpus/es/v1",
     "policy": "sha256:cc0ab7b0430dac34a71111c9fec329a331aba91dc51204aa91dc61b0510e661b",
-    "cases": 87,
+    "cases": 90,
     "labels": {
       "DNI": {
         "tp": 23,
@@ -33,21 +33,21 @@
         "fn": 2
       },
       "TEL": {
-        "tp": 18,
+        "tp": 22,
         "fp": 3,
         "fn": 0
       }
     },
     "micro": {
-      "tp": 80,
+      "tp": 84,
       "fp": 4,
       "fn": 2
     },
     "latency": {
-      "samples": 1740,
-      "p50Micros": 34.425,
-      "p95Micros": 88.358,
-      "maxMicros": 473.152
+      "samples": 1800,
+      "p50Micros": 36.811,
+      "p95Micros": 90.092,
+      "maxMicros": 477.09
     }
   }
 }

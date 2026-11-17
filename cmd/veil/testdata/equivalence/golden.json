@@ -46,7 +46,7 @@
   },
   "oc-before-nested": {
     "exitCode": 0,
-    "stdout": "{\"action\":\"rewrite\",\"args\":{\"edits\":[{\"newString\":\"Juan García 12345678Z\",\"oldString\":\"x\"}],\"filePath\":\"a.txt\"}}",
+    "stdout": "{\"action\":\"rewrite\",\"args\":{\"edits\":[{\"newString\":\"Juan García 12.345.678-Z\",\"oldString\":\"x\"}],\"filePath\":\"a.txt\"}}",
     "stderr": ""
   },
   "oc-before-phone": {

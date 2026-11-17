@@ -55,6 +55,9 @@
 {"id": "tel-015", "tags": ["near-miss", "timestamp"], "text": "Marca de tiempo 1700000000 en el log."}
 {"id": "tel-016", "tags": ["parenthesized", "prefix-0034"], "text": "Llamar al [[TEL:(0034) 699-123-458]] por la tarde."}
 {"id": "tel-017", "tags": ["near-miss", "dot-grouped-count"], "text": "Población estimada: 712.345.678 habitantes."}
+{"id": "tel-018", "tags": ["prefix-0034", "same-number"], "text": "Llama al [[TEL:0034612345671]] o al [[TEL:612345671]], es el mismo número."}
+{"id": "tel-019", "tags": ["parenthesized", "separated", "prefix"], "text": "Su número es [[TEL:(+34) 612-345-672]] y el fijo [[TEL:+34 912 345 673]]."}
+{"id": "tel-020", "tags": ["near-miss", "prefix-0034"], "text": "Referencia ref0034612345674 y lote 10034612345675."}
 {"id": "nombre-001", "tags": ["catalog"], "text": "Reunión con [[NOMBRE:María Pérez]] el lunes."}
 {"id": "nombre-002", "tags": ["catalog", "case"], "text": "ESCRIBE A [[NOMBRE:JUAN GARCIA]] HOY"}
 {"id": "nombre-003", "tags": ["catalog", "unicode"], "text": "¿Has hablado con [[NOMBRE:José Ángel Núñez]]? 👍"}
