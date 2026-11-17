@@ -162,3 +162,8 @@ func checkValue(dec *json.Decoder) error {
 	_, err = dec.Token() // closing delimiter
 	return err
 }
+
+// RejectDuplicateKeys fails when raw is not exactly one JSON value or
+// when any object in it repeats a member name. Other veil documents (the
+// NER model catalog) apply the same rule as the policy.
+func RejectDuplicateKeys(raw []byte) error { return rejectDuplicateKeys(raw) }

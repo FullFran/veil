@@ -1,0 +1,10 @@
+kind: Added
+body: |-
+  An embedded NER model catalog (`internal/ner/catalog.json`, schema
+  `urn:veil:schema:ner-catalog:1.0`) pinning `gliner2-pii`
+  (`fastino/gliner2-privacy-filter-PII-multi` at commit `1cb41660`,
+  Apache-2.0) and `spacy-es-core-news-lg` (the `es_core_news_lg-3.8.0`
+  release wheel, GPL-3.0-only), each file with its size and SHA-256
+  digest. `VEIL_NER_CATALOG` adds entries; it can never replace an
+  embedded one (#32).
+time: 2026-11-17T12:00:00Z
