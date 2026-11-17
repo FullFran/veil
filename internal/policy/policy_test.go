@@ -218,7 +218,10 @@ func TestRegistry_DenyAction_FindingHasNoCategory(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	findings := r.DetectAll(domain.Event{Kind: domain.EventPromptSubmit, Text: "12345678Z ana@example.com"})
+	findings, err := r.DetectAll(domain.Event{Kind: domain.EventPromptSubmit, Text: "12345678Z ana@example.com"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if len(findings) != 2 {
 		t.Fatalf("findings = %+v, want 2", findings)
 	}
@@ -260,7 +263,10 @@ func TestRegistry_CatalogPath_RelativeToPolicyFile(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	findings := r.DetectAll(domain.Event{Kind: domain.EventPromptSubmit, Text: "habla con juan garcia"})
+	findings, err := r.DetectAll(domain.Event{Kind: domain.EventPromptSubmit, Text: "habla con juan garcia"})
+	if err != nil {
+		t.Fatal(err)
+	}
 	if len(findings) != 1 || findings[0].Category != "NOMBRE" {
 		t.Fatalf("findings = %+v, want one NOMBRE", findings)
 	}

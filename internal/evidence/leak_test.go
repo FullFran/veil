@@ -97,7 +97,10 @@ func TestCorpus_NoEvidenceLeaks(t *testing.T) {
 				if err != nil {
 					t.Fatalf("%s/%s/%s: Evaluate: %v", action, host, cs.ID, err)
 				}
-				findings := registry.DetectAll(event)
+				findings, err := registry.DetectAll(event)
+				if err != nil {
+					t.Fatal(err)
+				}
 				rec, err := evidence.Build(evidence.Input{
 					ID:            "00000000-0000-4000-8000-000000000000",
 					Time:          fixedTime,

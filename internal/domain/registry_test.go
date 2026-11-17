@@ -22,7 +22,7 @@ func TestRegistry_DetectAll_ConcatenatesInOrder(t *testing.T) {
 	second := stubDetector{name: "second", findings: []domain.Finding{{Detector: "second", Reason: "b"}, {Detector: "second", Reason: "c"}}}
 
 	registry := domain.NewRegistry(first, second)
-	findings := registry.DetectAll(domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode})
+	findings := detectAll(t, registry, domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode})
 
 	if len(findings) != 3 {
 		t.Fatalf("len(findings) = %d, want 3", len(findings))
@@ -34,7 +34,7 @@ func TestRegistry_DetectAll_ConcatenatesInOrder(t *testing.T) {
 
 func TestRegistry_DetectAll_NoFindings_ReturnsEmpty(t *testing.T) {
 	registry := domain.NewRegistry(stubDetector{name: "quiet"})
-	findings := registry.DetectAll(domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode})
+	findings := detectAll(t, registry, domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode})
 
 	if len(findings) != 0 {
 		t.Fatalf("len(findings) = %d, want 0", len(findings))
@@ -45,7 +45,7 @@ func TestRegistry_Register_AddsDetector(t *testing.T) {
 	registry := domain.NewRegistry()
 	registry.Register(stubDetector{name: "late", findings: []domain.Finding{{Detector: "late", Reason: "z"}}})
 
-	findings := registry.DetectAll(domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode})
+	findings := detectAll(t, registry, domain.Event{Kind: domain.EventToolArgs, Host: domain.HostClaudeCode})
 	if len(findings) != 1 || findings[0].Reason != "z" {
 		t.Fatalf("findings = %+v, want a single finding with reason %q", findings, "z")
 	}
@@ -59,4 +59,14 @@ func TestRegistry_Detectors_InRegistrationOrder(t *testing.T) {
 	if len(got) != 3 || got[0].Name() != "a" || got[1].Name() != "b" || got[2].Name() != "c" {
 		t.Fatalf("Detectors() = %v, want a, b, c", got)
 	}
+}
+
+// detectAll runs registry.DetectAll and fails the test on a detector error.
+func detectAll(t *testing.T, registry *domain.Registry, event domain.Event) []domain.Finding {
+	t.Helper()
+	findings, err := registry.DetectAll(event)
+	if err != nil {
+		t.Fatalf("DetectAll: %v", err)
+	}
+	return findings
 }

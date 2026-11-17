@@ -21,6 +21,7 @@ import (
 	"github.com/FullFran/veil/internal/evidence"
 	"github.com/FullFran/veil/internal/hosts/claudecode"
 	"github.com/FullFran/veil/internal/hosts/opencode"
+	"github.com/FullFran/veil/internal/ner"
 	"github.com/FullFran/veil/internal/policy"
 	"github.com/FullFran/veil/internal/problem"
 	"github.com/FullFran/veil/internal/pseudonymstore"
@@ -99,7 +100,7 @@ func newEngine() (*engine, error) {
 // is ever acted on without its record.
 func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, []byte, problem.Code) {
 	start := time.Now()
-	decision, err := e.evaluator.Evaluate(event)
+	decision, findings, err := e.evaluator.Assess(event)
 	if err != nil {
 		return domain.Decision{}, nil, classifyEvaluateError(err)
 	}
@@ -117,7 +118,7 @@ func (e *engine) decide(host domain.Host, event domain.Event) (domain.Decision, 
 		Tool:            event.ToolName,
 		Session:         event.SessionID,
 		Action:          decision.Kind,
-		Findings:        e.registry.DetectAll(event),
+		Findings:        findings,
 		PolicyDigest:    e.policyDigest,
 		PolicyVersion:   e.policyVersion,
 		CatalogRevision: e.catalogRevision,
@@ -239,8 +240,8 @@ func classifyPolicyError(err error) problem.Code {
 }
 
 // classifyEvaluateError maps a Policy.Evaluate error to its problem code
-// by error type, never by message. Evaluate fails either because the host
-// lacks a capability or because the pseudonym store failed.
+// by error type, never by message. Evaluate fails because the host lacks
+// a capability, the pseudonym store failed or the NER sidecar failed.
 func classifyEvaluateError(err error) problem.Code {
 	var unsupported *domain.UnsupportedCapabilityError
 	var syntax *json.SyntaxError
@@ -261,7 +262,8 @@ func classifyEvaluateError(err error) problem.Code {
 	}
 }
 
-// storeErrors maps each pseudonym store sentinel to its problem code.
+// storeErrors maps each pseudonym store and NER sidecar sentinel to its
+// problem code.
 var storeErrors = []struct {
 	err  error
 	code problem.Code
@@ -273,10 +275,15 @@ var storeErrors = []struct {
 	{pseudonymstore.ErrKeyInvalid, problem.StoreKeyInvalid},
 	{pseudonymstore.ErrKeyringUnavailable, problem.StoreKeyringUnavailable},
 	{pseudonymstore.ErrCorrupt, problem.StoreCorrupt},
+	{ner.ErrUnavailable, problem.NERUnavailable},
+	{ner.ErrTimeout, problem.NERTimeout},
+	{ner.ErrCrashed, problem.NERCrashed},
+	{ner.ErrProtocol, problem.NERProtocol},
+	{ner.ErrModelMismatch, problem.NERModelMismatch},
 }
 
-// classifyStoreError maps a pseudonym store failure to its problem code
-// by sentinel (errors.Is), never by message.
+// classifyStoreError maps a pseudonym store or NER sidecar failure to its
+// problem code by sentinel (errors.Is), never by message.
 func classifyStoreError(err error) (problem.Code, bool) {
 	for _, e := range storeErrors {
 		if errors.Is(err, e.err) {

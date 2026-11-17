@@ -57,7 +57,10 @@ func FuzzPolicy_Evaluate(f *testing.F) {
 		if err != nil {
 			t.Fatalf("Evaluate(%q): %v", text, err)
 		}
-		findings := registry.DetectAll(event)
+		findings, err := registry.DetectAll(event)
+		if err != nil {
+			t.Fatalf("DetectAll(%q): %v", text, err)
+		}
 
 		switch decision.Kind {
 		case domain.Allow:

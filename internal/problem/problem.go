@@ -95,6 +95,19 @@ const (
 	// where no ACS modification can be trusted to replace it (a member
 	// name, metadata, the tool name, raw_command), so veil denies it.
 	ACSUnredactable Code = "VEIL_ACS_UNREDACTABLE"
+	// NERUnavailable: the policy enables the ner detector and no sidecar
+	// listens on its socket.
+	NERUnavailable Code = "VEIL_NER_UNAVAILABLE"
+	// NERTimeout: the NER sidecar did not answer before the deadline.
+	NERTimeout Code = "VEIL_NER_TIMEOUT"
+	// NERCrashed: the NER sidecar closed the connection mid-exchange.
+	NERCrashed Code = "VEIL_NER_CRASHED"
+	// NERProtocol: the NER sidecar's answer is not a valid answer of
+	// protocol version 1.
+	NERProtocol Code = "VEIL_NER_PROTOCOL"
+	// NERModelMismatch: the NER sidecar serves another model, revision or
+	// catalog entry than the one the policy selects.
+	NERModelMismatch Code = "VEIL_NER_MODEL_MISMATCH"
 	// Timeout: raised by the OpenCode plugin when the binary does not
 	// answer in time.
 	Timeout Code = "VEIL_TIMEOUT"
@@ -156,6 +169,11 @@ var titles = map[Code]string{
 	ACSTimestampOutOfWindow: "ACS timestamp is out of window",
 	ACSKeyInvalid:           "ACS secret is invalid",
 	ACSUnredactable:         "ACS step carries data veil cannot redact",
+	NERUnavailable:          "NER sidecar is unavailable",
+	NERTimeout:              "NER sidecar did not answer in time",
+	NERCrashed:              "NER sidecar closed the connection",
+	NERProtocol:             "NER sidecar answer is invalid",
+	NERModelMismatch:        "NER sidecar serves another model",
 	Timeout:                 "veil did not answer in time",
 	OutputTooLarge:          "veil answer is too large",
 	Unavailable:             "veil is unavailable",
@@ -187,6 +205,11 @@ var details = map[Code]string{
 	ACSTimestampOutOfWindow: "The request timestamp is outside the skew window; data.skew_window_ms carries the window.",
 	ACSKeyInvalid:           "VEIL_ACS_KEY_ID and a secret of at least 32 bytes (base64, from VEIL_ACS_KEY_FD or the veil-acs-key credential) must be set together.",
 	ACSUnredactable:         "veil would pseudonymize data in a member name, metadata, the tool name or raw_command, which no ACS modification can be trusted to replace, so it denies the step.",
+	NERUnavailable:          "The policy enables the ner detector and no sidecar listens on its socket; veil fails closed.",
+	NERTimeout:              "The NER sidecar did not answer before the detector's deadline; veil fails closed.",
+	NERCrashed:              "The NER sidecar closed the connection before answering; veil fails closed.",
+	NERProtocol:             "The NER sidecar answered something that is not a valid protocol version 1 answer; veil fails closed.",
+	NERModelMismatch:        "The NER sidecar serves another model, revision or catalog entry than the policy selects; veil fails closed.",
 	Timeout:                 "The veil binary did not answer before the deadline.",
 	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
 	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
@@ -200,6 +223,7 @@ var all = []Code{
 	EvidenceWrite, CatalogRevisionInvalid,
 	ACSVersionUnsupported, ACSRequestInvalid, ACSMethodUnsupported, ACSSignatureInvalid,
 	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid, ACSUnredactable,
+	NERUnavailable, NERTimeout, NERCrashed, NERProtocol, NERModelMismatch,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,
 }

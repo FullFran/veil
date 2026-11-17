@@ -149,9 +149,9 @@ func foldDigit(r rune) rune {
 // value. Fields and Args are not given to the view scan: detectors that
 // read them (a secret path) already ran on the raw event, and a view
 // finding is only useful when it names a span of Text.
-func lookalikeFindings(event Event, raw []Finding, detect func(Event) []Finding) []Finding {
+func lookalikeFindings(event Event, raw []Finding, detect func(Event) ([]Finding, error)) ([]Finding, error) {
 	if !needsLookalikeView(event.Text) {
-		return nil
+		return nil, nil
 	}
 	view := newLookalikeView(event.Text)
 	viewEvent := event
@@ -161,8 +161,12 @@ func lookalikeFindings(event Event, raw []Finding, detect func(Event) []Finding)
 	for _, f := range raw {
 		seen[f.Match] = true
 	}
+	viewFindings, err := detect(viewEvent)
+	if err != nil {
+		return nil, err
+	}
 	var findings []Finding
-	for _, f := range detect(viewEvent) {
+	for _, f := range viewFindings {
 		if f.Match == "" || f.Category == "" {
 			continue
 		}
@@ -187,5 +191,5 @@ func lookalikeFindings(event Event, raw []Finding, detect func(Event) []Finding)
 			findings = append(findings, g)
 		}
 	}
-	return findings
+	return findings, nil
 }

@@ -1181,6 +1181,11 @@ line on stderr is what tells a failure apart.
 | `VEIL_ACS_TIMESTAMP_OUT_OF_WINDOW` | `acs-timestamp-out-of-window` | `veil acs`: `timestamp` outside the 5-minute window |
 | `VEIL_ACS_KEY_INVALID` | `acs-key-invalid` | `veil acs`: the secret configuration is incomplete, unreadable, not base64 or under 32 bytes |
 | `VEIL_ACS_UNREDACTABLE` | `acs-unredactable` | `veil acs`: data veil would pseudonymize sits where no ACS modification can be trusted to replace it (a member name, metadata, `tool.name`, `raw_command`), so the step is denied |
+| `VEIL_NER_UNAVAILABLE` | `ner-unavailable` | The policy enables `ner` and no sidecar listens on its socket |
+| `VEIL_NER_TIMEOUT` | `ner-timeout` | The NER sidecar did not answer before the detector's deadline |
+| `VEIL_NER_CRASHED` | `ner-crashed` | The NER sidecar closed the connection before answering |
+| `VEIL_NER_PROTOCOL` | `ner-protocol` | The NER sidecar's answer is not a valid protocol version 1 answer (bad JSON, error reply, other version, span outside its unit or off a character boundary, label not asked for) |
+| `VEIL_NER_MODEL_MISMATCH` | `ner-model-mismatch` | The NER sidecar serves another model, revision or catalog entry than the policy selects |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
 | `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
 | `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |
