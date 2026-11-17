@@ -1278,7 +1278,23 @@ snapshot of the base and of the head, compared with
 snapshots are uploaded as an artifact. Static analysis runs on every pull
 request too: golangci-lint with gosec (`.golangci.yml`; run it locally with
 `golangci-lint run ./...`), `govulncheck ./...`, and CodeQL for Go and the
-workflows (`.github/workflows/codeql.yml`). The
+workflows (`.github/workflows/codeql.yml`).
+
+Every parser of untrusted input has a native Go fuzz test (`func FuzzXxx`):
+the Claude Code and OpenCode pipelines (decode, policy, encode; a rewrite
+never sends back a found value), ACS JSON-RPC answers and stdio framing, the
+policy parser, the detectors and the flatten/rebuild of tool arguments, and
+the store's session-file decryption, key parsing and file naming.
+Their seed corpora run with `go test`; `.github/workflows/fuzz.yml` fuzzes
+each target for 15 seconds on every pull request and push to `main`, and for
+3 minutes weekly. To fuzz one target locally:
+
+```bash
+go test -run '^$' -fuzz '^FuzzPipeline$' -fuzztime 60s -fuzzminimizetime 5s ./internal/hosts/claudecode
+```
+
+A failing input is written to the package's `testdata/fuzz/<Target>/`;
+commit it with the fix so it stays a regression test. The
 [OpenSSF Scorecard](https://scorecard.dev/viewer/?uri=github.com/FullFran/veil)
 runs weekly and on every push to `main`. To report a vulnerability, see
 [`.github/SECURITY.md`](.github/SECURITY.md).

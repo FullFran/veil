@@ -1,0 +1,68 @@
+# Coverage-guided fuzzing with Go's native fuzzer (go test -fuzz) of every
+# FuzzXxx target in the module: the host decoders and encoders (Claude Code,
+# OpenCode, ACS JSON-RPC and its stdio framing), the policy parser, the
+# detectors and the pseudonym store's session-file, key and file-name code.
+#
+# Every target's seed corpus already runs as an ordinary test in ci.yml. This
+# workflow mutates beyond the seeds: a short smoke per target on pull requests
+# and pushes to main, and a longer run weekly. A failing input is uploaded as
+# an artifact; commit it under the package's testdata/fuzz/<Target>/ so it
+# stays a regression test.
+name: fuzz
+
+on:
+  pull_request:
+  push:
+    branches: [main]
+  schedule:
+    - cron: "41 3 * * 3"
+  workflow_dispatch:
+
+permissions:
+  contents: read
+
+concurrency:
+  group: fuzz-${{ github.event.pull_request.number || github.ref }}
+  cancel-in-progress: true
+
+jobs:
+  fuzz:
+    name: go fuzz (${{ github.event_name == 'schedule' && 'weekly' || 'smoke' }})
+    runs-on: ubuntu-latest
+    timeout-minutes: 60
+    env:
+      FUZZTIME: ${{ github.event_name == 'schedule' && '3m' || '15s' }}
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - uses: actions/setup-go@b7ad1dad31e06c5925ef5d2fc7ad053ef454303e # v7.0.0
+        with:
+          go-version-file: go.mod
+          cache: false
+
+      # go test runs one -fuzz target per package at a time, so each target
+      # found by `go test -list` gets its own bounded run. A short
+      # -fuzzminimizetime keeps minimization from eating the budget.
+      - name: Fuzz every target
+        run: |
+          go test -list '^Fuzz' ./... |
+            awk '/^Fuzz/ { t[++n] = $1 } /^ok/ { for (i = 1; i <= n; i++) print $2, t[i]; n = 0 }' > "$RUNNER_TEMP/targets"
+          test -s "$RUNNER_TEMP/targets"
+          rc=0
+          while read -r pkg target; do
+            echo "::group::$pkg $target"
+            go test -run '^$' -fuzz "^${target}\$" -fuzztime "$FUZZTIME" -fuzzminimizetime 5s "$pkg" || rc=1
+            echo "::endgroup::"
+          done < "$RUNNER_TEMP/targets"
+          exit "$rc"
+
+      - name: Upload failing inputs
+        if: failure()
+        uses: actions/upload-artifact@cf430e030ddbb5b0abf93d22962f4752f3646cd9 # v7.0.2
+        with:
+          name: fuzz-failures
+          path: "**/testdata/fuzz/"
+          retention-days: 30
+          if-no-files-found: ignore
