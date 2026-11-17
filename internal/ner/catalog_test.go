@@ -110,6 +110,10 @@ func TestParseCatalog_RejectsInvalidDocuments(t *testing.T) {
 		"path escapes":     with(func(e map[string]any) { file(e)["path"] = "../model.safetensors" }),
 		"absolute path":    with(func(e map[string]any) { file(e)["path"] = "/etc/passwd" }),
 		"dot segment":      with(func(e map[string]any) { file(e)["path"] = "a/./b" }),
+		// The model cache keeps partial downloads under ".partial/", a name
+		// no catalog path can take.
+		"hidden segment": with(func(e map[string]any) { file(e)["path"] = ".partial/model.safetensors" }),
+		"hidden file":    with(func(e map[string]any) { file(e)["path"] = "a/.b" }),
 		"duplicate path": with(func(e map[string]any) {
 			e["files"] = append(e["files"].([]any), file(e))
 		}),

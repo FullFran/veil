@@ -62,7 +62,7 @@
       "additionalProperties": false,
       "required": ["path", "url", "size", "digest"],
       "properties": {
-        "path": { "description": "Relative path in the model directory; no '..' or '.' segments.", "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9._-]*(/[A-Za-z0-9_][A-Za-z0-9._-]*)*$" },
+        "path": { "description": "Relative path in the model directory. No segment starts with '.', so none can be '..', '.' or the cache's '.partial' directory.", "type": "string", "pattern": "^[A-Za-z0-9_][A-Za-z0-9._-]*(/[A-Za-z0-9_][A-Za-z0-9._-]*)*$" },
         "url": { "type": "string", "pattern": "^https://[^\\s]+$" },
         "size": { "type": "integer", "minimum": 1 },
         "digest": { "description": "HCS-0001-R004 digest of the file.", "type": "string", "pattern": "^sha256:[0-9a-f]{64}$" }
