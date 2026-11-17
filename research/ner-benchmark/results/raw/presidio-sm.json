@@ -34,14 +34,14 @@
   "python": "3.12.3"
  },
  "size_on_disk_mb": 16.3,
- "load_s": 3.0,
- "cold_start_s": 3.991,
- "rss_before_load_mb": 216.9,
- "rss_loaded_mb": 448.1,
+ "load_s": 3.14,
+ "cold_start_s": 4.097,
+ "rss_before_load_mb": 217.9,
+ "rss_loaded_mb": 448.7,
  "repeats": 5,
  "corpora": {
   "es-v1": {
-   "cases": 78,
+   "cases": 90,
    "predictions": {
     "dni-001": [
      {
@@ -587,6 +587,47 @@
       "score": 0.85
      }
     ],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-020": [
+     {
+      "unit": "",
+      "start": 35,
+      "end": 49,
+      "raw": "CREDIT_CARD",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 10,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
     "nombre-001": [
      {
       "unit": "",
@@ -907,13 +948,99 @@
       "raw": "DATE_TIME",
       "score": 0.6
      }
-    ]
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 32,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "lookalike-003": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 7,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "lookalike-004": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 45,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "lookalike-005": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 7,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 23,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "lookalike-006": [],
+    "lookalike-007": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "lookalike-008": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 30,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "lookalike-009": []
    },
    "latency": {
-    "samples": 390,
-    "p50Micros": 4206.1,
-    "p95Micros": 7956.0,
-    "maxMicros": 18474.1
+    "samples": 450,
+    "p50Micros": 3672.0,
+    "p95Micros": 6674.3,
+    "maxMicros": 19162.1
    }
   },
   "es-ext-v1": {
@@ -1853,11 +1980,15 @@
    },
    "latency": {
     "samples": 380,
-    "p50Micros": 4351.4,
-    "p95Micros": 6772.8,
-    "maxMicros": 10422.7
+    "p50Micros": 3772.5,
+    "p95Micros": 6117.0,
+    "maxMicros": 7717.5
    }
   }
+ },
+ "subset": {
+  "corpus": null,
+  "every": 1
  },
  "rss_peak_mb": 449.1
 }

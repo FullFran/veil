@@ -34,14 +34,14 @@
   "python": "3.12.3"
  },
  "size_on_disk_mb": 631.2,
- "load_s": 5.119,
- "cold_start_s": 6.081,
- "rss_before_load_mb": 217.0,
- "rss_loaded_mb": 1195.9,
+ "load_s": 4.849,
+ "cold_start_s": 5.75,
+ "rss_before_load_mb": 218.1,
+ "rss_loaded_mb": 1196.3,
  "repeats": 5,
  "corpora": {
   "es-v1": {
-   "cases": 78,
+   "cases": 90,
    "predictions": {
     "dni-001": [
      {
@@ -579,6 +579,40 @@
      }
     ],
     "tel-017": [],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-020": [
+     {
+      "unit": "",
+      "start": 35,
+      "end": 49,
+      "raw": "CREDIT_CARD",
+      "score": 1.0
+     }
+    ],
     "nombre-001": [
      {
       "unit": "",
@@ -891,13 +925,52 @@
       "raw": "DATE_TIME",
       "score": 0.6
      }
-    ]
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 14,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 32,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "lookalike-003": [],
+    "lookalike-004": [],
+    "lookalike-005": [],
+    "lookalike-006": [],
+    "lookalike-007": [],
+    "lookalike-008": [],
+    "lookalike-009": []
    },
    "latency": {
-    "samples": 390,
-    "p50Micros": 4465.3,
-    "p95Micros": 8737.9,
-    "maxMicros": 18940.6
+    "samples": 450,
+    "p50Micros": 4010.2,
+    "p95Micros": 7116.6,
+    "maxMicros": 18015.2
    }
   },
   "es-ext-v1": {
@@ -1776,11 +1849,15 @@
    },
    "latency": {
     "samples": 380,
-    "p50Micros": 4612.5,
-    "p95Micros": 7169.0,
-    "maxMicros": 8631.5
+    "p50Micros": 3942.4,
+    "p95Micros": 6524.4,
+    "maxMicros": 7844.7
    }
   }
  },
- "rss_peak_mb": 1196.6
+ "subset": {
+  "corpus": null,
+  "every": 1
+ },
+ "rss_peak_mb": 1197.3
 }

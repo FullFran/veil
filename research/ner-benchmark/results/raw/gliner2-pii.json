@@ -18,14 +18,14 @@
   "python": "3.12.3"
  },
  "size_on_disk_mb": 1245.1,
- "load_s": 6.6,
- "cold_start_s": 7.506,
- "rss_before_load_mb": 216.9,
- "rss_loaded_mb": 1763.6,
+ "load_s": 6.295,
+ "cold_start_s": 7.196,
+ "rss_before_load_mb": 218.1,
+ "rss_loaded_mb": 1764.3,
  "repeats": 5,
  "corpora": {
   "es-v1": {
-   "cases": 78,
+   "cases": 90,
    "predictions": {
     "dni-001": [
      {
@@ -508,6 +508,39 @@
      }
     ],
     "tel-017": [],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9997832179069519
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 37,
+      "raw": "phone_number",
+      "score": 0.9994226694107056
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "phone_number",
+      "score": 0.9999184608459473
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "phone_number",
+      "score": 0.99991774559021
+     }
+    ],
+    "tel-020": [],
     "nombre-001": [
      {
       "unit": "",
@@ -754,13 +787,90 @@
       "raw": "national_id_number",
       "score": 0.9591582417488098
      }
-    ]
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9366757869720459
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "email",
+      "score": 0.9830384254455566
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "national_id_number",
+      "score": 0.7726173400878906
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 19,
+      "raw": "person",
+      "score": 0.596479058265686
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "email",
+      "score": 0.7656198740005493
+     },
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "national_id_number",
+      "score": 0.9951267242431641
+     }
+    ],
+    "lookalike-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9999654293060303
+     }
+    ],
+    "lookalike-004": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 20,
+      "raw": "iban",
+      "score": 0.6937215924263
+     }
+    ],
+    "lookalike-005": [],
+    "lookalike-006": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "phone_number",
+      "score": 0.9990414977073669
+     }
+    ],
+    "lookalike-007": [],
+    "lookalike-008": [],
+    "lookalike-009": []
    },
    "latency": {
-    "samples": 390,
-    "p50Micros": 106856.6,
-    "p95Micros": 271812.0,
-    "maxMicros": 985839.1
+    "samples": 450,
+    "p50Micros": 90102.5,
+    "p95Micros": 175888.8,
+    "maxMicros": 428752.0
    }
   },
   "es-ext-v1": {
@@ -1319,11 +1429,15 @@
    },
    "latency": {
     "samples": 380,
-    "p50Micros": 117976.2,
-    "p95Micros": 193898.9,
-    "maxMicros": 386220.1
+    "p50Micros": 91546.7,
+    "p95Micros": 172478.7,
+    "maxMicros": 190813.7
    }
   }
  },
- "rss_peak_mb": 2934.4
+ "subset": {
+  "corpus": null,
+  "every": 1
+ },
+ "rss_peak_mb": 2935.0
 }

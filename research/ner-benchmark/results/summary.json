@@ -5,18 +5,30 @@
     "scores": {
      "labels": {
       "DNI": {
-       "tp": 20,
+       "tp": 23,
        "fp": 0,
        "fn": 0,
        "P": 1.0,
        "R": 1.0,
        "F1": 1.0,
-       "gold": 20,
+       "gold": 23,
        "leaked": 0,
        "leakR": 1.0,
        "charCov": 1.0
       },
       "IBAN": {
+       "tp": 13,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 13,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "EMAIL": {
        "tp": 12,
        "fp": 0,
        "fn": 0,
@@ -28,51 +40,39 @@
        "leakR": 1.0,
        "charCov": 1.0
       },
-      "EMAIL": {
-       "tp": 10,
-       "fp": 0,
-       "fn": 0,
-       "P": 1.0,
-       "R": 1.0,
-       "F1": 1.0,
-       "gold": 10,
-       "leaked": 0,
-       "leakR": 1.0,
-       "charCov": 1.0
-      },
       "TEL": {
-       "tp": 15,
+       "tp": 22,
        "fp": 3,
        "fn": 0,
-       "P": 0.8333,
+       "P": 0.88,
        "R": 1.0,
-       "F1": 0.9091,
-       "gold": 15,
+       "F1": 0.9362,
+       "gold": 22,
        "leaked": 0,
        "leakR": 1.0,
        "charCov": 1.0
       },
       "NOMBRE": {
-       "tp": 13,
+       "tp": 14,
        "fp": 1,
        "fn": 2,
-       "P": 0.9286,
-       "R": 0.8667,
-       "F1": 0.8966,
-       "gold": 15,
+       "P": 0.9333,
+       "R": 0.875,
+       "F1": 0.9032,
+       "gold": 16,
        "leaked": 2,
-       "leakR": 0.8667,
-       "charCov": 0.8325
+       "leakR": 0.875,
+       "charCov": 0.8411
       }
      },
      "unscored_predictions": 0,
      "micro": {
-      "tp": 70,
+      "tp": 84,
       "fp": 4,
       "fn": 2,
-      "P": 0.9459,
-      "R": 0.9722,
-      "F1": 0.9589
+      "P": 0.9545,
+      "R": 0.9767,
+      "F1": 0.9655
      }
     },
     "errors": {
@@ -573,36 +573,52 @@
     "python": "3.12.3"
    },
    "size_on_disk_mb": 500.0,
-   "load_s": 2.926,
-   "cold_start_s": 3.879,
-   "rss_before_load_mb": 217.7,
-   "rss_loaded_mb": 712.4,
+   "load_s": 2.345,
+   "cold_start_s": 3.299,
+   "rss_before_load_mb": 218.0,
+   "rss_loaded_mb": 710.7,
    "repeats": 5,
-   "rss_peak_mb": 765.6,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 766.0,
    "es-v1": {
-    "cases": 78,
+    "cases": 90,
     "latency": {
-     "samples": 390,
-     "p50Micros": 39703.2,
-     "p95Micros": 67300.4,
-     "maxMicros": 151771.0
+     "samples": 450,
+     "p50Micros": 30091.2,
+     "p95Micros": 56106.0,
+     "maxMicros": 126502.7
     },
     "model": {
      "scores": {
       "labels": {
        "DNI": {
         "tp": 4,
-        "fp": 21,
-        "fn": 16,
-        "P": 0.16,
-        "R": 0.2,
-        "F1": 0.1778,
-        "gold": 20,
-        "leaked": 6,
-        "leakR": 0.7,
-        "charCov": 0.7083
+        "fp": 23,
+        "fn": 19,
+        "P": 0.1481,
+        "R": 0.1739,
+        "F1": 0.16,
+        "gold": 23,
+        "leaked": 8,
+        "leakR": 0.6522,
+        "charCov": 0.6636
        },
        "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 13,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.9052
+       },
+       "EMAIL": {
         "tp": 0,
         "fp": 0,
         "fn": 12,
@@ -610,55 +626,43 @@
         "R": 0.0,
         "F1": 0.0,
         "gold": 12,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 0.8966
-       },
-       "EMAIL": {
-        "tp": 0,
-        "fp": 0,
-        "fn": 10,
-        "P": 1.0,
-        "R": 0.0,
-        "F1": 0.0,
-        "gold": 10,
-        "leaked": 10,
+        "leaked": 12,
         "leakR": 0.0,
         "charCov": 0.0
        },
        "TEL": {
-        "tp": 5,
-        "fp": 24,
-        "fn": 10,
-        "P": 0.1724,
-        "R": 0.3333,
-        "F1": 0.2273,
-        "gold": 15,
-        "leaked": 2,
-        "leakR": 0.8667,
-        "charCov": 0.7958
+        "tp": 7,
+        "fp": 29,
+        "fn": 15,
+        "P": 0.1944,
+        "R": 0.3182,
+        "F1": 0.2414,
+        "gold": 22,
+        "leaked": 4,
+        "leakR": 0.8182,
+        "charCov": 0.7664
        },
        "NOMBRE": {
         "tp": 8,
         "fp": 6,
-        "fn": 7,
+        "fn": 8,
         "P": 0.5714,
-        "R": 0.5333,
-        "F1": 0.5517,
-        "gold": 15,
-        "leaked": 1,
-        "leakR": 0.9333,
-        "charCov": 0.9015
+        "R": 0.5,
+        "F1": 0.5333,
+        "gold": 16,
+        "leaked": 2,
+        "leakR": 0.875,
+        "charCov": 0.8551
        }
       },
       "unscored_predictions": 4,
       "micro": {
-       "tp": 17,
-       "fp": 51,
-       "fn": 55,
-       "P": 0.25,
-       "R": 0.2361,
-       "F1": 0.2429
+       "tp": 19,
+       "fp": 58,
+       "fn": 67,
+       "P": 0.2468,
+       "R": 0.2209,
+       "F1": 0.2331
       }
      },
      "errors": {
@@ -968,6 +972,31 @@
         "DNI:712.345.678"
        ]
       },
+      "tel-018": {
+       "fn": [
+        "TEL:612345671"
+       ],
+       "fp": [
+        "TEL:612345671,"
+       ]
+      },
+      "tel-019": {
+       "fn": [
+        "TEL:(+34) 612-345-672",
+        "TEL:+34 912 345 673"
+       ],
+       "fp": [
+        "TEL:612-345-672",
+        "TEL:+34",
+        "TEL:912 345 673."
+       ]
+      },
+      "tel-020": {
+       "fn": [],
+       "fp": [
+        "DNI:10034612345675."
+       ]
+      },
       "nombre-003": {
        "fn": [
         "NOMBRE:José Ángel Núñez"
@@ -1060,6 +1089,49 @@
        "fp": [
         "DNI:600123456"
        ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": []
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z",
+        "EMAIL:zed@exa​mple.org"
+       ],
+       "fp": [
+        "TEL:1234​5678Z,"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": [
+        "DNI:ES91­2100­0418­4502­0005­1332"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-006": {
+       "fn": [
+        "TEL:٦١٢٣٤٥٦٧٨"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
       }
      }
     },
@@ -1067,18 +1139,30 @@
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0,
         "P": 1.0,
         "R": 1.0,
         "F1": 1.0,
-        "gold": 20,
+        "gold": 23,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
         "tp": 12,
         "fp": 0,
         "fn": 0,
@@ -1090,38 +1174,26 @@
         "leakR": 1.0,
         "charCov": 1.0
        },
-       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0,
-        "P": 1.0,
-        "R": 1.0,
-        "F1": 1.0,
-        "gold": 10,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
-       },
        "TEL": {
-        "tp": 15,
+        "tp": 22,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.88,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9362,
+        "gold": 22,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "NOMBRE": {
-        "tp": 11,
+        "tp": 12,
         "fp": 4,
         "fn": 4,
-        "P": 0.7333,
-        "R": 0.7333,
-        "F1": 0.7333,
-        "gold": 15,
+        "P": 0.75,
+        "R": 0.75,
+        "F1": 0.75,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -1129,12 +1201,12 @@
       },
       "unscored_predictions": 4,
       "micro": {
-       "tp": 68,
+       "tp": 82,
        "fp": 7,
        "fn": 4,
-       "P": 0.9067,
-       "R": 0.9444,
-       "F1": 0.9252
+       "P": 0.9213,
+       "R": 0.9535,
+       "F1": 0.9371
       }
      },
      "errors": {
@@ -1195,9 +1267,9 @@
     "cases": 76,
     "latency": {
      "samples": 380,
-     "p50Micros": 39148.5,
-     "p95Micros": 71442.9,
-     "maxMicros": 221861.5
+     "p50Micros": 29439.4,
+     "p95Micros": 48717.3,
+     "maxMicros": 57003.0
     },
     "model": {
      "scores": {
@@ -2062,96 +2134,96 @@
     "python": "3.12.3"
    },
    "size_on_disk_mb": 1245.1,
-   "load_s": 8.938,
-   "cold_start_s": 10.208,
-   "rss_before_load_mb": 218.0,
-   "rss_loaded_mb": 1762.5,
-   "repeats": 1,
+   "load_s": 5.78,
+   "cold_start_s": 6.722,
+   "rss_before_load_mb": 218.2,
+   "rss_loaded_mb": 1764.0,
+   "repeats": 5,
    "subset": {
     "corpus": null,
     "every": 1
    },
-   "rss_peak_mb": 2932.8,
+   "rss_peak_mb": 2934.8,
    "es-v1": {
-    "cases": 78,
+    "cases": 90,
     "latency": {
-     "samples": 78,
-     "p50Micros": 178643.8,
-     "p95Micros": 316895.0,
-     "maxMicros": 784278.7
+     "samples": 450,
+     "p50Micros": 91704.4,
+     "p95Micros": 178913.7,
+     "maxMicros": 432720.0
     },
     "model": {
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 16,
-        "fp": 6,
-        "fn": 4,
-        "P": 0.7273,
-        "R": 0.8,
-        "F1": 0.7619,
-        "gold": 20,
-        "leaked": 1,
-        "leakR": 0.95,
-        "charCov": 0.9531
+        "tp": 17,
+        "fp": 7,
+        "fn": 6,
+        "P": 0.7083,
+        "R": 0.7391,
+        "F1": 0.7234,
+        "gold": 23,
+        "leaked": 3,
+        "leakR": 0.8696,
+        "charCov": 0.8773
        },
        "IBAN": {
         "tp": 11,
         "fp": 5,
-        "fn": 1,
+        "fn": 2,
         "P": 0.6875,
-        "R": 0.9167,
-        "F1": 0.7857,
-        "gold": 12,
-        "leaked": 1,
-        "leakR": 0.9167,
-        "charCov": 0.9091
+        "R": 0.8462,
+        "F1": 0.7586,
+        "gold": 13,
+        "leaked": 2,
+        "leakR": 0.8462,
+        "charCov": 0.8333
        },
        "EMAIL": {
-        "tp": 8,
-        "fp": 1,
-        "fn": 2,
-        "P": 0.8889,
-        "R": 0.8,
-        "F1": 0.8421,
-        "gold": 10,
+        "tp": 9,
+        "fp": 2,
+        "fn": 3,
+        "P": 0.8182,
+        "R": 0.75,
+        "F1": 0.7826,
+        "gold": 12,
         "leaked": 0,
         "leakR": 1.0,
-        "charCov": 0.8445
+        "charCov": 0.8587
        },
        "TEL": {
-        "tp": 14,
+        "tp": 20,
         "fp": 3,
-        "fn": 1,
-        "P": 0.8235,
-        "R": 0.9333,
-        "F1": 0.875,
-        "gold": 15,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
+        "fn": 2,
+        "P": 0.8696,
+        "R": 0.9091,
+        "F1": 0.8889,
+        "gold": 22,
+        "leaked": 1,
+        "leakR": 0.9545,
+        "charCov": 0.9672
        },
        "NOMBRE": {
         "tp": 15,
-        "fp": 5,
-        "fn": 0,
-        "P": 0.75,
-        "R": 1.0,
-        "F1": 0.8571,
-        "gold": 15,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
+        "fp": 6,
+        "fn": 1,
+        "P": 0.7143,
+        "R": 0.9375,
+        "F1": 0.8108,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.9486
        }
       },
       "unscored_predictions": 4,
       "micro": {
-       "tp": 64,
-       "fp": 20,
-       "fn": 8,
-       "P": 0.7619,
-       "R": 0.8889,
-       "F1": 0.8205
+       "tp": 72,
+       "fp": 23,
+       "fn": 14,
+       "P": 0.7579,
+       "R": 0.8372,
+       "F1": 0.7956
       }
      },
      "errors": {
@@ -2286,6 +2358,36 @@
        "fp": [
         "DNI:600123456"
        ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": [
+        "DNI:dni",
+        "NOMBRE:zed",
+        "EMAIL:example.org"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": []
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
       }
      }
     },
@@ -2293,18 +2395,30 @@
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0,
         "P": 1.0,
         "R": 1.0,
         "F1": 1.0,
-        "gold": 20,
+        "gold": 23,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
         "tp": 12,
         "fp": 0,
         "fn": 0,
@@ -2316,38 +2430,26 @@
         "leakR": 1.0,
         "charCov": 1.0
        },
-       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0,
-        "P": 1.0,
-        "R": 1.0,
-        "F1": 1.0,
-        "gold": 10,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
-       },
        "TEL": {
-        "tp": 15,
+        "tp": 22,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.88,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9362,
+        "gold": 22,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "NOMBRE": {
-        "tp": 15,
+        "tp": 16,
         "fp": 2,
         "fn": 0,
-        "P": 0.8824,
+        "P": 0.8889,
         "R": 1.0,
-        "F1": 0.9375,
-        "gold": 15,
+        "F1": 0.9412,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -2355,12 +2457,12 @@
       },
       "unscored_predictions": 3,
       "micro": {
-       "tp": 72,
+       "tp": 86,
        "fp": 5,
        "fn": 0,
-       "P": 0.9351,
+       "P": 0.9451,
        "R": 1.0,
-       "F1": 0.9664
+       "F1": 0.9718
       }
      },
      "errors": {
@@ -2400,10 +2502,10 @@
    "es-ext-v1": {
     "cases": 76,
     "latency": {
-     "samples": 76,
-     "p50Micros": 180694.2,
-     "p95Micros": 338457.3,
-     "maxMicros": 413192.0
+     "samples": 380,
+     "p50Micros": 93438.7,
+     "p95Micros": 178562.8,
+     "maxMicros": 203891.8
     },
     "model": {
      "scores": {
@@ -2991,92 +3093,96 @@
     "python": "3.12.3"
    },
    "size_on_disk_mb": 1245.1,
-   "load_s": 6.6,
-   "cold_start_s": 7.506,
-   "rss_before_load_mb": 216.9,
-   "rss_loaded_mb": 1763.6,
+   "load_s": 6.295,
+   "cold_start_s": 7.196,
+   "rss_before_load_mb": 218.1,
+   "rss_loaded_mb": 1764.3,
    "repeats": 5,
-   "rss_peak_mb": 2934.4,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 2935.0,
    "es-v1": {
-    "cases": 78,
+    "cases": 90,
     "latency": {
-     "samples": 390,
-     "p50Micros": 106856.6,
-     "p95Micros": 271812.0,
-     "maxMicros": 985839.1
+     "samples": 450,
+     "p50Micros": 90102.5,
+     "p95Micros": 175888.8,
+     "maxMicros": 428752.0
     },
     "model": {
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 16,
-        "fp": 6,
-        "fn": 4,
-        "P": 0.7273,
-        "R": 0.8,
-        "F1": 0.7619,
-        "gold": 20,
-        "leaked": 1,
-        "leakR": 0.95,
-        "charCov": 0.9531
+        "tp": 17,
+        "fp": 7,
+        "fn": 6,
+        "P": 0.7083,
+        "R": 0.7391,
+        "F1": 0.7234,
+        "gold": 23,
+        "leaked": 3,
+        "leakR": 0.8696,
+        "charCov": 0.8773
        },
        "IBAN": {
         "tp": 11,
-        "fp": 4,
-        "fn": 1,
-        "P": 0.7333,
-        "R": 0.9167,
-        "F1": 0.8148,
-        "gold": 12,
+        "fp": 5,
+        "fn": 2,
+        "P": 0.6875,
+        "R": 0.8462,
+        "F1": 0.7586,
+        "gold": 13,
         "leaked": 1,
-        "leakR": 0.9167,
-        "charCov": 0.9091
+        "leakR": 0.9231,
+        "charCov": 0.8448
        },
        "EMAIL": {
-        "tp": 8,
-        "fp": 1,
-        "fn": 2,
-        "P": 0.8889,
-        "R": 0.8,
-        "F1": 0.8421,
-        "gold": 10,
+        "tp": 9,
+        "fp": 2,
+        "fn": 3,
+        "P": 0.8182,
+        "R": 0.75,
+        "F1": 0.7826,
+        "gold": 12,
         "leaked": 0,
         "leakR": 1.0,
-        "charCov": 0.8445
+        "charCov": 0.8587
        },
        "TEL": {
-        "tp": 15,
+        "tp": 21,
         "fp": 3,
-        "fn": 0,
-        "P": 0.8333,
-        "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
+        "fn": 1,
+        "P": 0.875,
+        "R": 0.9545,
+        "F1": 0.913,
+        "gold": 22,
+        "leaked": 1,
+        "leakR": 0.9545,
+        "charCov": 0.9672
        },
        "NOMBRE": {
         "tp": 15,
-        "fp": 5,
-        "fn": 0,
-        "P": 0.75,
-        "R": 1.0,
-        "F1": 0.8571,
-        "gold": 15,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
+        "fp": 7,
+        "fn": 1,
+        "P": 0.6818,
+        "R": 0.9375,
+        "F1": 0.7895,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.9486
        }
       },
       "unscored_predictions": 0,
       "micro": {
-       "tp": 65,
-       "fp": 19,
-       "fn": 7,
-       "P": 0.7738,
-       "R": 0.9028,
-       "F1": 0.8333
+       "tp": 73,
+       "fp": 24,
+       "fn": 13,
+       "P": 0.7526,
+       "R": 0.8488,
+       "F1": 0.7978
       }
      },
      "errors": {
@@ -3199,6 +3305,44 @@
        "fp": [
         "DNI:600123456"
        ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": [
+        "DNI:dni",
+        "NOMBRE:zed",
+        "EMAIL:example.org"
+       ]
+      },
+      "lookalike-002": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:zed"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": [
+        "IBAN:ES91"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
       }
      }
     },
@@ -3206,18 +3350,30 @@
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0,
         "P": 1.0,
         "R": 1.0,
         "F1": 1.0,
-        "gold": 20,
+        "gold": 23,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
         "tp": 12,
         "fp": 0,
         "fn": 0,
@@ -3229,38 +3385,26 @@
         "leakR": 1.0,
         "charCov": 1.0
        },
-       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0,
-        "P": 1.0,
-        "R": 1.0,
-        "F1": 1.0,
-        "gold": 10,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
-       },
        "TEL": {
-        "tp": 15,
+        "tp": 22,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.88,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9362,
+        "gold": 22,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "NOMBRE": {
-        "tp": 15,
+        "tp": 16,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.8421,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9143,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -3268,12 +3412,12 @@
       },
       "unscored_predictions": 0,
       "micro": {
-       "tp": 72,
+       "tp": 86,
        "fp": 6,
        "fn": 0,
-       "P": 0.9231,
+       "P": 0.9348,
        "R": 1.0,
-       "F1": 0.96
+       "F1": 0.9663
       }
      },
      "errors": {
@@ -3320,9 +3464,9 @@
     "cases": 76,
     "latency": {
      "samples": 380,
-     "p50Micros": 117976.2,
-     "p95Micros": 193898.9,
-     "maxMicros": 386220.1
+     "p50Micros": 91546.7,
+     "p95Micros": 172478.7,
+     "maxMicros": 190813.7
     },
     "model": {
      "scores": {
@@ -4351,19 +4495,23 @@
     "python": "3.12.3"
    },
    "size_on_disk_mb": 2799.0,
-   "load_s": 10.276,
-   "cold_start_s": 11.22,
-   "rss_before_load_mb": 217.8,
-   "rss_loaded_mb": 3464.2,
+   "load_s": 9.121,
+   "cold_start_s": 10.023,
+   "rss_before_load_mb": 218.1,
+   "rss_loaded_mb": 3463.9,
    "repeats": 5,
-   "rss_peak_mb": 4164.5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 4164.4,
    "es-v1": {
-    "cases": 78,
+    "cases": 90,
     "latency": {
-     "samples": 390,
-     "p50Micros": 815308.6,
-     "p95Micros": 1533807.2,
-     "maxMicros": 2772808.2
+     "samples": 450,
+     "p50Micros": 757046.7,
+     "p95Micros": 1411521.8,
+     "maxMicros": 2464306.4
     },
     "model": {
      "scores": {
@@ -4371,59 +4519,59 @@
        "DNI": {
         "tp": 0,
         "fp": 0,
-        "fn": 20,
+        "fn": 23,
         "P": 1.0,
         "R": 0.0,
         "F1": 0.0,
-        "gold": 20,
-        "leaked": 3,
-        "leakR": 0.85,
-        "charCov": 0.8438
+        "gold": 23,
+        "leaked": 4,
+        "leakR": 0.8261,
+        "charCov": 0.8136
        },
        "IBAN": {
         "tp": 9,
-        "fp": 28,
-        "fn": 3,
-        "P": 0.2432,
-        "R": 0.75,
-        "F1": 0.3673,
-        "gold": 12,
-        "leaked": 2,
-        "leakR": 0.8333,
-        "charCov": 0.8495
+        "fp": 32,
+        "fn": 4,
+        "P": 0.2195,
+        "R": 0.6923,
+        "F1": 0.3333,
+        "gold": 13,
+        "leaked": 3,
+        "leakR": 0.7692,
+        "charCov": 0.7787
        },
        "EMAIL": {
-        "tp": 7,
+        "tp": 9,
         "fp": 2,
         "fn": 3,
-        "P": 0.7778,
-        "R": 0.7,
-        "F1": 0.7368,
-        "gold": 10,
+        "P": 0.8182,
+        "R": 0.75,
+        "F1": 0.7826,
+        "gold": 12,
         "leaked": 1,
-        "leakR": 0.9,
-        "charCov": 0.937
+        "leakR": 0.9167,
+        "charCov": 0.9442
        },
        "TEL": {
-        "tp": 11,
+        "tp": 17,
         "fp": 3,
-        "fn": 4,
-        "P": 0.7857,
-        "R": 0.7333,
-        "F1": 0.7586,
-        "gold": 15,
-        "leaked": 2,
-        "leakR": 0.8667,
-        "charCov": 0.9005
+        "fn": 5,
+        "P": 0.85,
+        "R": 0.7727,
+        "F1": 0.8095,
+        "gold": 22,
+        "leaked": 3,
+        "leakR": 0.8636,
+        "charCov": 0.8978
        },
        "NOMBRE": {
-        "tp": 13,
+        "tp": 14,
         "fp": 11,
         "fn": 2,
-        "P": 0.5417,
-        "R": 0.8667,
-        "F1": 0.6667,
-        "gold": 15,
+        "P": 0.56,
+        "R": 0.875,
+        "F1": 0.6829,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -4431,12 +4579,12 @@
       },
       "unscored_predictions": 3,
       "micro": {
-       "tp": 40,
-       "fp": 44,
-       "fn": 32,
-       "P": 0.4762,
-       "R": 0.5556,
-       "F1": 0.5128
+       "tp": 49,
+       "fp": 48,
+       "fn": 37,
+       "P": 0.5052,
+       "R": 0.5698,
+       "F1": 0.5355
       }
      },
      "errors": {
@@ -4685,6 +4833,13 @@
         "TEL:0034) 699-123-458"
        ]
       },
+      "tel-020": {
+       "fn": [],
+       "fp": [
+        "IBAN:0034612345674",
+        "IBAN:10034612345675"
+       ]
+      },
       "nombre-002": {
        "fn": [
         "NOMBRE:JUAN GARCIA"
@@ -4762,6 +4917,35 @@
        "fp": [
         "IBAN:X1234567L"
        ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": [
+        "IBAN:１２３４５６７"
+       ]
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z"
+       ],
+       "fp": [
+        "IBAN:1234​5678Z"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
       }
      }
     },
@@ -4769,18 +4953,30 @@
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0,
         "P": 1.0,
         "R": 1.0,
         "F1": 1.0,
-        "gold": 20,
+        "gold": 23,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
         "tp": 12,
         "fp": 0,
         "fn": 0,
@@ -4792,38 +4988,26 @@
         "leakR": 1.0,
         "charCov": 1.0
        },
-       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0,
-        "P": 1.0,
-        "R": 1.0,
-        "F1": 1.0,
-        "gold": 10,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
-       },
        "TEL": {
-        "tp": 15,
+        "tp": 22,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.88,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9362,
+        "gold": 22,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "NOMBRE": {
-        "tp": 13,
+        "tp": 14,
         "fp": 11,
         "fn": 2,
-        "P": 0.5417,
-        "R": 0.8667,
-        "F1": 0.6667,
-        "gold": 15,
+        "P": 0.56,
+        "R": 0.875,
+        "F1": 0.6829,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -4831,12 +5015,12 @@
       },
       "unscored_predictions": 2,
       "micro": {
-       "tp": 70,
+       "tp": 84,
        "fp": 14,
        "fn": 2,
-       "P": 0.8333,
-       "R": 0.9722,
-       "F1": 0.8974
+       "P": 0.8571,
+       "R": 0.9767,
+       "F1": 0.913
       }
      },
      "errors": {
@@ -4935,9 +5119,9 @@
     "cases": 76,
     "latency": {
      "samples": 380,
-     "p50Micros": 816214.6,
-     "p95Micros": 1329223.0,
-     "maxMicros": 1686897.7
+     "p50Micros": 750270.2,
+     "p95Micros": 1215642.5,
+     "maxMicros": 1432064.7
     },
     "model": {
      "scores": {
@@ -5667,19 +5851,23 @@
     "python": "3.12.3"
    },
    "size_on_disk_mb": 631.2,
-   "load_s": 5.119,
-   "cold_start_s": 6.081,
-   "rss_before_load_mb": 217.0,
-   "rss_loaded_mb": 1195.9,
+   "load_s": 4.849,
+   "cold_start_s": 5.75,
+   "rss_before_load_mb": 218.1,
+   "rss_loaded_mb": 1196.3,
    "repeats": 5,
-   "rss_peak_mb": 1196.6,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 1197.3,
    "es-v1": {
-    "cases": 78,
+    "cases": 90,
     "latency": {
-     "samples": 390,
-     "p50Micros": 4465.3,
-     "p95Micros": 8737.9,
-     "maxMicros": 18940.6
+     "samples": 450,
+     "p50Micros": 4010.2,
+     "p95Micros": 7116.6,
+     "maxMicros": 18015.2
     },
     "model": {
      "scores": {
@@ -5687,72 +5875,72 @@
        "DNI": {
         "tp": 16,
         "fp": 0,
-        "fn": 4,
+        "fn": 7,
         "P": 1.0,
-        "R": 0.8,
-        "F1": 0.8889,
-        "gold": 20,
-        "leaked": 4,
-        "leakR": 0.8,
-        "charCov": 0.7552
+        "R": 0.6957,
+        "F1": 0.8205,
+        "gold": 23,
+        "leaked": 6,
+        "leakR": 0.7391,
+        "charCov": 0.7045
        },
        "IBAN": {
         "tp": 10,
         "fp": 1,
-        "fn": 2,
+        "fn": 3,
         "P": 0.9091,
-        "R": 0.8333,
-        "F1": 0.8696,
-        "gold": 12,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
+        "R": 0.7692,
+        "F1": 0.8333,
+        "gold": 13,
+        "leaked": 1,
+        "leakR": 0.9231,
+        "charCov": 0.9167
        },
        "EMAIL": {
         "tp": 8,
         "fp": 1,
-        "fn": 2,
+        "fn": 4,
         "P": 0.8889,
-        "R": 0.8,
-        "F1": 0.8421,
-        "gold": 10,
-        "leaked": 1,
-        "leakR": 0.9,
-        "charCov": 0.9034
+        "R": 0.6667,
+        "F1": 0.7619,
+        "gold": 12,
+        "leaked": 2,
+        "leakR": 0.8333,
+        "charCov": 0.8587
        },
        "TEL": {
-        "tp": 7,
+        "tp": 10,
         "fp": 2,
-        "fn": 8,
-        "P": 0.7778,
-        "R": 0.4667,
-        "F1": 0.5833,
-        "gold": 15,
-        "leaked": 7,
-        "leakR": 0.5333,
-        "charCov": 0.6178
+        "fn": 12,
+        "P": 0.8333,
+        "R": 0.4545,
+        "F1": 0.5882,
+        "gold": 22,
+        "leaked": 11,
+        "leakR": 0.5,
+        "charCov": 0.5949
        },
        "NOMBRE": {
         "tp": 13,
-        "fp": 10,
-        "fn": 2,
-        "P": 0.5652,
-        "R": 0.8667,
-        "F1": 0.6842,
-        "gold": 15,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
+        "fp": 11,
+        "fn": 3,
+        "P": 0.5417,
+        "R": 0.8125,
+        "F1": 0.65,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.9486
        }
       },
-      "unscored_predictions": 12,
+      "unscored_predictions": 13,
       "micro": {
-       "tp": 54,
-       "fp": 14,
-       "fn": 18,
-       "P": 0.7941,
-       "R": 0.75,
-       "F1": 0.7714
+       "tp": 57,
+       "fp": 15,
+       "fn": 29,
+       "P": 0.7917,
+       "R": 0.6628,
+       "F1": 0.7215
       }
      },
      "errors": {
@@ -5867,6 +6055,12 @@
         "TEL:1700000000"
        ]
       },
+      "tel-018": {
+       "fn": [
+        "TEL:612345671"
+       ],
+       "fp": []
+      },
       "nombre-002": {
        "fn": [
         "NOMBRE:JUAN GARCIA"
@@ -5916,6 +6110,53 @@
         "TEL:954 12 34 56"
        ],
        "fp": []
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": []
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z",
+        "EMAIL:zed@exa​mple.org"
+       ],
+       "fp": [
+        "NOMBRE:dni 1234​5678Z"
+       ]
+      },
+      "lookalike-003": {
+       "fn": [
+        "TEL:612 345 678"
+       ],
+       "fp": []
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": []
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-006": {
+       "fn": [
+        "TEL:٦١٢٣٤٥٦٧٨"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
       }
      }
     },
@@ -5923,18 +6164,30 @@
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0,
         "P": 1.0,
         "R": 1.0,
         "F1": 1.0,
-        "gold": 20,
+        "gold": 23,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
         "tp": 12,
         "fp": 0,
         "fn": 0,
@@ -5946,38 +6199,26 @@
         "leakR": 1.0,
         "charCov": 1.0
        },
-       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0,
-        "P": 1.0,
-        "R": 1.0,
-        "F1": 1.0,
-        "gold": 10,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
-       },
        "TEL": {
-        "tp": 15,
+        "tp": 22,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.88,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9362,
+        "gold": 22,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "NOMBRE": {
-        "tp": 14,
+        "tp": 15,
         "fp": 5,
         "fn": 1,
-        "P": 0.7368,
-        "R": 0.9333,
-        "F1": 0.8235,
-        "gold": 15,
+        "P": 0.75,
+        "R": 0.9375,
+        "F1": 0.8333,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -5985,12 +6226,12 @@
       },
       "unscored_predictions": 5,
       "micro": {
-       "tp": 71,
+       "tp": 85,
        "fp": 8,
        "fn": 1,
-       "P": 0.8987,
-       "R": 0.9861,
-       "F1": 0.9404
+       "P": 0.914,
+       "R": 0.9884,
+       "F1": 0.9497
       }
      },
      "errors": {
@@ -6051,9 +6292,9 @@
     "cases": 76,
     "latency": {
      "samples": 380,
-     "p50Micros": 4612.5,
-     "p95Micros": 7169.0,
-     "maxMicros": 8631.5
+     "p50Micros": 3942.4,
+     "p95Micros": 6524.4,
+     "maxMicros": 7844.7
     },
     "model": {
      "scores": {
@@ -6969,19 +7210,23 @@
     "python": "3.12.3"
    },
    "size_on_disk_mb": 16.3,
-   "load_s": 3.0,
-   "cold_start_s": 3.991,
-   "rss_before_load_mb": 216.9,
-   "rss_loaded_mb": 448.1,
+   "load_s": 3.14,
+   "cold_start_s": 4.097,
+   "rss_before_load_mb": 217.9,
+   "rss_loaded_mb": 448.7,
    "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
    "rss_peak_mb": 449.1,
    "es-v1": {
-    "cases": 78,
+    "cases": 90,
     "latency": {
-     "samples": 390,
-     "p50Micros": 4206.1,
-     "p95Micros": 7956.0,
-     "maxMicros": 18474.1
+     "samples": 450,
+     "p50Micros": 3672.0,
+     "p95Micros": 6674.3,
+     "maxMicros": 19162.1
     },
     "model": {
      "scores": {
@@ -6989,23 +7234,23 @@
        "DNI": {
         "tp": 16,
         "fp": 0,
-        "fn": 4,
+        "fn": 7,
         "P": 1.0,
-        "R": 0.8,
-        "F1": 0.8889,
-        "gold": 20,
-        "leaked": 3,
-        "leakR": 0.85,
-        "charCov": 0.8125
+        "R": 0.6957,
+        "F1": 0.8205,
+        "gold": 23,
+        "leaked": 6,
+        "leakR": 0.7391,
+        "charCov": 0.7091
        },
        "IBAN": {
         "tp": 10,
         "fp": 1,
-        "fn": 2,
+        "fn": 3,
         "P": 0.9091,
-        "R": 0.8333,
-        "F1": 0.8696,
-        "gold": 12,
+        "R": 0.7692,
+        "F1": 0.8333,
+        "gold": 13,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
@@ -7013,48 +7258,48 @@
        "EMAIL": {
         "tp": 8,
         "fp": 1,
-        "fn": 2,
+        "fn": 4,
         "P": 0.8889,
-        "R": 0.8,
-        "F1": 0.8421,
-        "gold": 10,
-        "leaked": 1,
-        "leakR": 0.9,
-        "charCov": 0.9034
+        "R": 0.6667,
+        "F1": 0.7619,
+        "gold": 12,
+        "leaked": 2,
+        "leakR": 0.8333,
+        "charCov": 0.8587
        },
        "TEL": {
-        "tp": 7,
+        "tp": 10,
         "fp": 2,
-        "fn": 8,
-        "P": 0.7778,
-        "R": 0.4667,
-        "F1": 0.5833,
-        "gold": 15,
-        "leaked": 8,
-        "leakR": 0.4667,
-        "charCov": 0.5707
+        "fn": 12,
+        "P": 0.8333,
+        "R": 0.4545,
+        "F1": 0.5882,
+        "gold": 22,
+        "leaked": 12,
+        "leakR": 0.4545,
+        "charCov": 0.562
        },
        "NOMBRE": {
-        "tp": 13,
-        "fp": 12,
+        "tp": 14,
+        "fp": 14,
         "fn": 2,
-        "P": 0.52,
-        "R": 0.8667,
-        "F1": 0.65,
-        "gold": 15,
+        "P": 0.5,
+        "R": 0.875,
+        "F1": 0.6364,
+        "gold": 16,
         "leaked": 1,
-        "leakR": 0.9333,
-        "charCov": 0.8768
+        "leakR": 0.9375,
+        "charCov": 0.8832
        }
       },
-      "unscored_predictions": 15,
+      "unscored_predictions": 20,
       "micro": {
-       "tp": 54,
-       "fp": 16,
-       "fn": 18,
-       "P": 0.7714,
-       "R": 0.75,
-       "F1": 0.7606
+       "tp": 58,
+       "fp": 18,
+       "fn": 28,
+       "P": 0.7632,
+       "R": 0.6744,
+       "F1": 0.716
       }
      },
      "errors": {
@@ -7181,6 +7426,12 @@
         "NOMBRE:Población"
        ]
       },
+      "tel-018": {
+       "fn": [
+        "TEL:612345671"
+       ],
+       "fp": []
+      },
       "nombre-001": {
        "fn": [],
        "fp": [
@@ -7230,6 +7481,53 @@
        "fp": [
         "NOMBRE:Tel"
        ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": []
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z",
+        "EMAIL:zed@exa​mple.org"
+       ],
+       "fp": []
+      },
+      "lookalike-003": {
+       "fn": [
+        "TEL:612 345 678"
+       ],
+       "fp": []
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": [
+        "NOMBRE:ES91­2100­0418­4502­0005­1332"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "lookalike-006": {
+       "fn": [
+        "TEL:٦١٢٣٤٥٦٧٨"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
       }
      }
     },
@@ -7237,18 +7535,30 @@
      "scores": {
       "labels": {
        "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0,
         "P": 1.0,
         "R": 1.0,
         "F1": 1.0,
-        "gold": 20,
+        "gold": 23,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
         "tp": 12,
         "fp": 0,
         "fn": 0,
@@ -7260,51 +7570,39 @@
         "leakR": 1.0,
         "charCov": 1.0
        },
-       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0,
-        "P": 1.0,
-        "R": 1.0,
-        "F1": 1.0,
-        "gold": 10,
-        "leaked": 0,
-        "leakR": 1.0,
-        "charCov": 1.0
-       },
        "TEL": {
-        "tp": 15,
+        "tp": 22,
         "fp": 3,
         "fn": 0,
-        "P": 0.8333,
+        "P": 0.88,
         "R": 1.0,
-        "F1": 0.9091,
-        "gold": 15,
+        "F1": 0.9362,
+        "gold": 22,
         "leaked": 0,
         "leakR": 1.0,
         "charCov": 1.0
        },
        "NOMBRE": {
-        "tp": 14,
-        "fp": 10,
+        "tp": 15,
+        "fp": 11,
         "fn": 1,
-        "P": 0.5833,
-        "R": 0.9333,
-        "F1": 0.7179,
-        "gold": 15,
+        "P": 0.5769,
+        "R": 0.9375,
+        "F1": 0.7143,
+        "gold": 16,
         "leaked": 0,
         "leakR": 1.0,
-        "charCov": 0.931
+        "charCov": 0.9346
        }
       },
-      "unscored_predictions": 10,
+      "unscored_predictions": 14,
       "micro": {
-       "tp": 71,
-       "fp": 13,
+       "tp": 85,
+       "fp": 14,
        "fn": 1,
-       "P": 0.8452,
-       "R": 0.9861,
-       "F1": 0.9103
+       "P": 0.8586,
+       "R": 0.9884,
+       "F1": 0.9189
       }
      },
      "errors": {
@@ -7382,6 +7680,12 @@
        "fp": [
         "TEL:600123456"
        ]
+      },
+      "lookalike-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
       }
      }
     }
@@ -7390,9 +7694,9 @@
     "cases": 76,
     "latency": {
      "samples": 380,
-     "p50Micros": 4351.4,
-     "p95Micros": 6772.8,
-     "maxMicros": 10422.7
+     "p50Micros": 3772.5,
+     "p95Micros": 6117.0,
+     "maxMicros": 7717.5
     },
     "model": {
      "scores": {

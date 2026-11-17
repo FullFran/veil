@@ -19,14 +19,14 @@
   "python": "3.12.3"
  },
  "size_on_disk_mb": 1245.1,
- "load_s": 8.938,
- "cold_start_s": 10.208,
- "rss_before_load_mb": 218.0,
- "rss_loaded_mb": 1762.5,
- "repeats": 1,
+ "load_s": 5.78,
+ "cold_start_s": 6.722,
+ "rss_before_load_mb": 218.2,
+ "rss_loaded_mb": 1764.0,
+ "repeats": 5,
  "corpora": {
   "es-v1": {
-   "cases": 78,
+   "cases": 90,
    "predictions": {
     "dni-001": [
      {
@@ -524,6 +524,39 @@
      }
     ],
     "tel-017": [],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9998200535774231
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 37,
+      "raw": "phone_number",
+      "score": 0.9992678761482239
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "phone_number",
+      "score": 0.9999431371688843
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "phone_number",
+      "score": 0.9999210834503174
+     }
+    ],
+    "tel-020": [],
     "nombre-001": [
      {
       "unit": "",
@@ -785,13 +818,75 @@
       "raw": "national_id_number",
       "score": 0.9650053381919861
      }
-    ]
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9046157002449036
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "email",
+      "score": 0.9878864288330078
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "national_id_number",
+      "score": 0.7625625729560852
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "email",
+      "score": 0.9232884049415588
+     },
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "national_id_number",
+      "score": 0.9957143664360046
+     }
+    ],
+    "lookalike-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9999845027923584
+     }
+    ],
+    "lookalike-004": [],
+    "lookalike-005": [],
+    "lookalike-006": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "phone_number",
+      "score": 0.9994474053382874
+     }
+    ],
+    "lookalike-007": [],
+    "lookalike-008": [],
+    "lookalike-009": []
    },
    "latency": {
-    "samples": 78,
-    "p50Micros": 178643.8,
-    "p95Micros": 316895.0,
-    "maxMicros": 784278.7
+    "samples": 450,
+    "p50Micros": 91704.4,
+    "p95Micros": 178913.7,
+    "maxMicros": 432720.0
    }
   },
   "es-ext-v1": {
@@ -1507,10 +1602,10 @@
     "neg-025": []
    },
    "latency": {
-    "samples": 76,
-    "p50Micros": 180694.2,
-    "p95Micros": 338457.3,
-    "maxMicros": 413192.0
+    "samples": 380,
+    "p50Micros": 93438.7,
+    "p95Micros": 178562.8,
+    "maxMicros": 203891.8
    }
   }
  },
@@ -1518,5 +1613,5 @@
   "corpus": null,
   "every": 1
  },
- "rss_peak_mb": 2932.8
+ "rss_peak_mb": 2934.8
 }

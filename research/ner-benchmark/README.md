@@ -10,7 +10,7 @@ unstructured personal data.
 GLiNER2-PII is the best fit: on the extension set it takes out-of-catalog
 names from 2.5% to 92.5% not leaked, with 5 false positives on 25 hard
 negatives. The cost is 3 to 4 orders of magnitude more latency than veil
-(about 0.1 s p50 and 0.3 s p95 per event, against 39 µs p95 for veil), 1.25 GB on disk,
+(about 90 ms p50 and 176 ms p95 per event, against 45 µs p95 for veil), 1.25 GB on disk,
 and 1.8 to 2.9 GB of RAM. Addresses are not solved by any candidate at
 usable precision; they need their own detector work first (see the
 [improvement list](#prioritized-improvement-list)). OpenAI Privacy Filter
@@ -32,7 +32,7 @@ and MemPrivacy are not recommended (see [Recommendation](#recommendation)).
 
 | set | cases | gold spans | what it is |
 |---|---|---|---|
-| `es-v1` = `testdata/corpus/es/v1` | 78 | DNI 20, IBAN 12, EMAIL 10, TEL 15, NOMBRE 15 | veil's gate corpus, unchanged |
+| `es-v1` = `testdata/corpus/es/v1` | 90 | DNI 23, IBAN 13, EMAIL 12, TEL 22, NOMBRE 16 | veil's gate corpus as of `3ef3bc5`, unchanged |
 | `es-ext-v1` = [`data/es-ext-v1`](data/es-ext-v1) | 76 | NOMBRE 45, DIRECCION 18, DNI 1, EMAIL 1, TEL 2 | research extension: 33 out-of-catalog name cases, 17 address cases, 25 hard negatives |
 
 Both are synthetic. The extension set is research data, with its own
@@ -134,41 +134,44 @@ appear in the same cases.)
 
 | model | size on disk (MB) | cold start (s) | RSS loaded (MB) | RSS peak (MB) | p50 es-v1 (ms) | p95 es-v1 (ms) | p50 es-ext (ms) | p95 es-ext (ms) |
 |---|---|---|---|---|---|---|---|---|
-| veil (`cmd/veil-eval`, full `Evaluate`) | binary only | n/a | n/a | n/a | 0.016 | 0.039 | n/a | n/a |
-| presidio-sm | 16.3 | 4.0 | 448 | 449 | 4.2 | 8.0 | 4.4 | 6.8 |
-| presidio-lg | 631.2 | 6.1 | 1196 | 1197 | 4.5 | 8.7 | 4.6 | 7.2 |
-| bsc-meddocan | 500.0 | 3.9 | 712 | 766 | 39.7 | 67.3 | 39.1 | 71.4 |
-| gliner2-pii | 1245.1 | 7.5 | 1764 | 2934 | 106.9 | 271.8 | 118.0 | 193.9 |
-| opf | 2799.0 | 11.2 | 3464 | 4165 | 815.3 | 1533.8 | 816.2 | 1329.2 |
+| veil (`cmd/veil-eval`, full `Evaluate`) | binary only | n/a | n/a | n/a | 0.019 | 0.045 | n/a | n/a |
+| presidio-sm | 16.3 | 4.1 | 449 | 449 | 3.7 | 6.7 | 3.8 | 6.1 |
+| presidio-lg | 631.2 | 5.8 | 1196 | 1197 | 4.0 | 7.1 | 3.9 | 6.5 |
+| bsc-meddocan | 500.0 | 3.3 | 711 | 766 | 30.1 | 56.1 | 29.4 | 48.7 |
+| gliner2-pii | 1245.1 | 7.2 | 1764 | 2935 | 90.1 | 175.9 | 91.5 | 172.5 |
+| gliner2-pii-street | 1245.1 | 6.7 | 1764 | 2935 | 91.7 | 178.9 | 93.4 | 178.6 |
+| opf | 2799.0 | 10.0 | 3464 | 4164 | 757.0 | 1411.5 | 750.3 | 1215.6 |
 | memprivacy-1.7b | 3457.1 | 127.4 | 3789 | 4368 | n/a | n/a | 117,433 (subset) | 142,259 (subset) |
 
-veil's row is `go run ./cmd/veil-eval` on the same machine (`p50 16.0 µs, p95 38.5 µs, max 248.0 µs`, 1560 samples), shown in ms.
-`gliner2-pii-street` has the same model and size as `gliner2-pii`; its
-latency was measured with one repeat while the MemPrivacy run was using the
-CPU, so it is not comparable and is left out here (it is in
-`results/tables.md`). MemPrivacy ran with one repeat on a subset (see below).
+veil's row is `go run ./cmd/veil-eval` on the same machine (`p50 18.9 µs,
+p95 45.4 µs, max 285.8 µs`, 1800 samples), shown in ms. Every model row is 5
+repeats per case on an otherwise idle CPU, except MemPrivacy: one repeat on
+a subset (see below).
 
 ### `es-v1` (the gate corpus)
 
-On the gate corpus every model, combined with veil, brings NOMBRE recall from
-0.867 to 1.000 or 0.933 (the two out-of-catalog names `nombre-006` and
-`nombre-007`). The question is what it costs in precision there:
+On the gate corpus (90 cases at `3ef3bc5`) veil leaks two of 16 names,
+`nombre-006` and `nombre-007`, both out of catalog. Combined with veil,
+GLiNER2-PII and every other model mask both (leak recall 1.000 for every
+union); strict NOMBRE recall goes from 0.875 to 1.000 only with GLiNER2.
+The question is what it costs in precision there:
 
+<!-- copied from results/tables.md -->
 | system | NOMBRE strict P / R / F1 | micro F1 (5 labels) |
 |---|---|---|
-| veil | 0.929 / 0.867 / 0.897 | 0.959 |
-| veil + gliner2-pii | 0.833 / 1.000 / 0.909 | 0.960 |
-| veil + gliner2-pii-street | 0.882 / 1.000 / 0.938 | 0.966 |
-| veil + presidio-lg | 0.737 / 0.933 / 0.824 | 0.940 |
-| veil + presidio-sm | 0.583 / 0.933 / 0.718 | 0.910 |
-| veil + bsc-meddocan | 0.733 / 0.733 / 0.733 | 0.925 |
-| veil + opf | 0.542 / 0.867 / 0.667 | 0.897 |
+| veil | 0.933 / 0.875 / 0.903 | 0.966 |
+| veil + gliner2-pii | 0.842 / 1.000 / 0.914 | 0.966 |
+| veil + gliner2-pii-street | 0.889 / 1.000 / 0.941 | 0.972 |
+| veil + presidio-lg | 0.750 / 0.938 / 0.833 | 0.950 |
+| veil + presidio-sm | 0.577 / 0.938 / 0.714 | 0.919 |
+| veil + bsc-meddocan | 0.750 / 0.750 / 0.750 | 0.937 |
+| veil + opf | 0.560 / 0.875 / 0.683 | 0.913 |
 
 DNI, IBAN, EMAIL and TEL stay at veil's numbers in every union by
 construction. On their own, no model reaches veil on those labels (best:
-Presidio's `ES_NIF` at DNI recall 0.80; OPF finds no DNI at all), which
-confirms the split: checksums for structured identifiers, a model only for
-names.
+Presidio's `ES_NIF`/`ES_NIE` at DNI recall 0.696; OPF finds no DNI at all),
+which confirms the split: checksums for structured identifiers, a model only
+for names.
 
 ### Error analysis
 
@@ -183,7 +186,7 @@ names.
   `Cervantes`, `Lope de Vega`, `director financiero`, and on `es-v1` the
   one-letter tool field `y` and the word `cliente`.
 - **Presidio + spaCy** finds almost every name (lg: 0.975 leak, 0.981
-  coverage) at 4.5 ms, but its spans carry neighbours (`Nerea?`,
+  coverage) at 4 ms, but its spans carry neighbours (`Nerea?`,
   `JUAN GARCIA HOY`, `Mi hermana`) and it tags many organisations and places
   (`Banco Santander`, `Mercadona`, `Las Palmas`). As an address detector it
   only finds the street name: coverage 0.62. lg is clearly better than sm on
@@ -336,19 +339,19 @@ Filter (35.50% F1 on their benchmark per the repo README).
    training languages). Expected gain on `es-ext-v1`: out-of-catalog names
    from 0.025 to 0.925 leak recall (strict 0.025 to 0.900), with 3 false
    names and 2 false addresses on the 25 hard negatives; on `es-v1` NOMBRE
-   recall from 0.867 to 1.000 while precision drops from 0.929 to 0.833.
-   Cost: +107 ms p50 and +272 ms p95 per event on a 6-core desktop CPU (veil
-   alone: 39 µs p95), 1.25 GB on disk, 1.8 GB resident (2.9 GB peak), 7.5 s
+   recall from 0.875 to 1.000 while precision drops from 0.933 to 0.842.
+   Cost: +90 ms p50 and +176 ms p95 per event on a 6-core desktop CPU (veil
+   alone: 45 µs p95), 1.25 GB on disk, 1.8 GB resident (2.9 GB peak), 7.2 s
    cold start once per session. Use it only for NOMBRE; keep veil's
    detectors for every structured label.
 2. **Cheap alternative for constrained machines: spaCy `es_core_news_lg`
-   PERSON** (through Presidio or directly). 4.5 ms per event and 1.2 GB
+   PERSON** (through Presidio or directly). 4 ms p50 and 7 ms p95 per event and 1.2 GB
    resident, with the highest name leak recall here (0.975), but looser
    boundaries (strict 0.80) and more false names. The spaCy Spanish models
    are GNU GPL 3.0 (`meta.json`), which matters if veil ever bundles or
    redistributes one; a separate, user-installed sidecar keeps that apart.
 3. **Do not use OpenAI Privacy Filter** in veil today: on this CPU it takes
-   0.8 s p50 and 1.5 s p95 per event, needs 3.5 to 4.2 GB of RAM, is
+   0.76 s p50 and 1.4 s p95 per event, needs 3.5 to 4.2 GB of RAM, is
    English-first, and on Spanish includes introducing words in name spans
    and fragments addresses. Revisit if a Spanish fine-tune appears; its
    fine-tuning tooling is open.
@@ -367,7 +370,7 @@ real user text.
 
 | # | improvement | expected impact (from this study) | cost |
 |---|---|---|---|
-| 1 | Sidecar NER detector (GLiNER2-PII) for NOMBRE, opt-in, fail-closed, behind a per-request deadline | out-of-catalog names: leak recall 0.025 → 0.925 on `es-ext-v1`; `es-v1` NOMBRE recall 0.867 → 1.000 | 0.1 to 0.3 s per event, 1.25 GB disk, ~2 GB RAM, a new process to supervise |
+| 1 | Sidecar NER detector (GLiNER2-PII) for NOMBRE, opt-in, fail-closed, behind a per-request deadline | out-of-catalog names: leak recall 0.025 → 0.925 on `es-ext-v1`; `es-v1` NOMBRE recall 0.875 → 1.000 | 90 ms p50, 176 ms p95 per event, 1.25 GB disk, ~2 GB RAM, a new process to supervise |
 | 2 | Rule-based Spanish address detector: street-type lexicon (`Calle`, `C/`, `Avda.`, `Plaza`, `Paseo`, `Ronda`, `Travesía`, `Camino`, `Urb.`) + name + number or `s/n`, optional floor/door, optional 5-digit postal code 01000-52999 + city | addresses: 0.048 leak today; every address in `es-ext-v1` has one of these shapes; public streets without a number stay unmasked, which keeps the hard negatives clean | small, pure Go, microseconds; needs its own corpus cases first |
 | 3 | Do not match a catalog name inside a street (`Calle María Pérez de la Rosa`) | removes veil's only NOMBRE false positive on both sets | small; falls out of #2 (longest span wins) |
 | 4 | Extend the gate corpus with the extension set's shapes (out-of-catalog names, addresses, hard negatives) once veil has a label for addresses | numbers stop being measured only on the shape the regexes were written for | small |

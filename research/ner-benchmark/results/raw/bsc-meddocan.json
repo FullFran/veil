@@ -20,14 +20,14 @@
   "python": "3.12.3"
  },
  "size_on_disk_mb": 500.0,
- "load_s": 2.926,
- "cold_start_s": 3.879,
- "rss_before_load_mb": 217.7,
- "rss_loaded_mb": 712.4,
+ "load_s": 2.345,
+ "cold_start_s": 3.299,
+ "rss_before_load_mb": 218.0,
+ "rss_loaded_mb": 710.7,
  "repeats": 5,
  "corpora": {
   "es-v1": {
-   "cases": 78,
+   "cases": 90,
    "predictions": {
     "dni-001": [
      {
@@ -525,6 +525,54 @@
       "score": 0.5526511669158936
      }
     ],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9963101744651794
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 38,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9966524243354797
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 30,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9973769187927246
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 44,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9908717274665833
+     },
+     {
+      "unit": "",
+      "start": 45,
+      "end": 57,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9966835975646973
+     }
+    ],
+    "tel-020": [
+     {
+      "unit": "",
+      "start": 35,
+      "end": 50,
+      "raw": "ID_SUJETO_ASISTENCIA",
+      "score": 0.6925739645957947
+     }
+    ],
     "nombre-001": [
      {
       "unit": "",
@@ -758,13 +806,54 @@
       "raw": "NUMERO_IDENTIF",
       "score": 0.9585661292076111
      }
-    ]
+    ],
+    "lookalike-001": [],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 15,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9340219497680664
+     }
+    ],
+    "lookalike-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "NUMERO_TELEFONO",
+      "score": 0.9449897408485413
+     }
+    ],
+    "lookalike-004": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 45,
+      "raw": "NUMERO_IDENTIF",
+      "score": 0.9973717927932739
+     }
+    ],
+    "lookalike-005": [],
+    "lookalike-006": [],
+    "lookalike-007": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "SEXO_SUJETO_ASISTENCIA",
+      "score": 0.9598397612571716
+     }
+    ],
+    "lookalike-008": [],
+    "lookalike-009": []
    },
    "latency": {
-    "samples": 390,
-    "p50Micros": 39703.2,
-    "p95Micros": 67300.4,
-    "maxMicros": 151771.0
+    "samples": 450,
+    "p50Micros": 30091.2,
+    "p95Micros": 56106.0,
+    "maxMicros": 126502.7
    }
   },
   "es-ext-v1": {
@@ -1672,11 +1761,15 @@
    },
    "latency": {
     "samples": 380,
-    "p50Micros": 39148.5,
-    "p95Micros": 71442.9,
-    "maxMicros": 221861.5
+    "p50Micros": 29439.4,
+    "p95Micros": 48717.3,
+    "maxMicros": 57003.0
    }
   }
  },
- "rss_peak_mb": 765.6
+ "subset": {
+  "corpus": null,
+  "every": 1
+ },
+ "rss_peak_mb": 766.0
 }
