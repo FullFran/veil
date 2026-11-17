@@ -96,3 +96,13 @@ test("a failure on tool output withholds the output instead of leaking it", asyn
   assert.ok(!output.metadata.output.includes("12345678Z"), "the stored duplicate must not keep it either");
   assert.ok(output.output.includes("VEIL_STORE_CORRUPT"), "the notice names the problem code");
 });
+
+test("a rewrite of tool output also replaces the copy OpenCode stores in metadata", async () => {
+  const hooks = await pluginWith(
+    stub("rewrite-after.mjs", `process.stdin.resume(); process.stdin.on("end", () => process.stdout.write(JSON.stringify({ action: "rewrite", args: { output: "DNI [DNI-001]" } })));`),
+  );
+  const output = { output: "DNI 12345678Z", metadata: { output: "DNI 12345678Z" } };
+  await hooks["tool.execute.after"]({ sessionID: "s", tool: "bash" }, output);
+  assert.equal(output.output, "DNI [DNI-001]");
+  assert.equal(output.metadata.output, "DNI [DNI-001]", "the stored duplicate must not keep the real value");
+});
