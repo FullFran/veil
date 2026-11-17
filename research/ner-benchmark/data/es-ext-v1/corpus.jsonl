@@ -1,0 +1,76 @@
+{"id": "ooc-001", "tags": ["out-of-catalog", "full-name"], "text": "Mañana viene [[NOMBRE:Rodrigo Castaño Villar]] a revisar el contrato."}
+{"id": "ooc-002", "tags": ["out-of-catalog", "full-name"], "text": "La paciente [[NOMBRE:Inmaculada Herrero Soto]] tiene cita el jueves."}
+{"id": "ooc-003", "tags": ["out-of-catalog", "first-name"], "text": "Dile a [[NOMBRE:Alberto]] que el informe está listo."}
+{"id": "ooc-004", "tags": ["out-of-catalog", "first-name"], "text": "¿Puedes reenviar esto a [[NOMBRE:Nerea]]? Gracias."}
+{"id": "ooc-005", "tags": ["out-of-catalog", "particle"], "text": "Escritura a nombre de [[NOMBRE:Francisco Javier de la Fuente]]."}
+{"id": "ooc-006", "tags": ["out-of-catalog", "particle"], "text": "Contacto: [[NOMBRE:Mercedes del Río Ballesteros]], responsable de compras."}
+{"id": "ooc-007", "tags": ["out-of-catalog", "compound-surname"], "text": "El expediente de [[NOMBRE:Óscar Gil-Robles]] sigue abierto."}
+{"id": "ooc-008", "tags": ["out-of-catalog", "lowercase"], "text": "habla con [[NOMBRE:jorge menéndez]] antes de las 5"}
+{"id": "ooc-009", "tags": ["out-of-catalog", "uppercase"], "text": "TITULAR: [[NOMBRE:CARMEN VIDAL ORTEGA]]"}
+{"id": "ooc-010", "tags": ["out-of-catalog", "title"], "text": "La Dra. [[NOMBRE:Elena Quiroga]] firmó el alta."}
+{"id": "ooc-011", "tags": ["out-of-catalog", "title"], "text": "Atentamente, D. [[NOMBRE:Ramón Iglesias Prieto]]"}
+{"id": "ooc-012", "tags": ["out-of-catalog", "two-names"], "text": "[[NOMBRE:Laura Benítez]] y [[NOMBRE:Sergio Pardo]] se reparten la guardia."}
+{"id": "ooc-013", "tags": ["out-of-catalog", "surname-first"], "text": "Listado: [[NOMBRE:Domínguez Lara, Patricia]]; pendiente de pago."}
+{"id": "ooc-014", "tags": ["out-of-catalog", "foreign"], "text": "El inquilino [[NOMBRE:Mohamed El Amrani]] pagó la fianza."}
+{"id": "ooc-015", "tags": ["out-of-catalog", "foreign"], "text": "Reunión con [[NOMBRE:Ioana Popescu]] sobre la nómina."}
+{"id": "ooc-016", "tags": ["out-of-catalog", "basque"], "text": "[[NOMBRE:Aitor]] y [[NOMBRE:Itziar Etxeberria]] llegan en el tren de las 9."}
+{"id": "ooc-017", "tags": ["out-of-catalog", "catalan"], "text": "Factura emitida a [[NOMBRE:Jordi Puigdomènech i Serra]]."}
+{"id": "ooc-018", "tags": ["out-of-catalog", "galician"], "text": "Avisa a [[NOMBRE:Xoán Carballo Rey]] del cambio de turno."}
+{"id": "ooc-019", "tags": ["out-of-catalog", "nickname"], "text": "Que [[NOMBRE:Paco]] me llame cuando pueda."}
+{"id": "ooc-020", "tags": ["out-of-catalog", "with-pii"], "text": "Alta de [[NOMBRE:Valeria Ríos Medina]], DNI [[DNI:48291736Q]], tel. [[TEL:612345678]]."}
+{"id": "ooc-021", "tags": ["out-of-catalog", "email-context"], "text": "Escribe a [[NOMBRE:Hugo Serrano]] ([[EMAIL:hugo.serrano@example.com]]) con el presupuesto."}
+{"id": "ooc-022", "tags": ["out-of-catalog", "dialogue"], "text": "Hola, soy [[NOMBRE:Marta Ibáñez]] y quiero cambiar mi tarifa."}
+{"id": "ooc-023", "tags": ["out-of-catalog", "dialogue"], "text": "Me llamo [[NOMBRE:Guillermo]], vivo solo y trabajo de noche."}
+{"id": "ooc-024", "tags": ["out-of-catalog", "relative"], "text": "Mi hermana [[NOMBRE:Sofía]] se casa con [[NOMBRE:Daniel Moreno]] en junio."}
+{"id": "ooc-025", "tags": ["out-of-catalog", "list"], "text": "Asistentes: [[NOMBRE:Raúl Cano]], [[NOMBRE:Irene Lozano]], [[NOMBRE:Tomás Pastor]]."}
+{"id": "ooc-026", "tags": ["out-of-catalog", "name-like-word"], "text": "La clienta [[NOMBRE:Rosa Blanco]] reclama el reembolso."}
+{"id": "ooc-027", "tags": ["out-of-catalog", "name-like-word"], "text": "[[NOMBRE:Pilar]] confirma la cita de mañana."}
+{"id": "ooc-028", "tags": ["out-of-catalog", "name-like-word"], "text": "El paciente [[NOMBRE:Victoria Paz Delgado]] no acudió."}
+{"id": "ooc-029", "tags": ["out-of-catalog", "code"], "text": "author = \"[[NOMBRE:Beatriz Arias]]\"  # cambiar antes de publicar"}
+{"id": "ooc-030", "tags": ["out-of-catalog", "csv"], "text": "nombre;apellidos;ciudad\n[[NOMBRE:Lorena]];[[NOMBRE:Cuesta Molina]];Toledo"}
+{"id": "ooc-args-001", "tags": ["out-of-catalog", "args"], "tool": "write", "args": {"filePath": "acta.md", "content": "Asiste [[NOMBRE:Gonzalo Peña Vera]] en representación de la comunidad."}}
+{"id": "ooc-args-002", "tags": ["out-of-catalog", "args"], "tool": "mcp_crm_update", "args": {"record": {"contact": {"name": "[[NOMBRE:Noelia Cortés]]", "city": "Bilbao"}}}}
+{"id": "cat-001", "tags": ["catalog", "out-of-catalog", "control"], "text": "Reenvía el contrato a [[NOMBRE:María Pérez]] y a [[NOMBRE:Rodrigo Mena]]."}
+{"id": "cat-002", "tags": ["catalog", "control"], "text": "[[NOMBRE:Lucía Martín]] vive en [[DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid]]."}
+{"id": "dir-001", "tags": ["address", "full"], "text": "Envíalo a [[DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid]]."}
+{"id": "dir-002", "tags": ["address", "abbrev"], "text": "Domicilio: [[DIRECCION:C/ Mayor 15, 1ºA]], Valladolid."}
+{"id": "dir-003", "tags": ["address", "avenue"], "text": "Vive en [[DIRECCION:Avda. de la Constitución 8, portal 2]]."}
+{"id": "dir-004", "tags": ["address", "plaza"], "text": "La entrega es en [[DIRECCION:Plaza del Pilar 3, bajo]] a las 10."}
+{"id": "dir-005", "tags": ["address", "postal-code"], "text": "Dirección de facturación: [[DIRECCION:Paseo de Gracia 55, 08007 Barcelona]]"}
+{"id": "dir-006", "tags": ["address", "lowercase"], "text": "mi casa es en [[DIRECCION:calle ancha 27, 4º d]], pásate luego"}
+{"id": "dir-007", "tags": ["address", "rural"], "text": "Vivo en [[DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra]]."}
+{"id": "dir-008", "tags": ["address", "urbanization"], "text": "Nueva dirección: [[DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella]]."}
+{"id": "dir-009", "tags": ["address", "with-name"], "text": "[[NOMBRE:Andrés Ruiz Ferrer]], [[DIRECCION:Ronda de Valencia 6, 5º C]], ha pedido la baja."}
+{"id": "dir-010", "tags": ["address", "name-street"], "text": "El paquete va a [[DIRECCION:Calle María Pérez de la Rosa 12]], segundo piso."}
+{"id": "dir-011", "tags": ["address", "travesia"], "text": "Notificar en [[DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón]]."}
+{"id": "dir-012", "tags": ["address", "dialogue"], "text": "Soy [[NOMBRE:Julia Vega]] y mi dirección es [[DIRECCION:Avenida Reina Victoria 40, 2º]]."}
+{"id": "dir-013", "tags": ["address", "multiline"], "text": "Datos de envío:\n[[NOMBRE:Emilio Navarro]]\n[[DIRECCION:C/ Real 9, 37001 Salamanca]]"}
+{"id": "dir-014", "tags": ["address", "number-first"], "text": "Estoy en el [[DIRECCION:número 14 de la calle Larios]], en Málaga."}
+{"id": "dir-015", "tags": ["address", "with-phone"], "text": "Recoger en [[DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo]]; tel. [[TEL:985123456]]."}
+{"id": "dir-args-001", "tags": ["address", "args"], "tool": "mcp_crm_update", "args": {"record": {"address": "[[DIRECCION:Calle Alfonso I 17, 50003 Zaragoza]]", "name": "[[NOMBRE:Carlos Ibarra]]"}}}
+{"id": "dir-args-002", "tags": ["address", "args"], "tool": "write", "args": {"filePath": "envio.json", "content": "{\"to\": \"[[DIRECCION:Avenida de América 33, 28002 Madrid]]\"}"}}
+{"id": "neg-001", "tags": ["hard-negative", "common-noun"], "text": "Compra una rosa blanca y dos claveles para la mesa."}
+{"id": "neg-002", "tags": ["hard-negative", "common-noun"], "text": "Tengo esperanza en que la paz llegue pronto."}
+{"id": "neg-003", "tags": ["hard-negative", "common-noun"], "text": "El pilar central del puente tiene grietas."}
+{"id": "neg-004", "tags": ["hard-negative", "common-noun"], "text": "Victoria clara del equipo local: 3 a 0."}
+{"id": "neg-005", "tags": ["hard-negative", "common-noun"], "text": "Hubo rocío esta mañana y la hierba estaba mojada."}
+{"id": "neg-006", "tags": ["hard-negative", "street-public"], "text": "La calle Alcalá estará cortada el domingo por la maratón."}
+{"id": "neg-007", "tags": ["hard-negative", "street-public"], "text": "El desfile recorre la Gran Vía y termina en la Plaza de España."}
+{"id": "neg-008", "tags": ["hard-negative", "street-public"], "text": "Hay obras en la Avenida de la Constitución durante todo el mes."}
+{"id": "neg-009", "tags": ["hard-negative", "organization"], "text": "Banco Santander y El Corte Inglés firmaron un acuerdo."}
+{"id": "neg-010", "tags": ["hard-negative", "organization"], "text": "El Hospital Universitario Virgen del Rocío amplía su horario."}
+{"id": "neg-011", "tags": ["hard-negative", "place"], "text": "Viajamos de San Sebastián a Santiago de Compostela en tren."}
+{"id": "neg-012", "tags": ["hard-negative", "place"], "text": "Las Palmas y Santa Cruz de Tenerife tienen aeropuerto."}
+{"id": "neg-013", "tags": ["hard-negative", "historical"], "text": "Cervantes y Lope de Vega fueron contemporáneos."}
+{"id": "neg-014", "tags": ["hard-negative", "product"], "text": "Instala la librería Pandas y actualiza Django a la 5.2."}
+{"id": "neg-015", "tags": ["hard-negative", "code"], "text": "def calcular_total(precio, iva):\n    return precio * (1 + iva)"}
+{"id": "neg-016", "tags": ["hard-negative", "holiday"], "text": "El día de San Juan cerramos la oficina a mediodía."}
+{"id": "neg-017", "tags": ["hard-negative", "month-name"], "text": "En abril y mayo bajan las ventas; en agosto cerramos."}
+{"id": "neg-018", "tags": ["hard-negative", "role"], "text": "El director financiero aprobó el presupuesto ayer."}
+{"id": "neg-019", "tags": ["hard-negative", "street-public"], "text": "Sevilla celebra la feria en el barrio de Los Remedios."}
+{"id": "neg-020", "tags": ["hard-negative", "company-name"], "text": "Mercadona abre una tienda nueva en el polígono."}
+{"id": "neg-021", "tags": ["hard-negative", "brand"], "text": "Compramos un Seat Ibiza y un Renault Clio de segunda mano."}
+{"id": "neg-022", "tags": ["hard-negative", "saint"], "text": "La parroquia de Santa María celebra misa a las 12."}
+{"id": "neg-023", "tags": ["hard-negative", "generic-address"], "text": "Escribe tu dirección completa en el formulario de envío."}
+{"id": "neg-024", "tags": ["hard-negative", "args"], "tool": "bash", "args": {"command": "grep -rn 'calle' src/ | head -n 20", "cwd": "/repo"}}
+{"id": "neg-025", "tags": ["hard-negative", "law"], "text": "Según la Ley Orgánica 3/2018 y el artículo 9 del RGPD."}

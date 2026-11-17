@@ -1,0 +1,1863 @@
+{
+ "model": "presidio-lg",
+ "model_id": "presidio-analyzer + es_core_news_lg",
+ "label_map": {
+  "PERSON": "NOMBRE",
+  "LOCATION": "DIRECCION",
+  "EMAIL_ADDRESS": "EMAIL",
+  "PHONE_NUMBER": "TEL",
+  "IBAN_CODE": "IBAN",
+  "ES_NIF": "DNI",
+  "ES_NIE": "DNI"
+ },
+ "recognizers": [
+  "CreditCardRecognizer",
+  "CryptoRecognizer",
+  "DateRecognizer",
+  "EmailRecognizer",
+  "EsNieRecognizer",
+  "EsNifRecognizer",
+  "IbanRecognizer",
+  "IpRecognizer",
+  "MacAddressRecognizer",
+  "MedicalLicenseRecognizer",
+  "PhoneRecognizer",
+  "SpacyRecognizer",
+  "UrlRecognizer",
+  "UuidRecognizer"
+ ],
+ "env": {
+  "cpu": "AMD Ryzen 5 5500",
+  "logical_cpus": 12,
+  "torch_threads": 6,
+  "torch": "2.15.0+cpu",
+  "python": "3.12.3"
+ },
+ "size_on_disk_mb": 631.2,
+ "load_s": 4.849,
+ "cold_start_s": 5.75,
+ "rss_before_load_mb": 218.1,
+ "rss_loaded_mb": 1196.3,
+ "repeats": 5,
+ "corpora": {
+  "es-v1": {
+   "cases": 90,
+   "predictions": {
+    "dni-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "ES_NIF",
+      "score": 1.0
+     }
+    ],
+    "dni-002": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "ES_NIF",
+      "score": 1.0
+     }
+    ],
+    "dni-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 26,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "dni-004": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "ES_NIF",
+      "score": 1.0
+     }
+    ],
+    "dni-005": [
+     {
+      "unit": "",
+      "start": 36,
+      "end": 43,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dni-006": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 15,
+      "raw": "ES_NIF",
+      "score": 1.0
+     }
+    ],
+    "dni-007": [],
+    "dni-008": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 38,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nie-001": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 29,
+      "raw": "ES_NIE",
+      "score": 1.0
+     }
+    ],
+    "nie-002": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 16,
+      "raw": "ES_NIE",
+      "score": 1.0
+     }
+    ],
+    "nie-003": [],
+    "nie-004": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 27,
+      "raw": "ES_NIE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 28,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dni-009": [],
+    "dni-010": [],
+    "dni-011": [],
+    "dni-012": [],
+    "dni-013": [],
+    "dni-014": [
+     {
+      "unit": "",
+      "start": 1,
+      "end": 10,
+      "raw": "ES_NIF",
+      "score": 1.0
+     }
+    ],
+    "dni-015": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "ES_NIF",
+      "score": 1.0
+     }
+    ],
+    "iban-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 43,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 37,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "iban-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 35,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     }
+    ],
+    "iban-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 36,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 7,
+      "end": 36,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "iban-004": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 46,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 36,
+      "raw": "MAC_ADDRESS",
+      "score": 0.6
+     }
+    ],
+    "iban-005": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 40,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 58,
+      "end": 82,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 40,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 58,
+      "end": 82,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "iban-006": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 40,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     }
+    ],
+    "iban-007": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 52,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     }
+    ],
+    "iban-008": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 43,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 43,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "iban-009": [],
+    "iban-010": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 14,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "iban-011": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 35,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "iban-012": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 25,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "iban-013": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 44,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     }
+    ],
+    "email-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 36,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 20,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "",
+      "start": 25,
+      "end": 36,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "email-002": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 35,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 63,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 63,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 17,
+      "end": 35,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "",
+      "start": 45,
+      "end": 63,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "email-003": [],
+    "email-004": [],
+    "email-005": [],
+    "email-006": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 39,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 4,
+      "end": 12,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 19,
+      "end": 39,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "email-007": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 30,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 30,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "email-008": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 39,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 10,
+      "end": 39,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 39,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "tel-001": [],
+    "tel-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 18,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-003": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 8,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 10,
+      "end": 25,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-004": [],
+    "tel-005": [],
+    "tel-006": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 20,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "tel-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-008": [
+     {
+      "unit": "",
+      "start": 21,
+      "end": 37,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 5,
+      "end": 22,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-010": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 21,
+      "raw": "DATE_TIME",
+      "score": 0.6
+     }
+    ],
+    "tel-011": [],
+    "tel-012": [],
+    "tel-013": [],
+    "tel-014": [],
+    "tel-015": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 26,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-016": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 28,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-017": [],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "tel-020": [
+     {
+      "unit": "",
+      "start": 35,
+      "end": 49,
+      "raw": "CREDIT_CARD",
+      "score": 1.0
+     }
+    ],
+    "nombre-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 23,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-002": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 25,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-004": [
+     {
+      "unit": "",
+      "start": 1,
+      "end": 13,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-005": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 28,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-006": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 29,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-008": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 25,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-009": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 27,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-010": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 28,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "nombre-011": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 35,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 39,
+      "end": 54,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "mix-001": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 26,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 62,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 85,
+      "end": 108,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 32,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 37,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 64,
+      "end": 67,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 85,
+      "end": 93,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "",
+      "start": 97,
+      "end": 108,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "",
+      "start": 68,
+      "end": 83,
+      "raw": "PHONE_NUMBER",
+      "score": 0.4
+     }
+    ],
+    "mix-002": [
+     {
+      "unit": "",
+      "start": 15,
+      "end": 34,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 2,
+      "end": 13,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "clean-001": [],
+    "clean-002": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 20,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "clean-003": [],
+    "args-001": [
+     {
+      "unit": "edits.0.newString",
+      "start": 12,
+      "end": 21,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "edits.0.newString",
+      "start": 0,
+      "end": 21,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "edits.1.newString",
+      "start": 0,
+      "end": 24,
+      "raw": "IBAN_CODE",
+      "score": 1.0
+     }
+    ],
+    "args-002": [
+     {
+      "unit": "command",
+      "start": 9,
+      "end": 30,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "command",
+      "start": 19,
+      "end": 30,
+      "raw": "URL",
+      "score": 0.85
+     }
+    ],
+    "args-003": [
+     {
+      "unit": "filePath",
+      "start": 0,
+      "end": 8,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "filePath",
+      "start": 0,
+      "end": 8,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "content",
+      "start": 0,
+      "end": 9,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     },
+     {
+      "unit": "content",
+      "start": 32,
+      "end": 35,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "args-004": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 12,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "record.contact.ids.0",
+      "start": 0,
+      "end": 9,
+      "raw": "ES_NIE",
+      "score": 1.0
+     }
+    ],
+    "args-005": [
+     {
+      "unit": "command",
+      "start": 16,
+      "end": 26,
+      "raw": "DATE_TIME",
+      "score": 0.6
+     }
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 14,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 32,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "lookalike-003": [],
+    "lookalike-004": [],
+    "lookalike-005": [],
+    "lookalike-006": [],
+    "lookalike-007": [],
+    "lookalike-008": [],
+    "lookalike-009": []
+   },
+   "latency": {
+    "samples": 450,
+    "p50Micros": 4010.2,
+    "p95Micros": 7116.6,
+    "maxMicros": 18015.2
+   }
+  },
+  "es-ext-v1": {
+   "cases": 76,
+   "predictions": {
+    "ooc-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 35,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-002": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 35,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 14,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-004": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 30,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-005": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 51,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-006": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 38,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-008": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 24,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-009": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 28,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-010": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 21,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "ooc-011": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 37,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 13,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 28,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-013": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 23,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 25,
+      "end": 33,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-014": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-015": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 25,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-016": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-017": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 44,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-018": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-019": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 8,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-020": [
+     {
+      "unit": "",
+      "start": 33,
+      "end": 42,
+      "raw": "ES_NIF",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 8,
+      "end": 27,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "ooc-021": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 48,
+      "raw": "EMAIL_ADDRESS",
+      "score": 1.0
+     },
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 31,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 48,
+      "raw": "URL",
+      "score": 0.5
+     }
+    ],
+    "ooc-022": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-023": [],
+    "ooc-024": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 10,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 11,
+      "end": 16,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 42,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-025": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 35,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 49,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-026": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-027": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-028": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 32,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-029": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 23,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-030": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 51,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-args-001": [
+     {
+      "unit": "filePath",
+      "start": 0,
+      "end": 7,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "filePath",
+      "start": 0,
+      "end": 7,
+      "raw": "URL",
+      "score": 0.5
+     },
+     {
+      "unit": "content",
+      "start": 7,
+      "end": 24,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "ooc-args-002": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 13,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "record.contact.city",
+      "start": 0,
+      "end": 6,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "cat-001": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 7,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 33,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 38,
+      "end": 50,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "cat-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 12,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 21,
+      "end": 34,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 50,
+      "end": 56,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 33,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 54,
+      "end": 60,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-002": [
+     {
+      "unit": "",
+      "start": 29,
+      "end": 39,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-003": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 32,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-004": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 32,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-005": [
+     {
+      "unit": "",
+      "start": 26,
+      "end": 41,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 52,
+      "end": 61,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-006": [],
+    "dir-007": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 33,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 59,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-008": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 17,
+      "end": 20,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 51,
+      "end": 59,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 18,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 20,
+      "end": 37,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-010": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 44,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "dir-011": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 32,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 52,
+      "end": 57,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-012": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 55,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-013": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 40,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 48,
+      "end": 57,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-014": [
+     {
+      "unit": "",
+      "start": 34,
+      "end": 40,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 45,
+      "end": 51,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-015": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 21,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 38,
+      "end": 44,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 46,
+      "end": 50,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "dir-args-001": [
+     {
+      "unit": "record.address",
+      "start": 6,
+      "end": 15,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "record.address",
+      "start": 26,
+      "end": 34,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "record.name",
+      "start": 0,
+      "end": 13,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "dir-args-002": [
+     {
+      "unit": "content",
+      "start": 8,
+      "end": 26,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "content",
+      "start": 37,
+      "end": 43,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-001": [],
+    "neg-002": [],
+    "neg-003": [],
+    "neg-004": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 8,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "neg-005": [],
+    "neg-006": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 15,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-007": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 30,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 47,
+      "end": 62,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-008": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 42,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 15,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-010": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 42,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-011": [
+     {
+      "unit": "",
+      "start": 28,
+      "end": 50,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 10,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 35,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-013": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "PERSON",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 24,
+      "raw": "PERSON",
+      "score": 0.85
+     }
+    ],
+    "neg-014": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 26,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "neg-015": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 25,
+      "raw": "ORGANIZATION",
+      "score": 0.85
+     }
+    ],
+    "neg-016": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 18,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-017": [],
+    "neg-018": [],
+    "neg-019": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 7,
+      "raw": "LOCATION",
+      "score": 0.85
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 53,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-020": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-021": [],
+    "neg-022": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 27,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-023": [],
+    "neg-024": [
+     {
+      "unit": "command",
+      "start": 0,
+      "end": 4,
+      "raw": "LOCATION",
+      "score": 0.85
+     }
+    ],
+    "neg-025": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 28,
+      "raw": "DATE_TIME",
+      "score": 0.2
+     }
+    ]
+   },
+   "latency": {
+    "samples": 380,
+    "p50Micros": 3942.4,
+    "p95Micros": 6524.4,
+    "maxMicros": 7844.7
+   }
+  }
+ },
+ "subset": {
+  "corpus": null,
+  "every": 1
+ },
+ "rss_peak_mb": 1197.3
+}

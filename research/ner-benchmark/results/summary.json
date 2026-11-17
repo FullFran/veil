@@ -1,0 +1,8995 @@
+{
+ "systems": {
+  "veil": {
+   "es-v1": {
+    "scores": {
+     "labels": {
+      "DNI": {
+       "tp": 23,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 23,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "IBAN": {
+       "tp": 13,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 13,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "EMAIL": {
+       "tp": 12,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 12,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "TEL": {
+       "tp": 22,
+       "fp": 3,
+       "fn": 0,
+       "P": 0.88,
+       "R": 1.0,
+       "F1": 0.9362,
+       "gold": 22,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "NOMBRE": {
+       "tp": 14,
+       "fp": 1,
+       "fn": 2,
+       "P": 0.9333,
+       "R": 0.875,
+       "F1": 0.9032,
+       "gold": 16,
+       "leaked": 2,
+       "leakR": 0.875,
+       "charCov": 0.8411
+      }
+     },
+     "unscored_predictions": 0,
+     "micro": {
+      "tp": 84,
+      "fp": 4,
+      "fn": 2,
+      "P": 0.9545,
+      "R": 0.9767,
+      "F1": 0.9655
+     }
+    },
+    "errors": {
+     "tel-012": {
+      "fn": [],
+      "fp": [
+       "TEL:912345678"
+      ]
+     },
+     "tel-017": {
+      "fn": [],
+      "fp": [
+       "TEL:712.345.678"
+      ]
+     },
+     "nombre-006": {
+      "fn": [
+       "NOMBRE:Pedro Sánchez Ruiz"
+      ],
+      "fp": []
+     },
+     "nombre-007": {
+      "fn": [
+       "NOMBRE:Ana Belén Torres"
+      ],
+      "fp": []
+     },
+     "nombre-010": {
+      "fn": [],
+      "fp": [
+       "NOMBRE:María Pérez"
+      ]
+     },
+     "args-005": {
+      "fn": [],
+      "fp": [
+       "TEL:600123456"
+      ]
+     }
+    }
+   },
+   "es-ext-v1": {
+    "scores": {
+     "labels": {
+      "DNI": {
+       "tp": 1,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 1,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "IBAN": {
+       "tp": 0,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 0,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "EMAIL": {
+       "tp": 1,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 1,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "TEL": {
+       "tp": 2,
+       "fp": 0,
+       "fn": 0,
+       "P": 1.0,
+       "R": 1.0,
+       "F1": 1.0,
+       "gold": 2,
+       "leaked": 0,
+       "leakR": 1.0,
+       "charCov": 1.0
+      },
+      "NOMBRE": {
+       "tp": 2,
+       "fp": 1,
+       "fn": 43,
+       "P": 0.6667,
+       "R": 0.0444,
+       "F1": 0.0833,
+       "gold": 45,
+       "leaked": 43,
+       "leakR": 0.0444,
+       "charCov": 0.0362
+      },
+      "DIRECCION": {
+       "tp": 0,
+       "fp": 0,
+       "fn": 18,
+       "P": 1.0,
+       "R": 0.0,
+       "F1": 0.0,
+       "gold": 18,
+       "leaked": 17,
+       "leakR": 0.0556,
+       "charCov": 0.0185
+      }
+     },
+     "unscored_predictions": 0,
+     "micro": {
+      "tp": 6,
+      "fp": 1,
+      "fn": 61,
+      "P": 0.8571,
+      "R": 0.0896,
+      "F1": 0.1622
+     }
+    },
+    "errors": {
+     "ooc-001": {
+      "fn": [
+       "NOMBRE:Rodrigo Castaño Villar"
+      ],
+      "fp": []
+     },
+     "ooc-002": {
+      "fn": [
+       "NOMBRE:Inmaculada Herrero Soto"
+      ],
+      "fp": []
+     },
+     "ooc-003": {
+      "fn": [
+       "NOMBRE:Alberto"
+      ],
+      "fp": []
+     },
+     "ooc-004": {
+      "fn": [
+       "NOMBRE:Nerea"
+      ],
+      "fp": []
+     },
+     "ooc-005": {
+      "fn": [
+       "NOMBRE:Francisco Javier de la Fuente"
+      ],
+      "fp": []
+     },
+     "ooc-006": {
+      "fn": [
+       "NOMBRE:Mercedes del Río Ballesteros"
+      ],
+      "fp": []
+     },
+     "ooc-007": {
+      "fn": [
+       "NOMBRE:Óscar Gil-Robles"
+      ],
+      "fp": []
+     },
+     "ooc-008": {
+      "fn": [
+       "NOMBRE:jorge menéndez"
+      ],
+      "fp": []
+     },
+     "ooc-009": {
+      "fn": [
+       "NOMBRE:CARMEN VIDAL ORTEGA"
+      ],
+      "fp": []
+     },
+     "ooc-010": {
+      "fn": [
+       "NOMBRE:Elena Quiroga"
+      ],
+      "fp": []
+     },
+     "ooc-011": {
+      "fn": [
+       "NOMBRE:Ramón Iglesias Prieto"
+      ],
+      "fp": []
+     },
+     "ooc-012": {
+      "fn": [
+       "NOMBRE:Laura Benítez",
+       "NOMBRE:Sergio Pardo"
+      ],
+      "fp": []
+     },
+     "ooc-013": {
+      "fn": [
+       "NOMBRE:Domínguez Lara, Patricia"
+      ],
+      "fp": []
+     },
+     "ooc-014": {
+      "fn": [
+       "NOMBRE:Mohamed El Amrani"
+      ],
+      "fp": []
+     },
+     "ooc-015": {
+      "fn": [
+       "NOMBRE:Ioana Popescu"
+      ],
+      "fp": []
+     },
+     "ooc-016": {
+      "fn": [
+       "NOMBRE:Aitor",
+       "NOMBRE:Itziar Etxeberria"
+      ],
+      "fp": []
+     },
+     "ooc-017": {
+      "fn": [
+       "NOMBRE:Jordi Puigdomènech i Serra"
+      ],
+      "fp": []
+     },
+     "ooc-018": {
+      "fn": [
+       "NOMBRE:Xoán Carballo Rey"
+      ],
+      "fp": []
+     },
+     "ooc-019": {
+      "fn": [
+       "NOMBRE:Paco"
+      ],
+      "fp": []
+     },
+     "ooc-020": {
+      "fn": [
+       "NOMBRE:Valeria Ríos Medina"
+      ],
+      "fp": []
+     },
+     "ooc-021": {
+      "fn": [
+       "NOMBRE:Hugo Serrano"
+      ],
+      "fp": []
+     },
+     "ooc-022": {
+      "fn": [
+       "NOMBRE:Marta Ibáñez"
+      ],
+      "fp": []
+     },
+     "ooc-023": {
+      "fn": [
+       "NOMBRE:Guillermo"
+      ],
+      "fp": []
+     },
+     "ooc-024": {
+      "fn": [
+       "NOMBRE:Sofía",
+       "NOMBRE:Daniel Moreno"
+      ],
+      "fp": []
+     },
+     "ooc-025": {
+      "fn": [
+       "NOMBRE:Raúl Cano",
+       "NOMBRE:Irene Lozano",
+       "NOMBRE:Tomás Pastor"
+      ],
+      "fp": []
+     },
+     "ooc-026": {
+      "fn": [
+       "NOMBRE:Rosa Blanco"
+      ],
+      "fp": []
+     },
+     "ooc-027": {
+      "fn": [
+       "NOMBRE:Pilar"
+      ],
+      "fp": []
+     },
+     "ooc-028": {
+      "fn": [
+       "NOMBRE:Victoria Paz Delgado"
+      ],
+      "fp": []
+     },
+     "ooc-029": {
+      "fn": [
+       "NOMBRE:Beatriz Arias"
+      ],
+      "fp": []
+     },
+     "ooc-030": {
+      "fn": [
+       "NOMBRE:Lorena",
+       "NOMBRE:Cuesta Molina"
+      ],
+      "fp": []
+     },
+     "ooc-args-001": {
+      "fn": [
+       "NOMBRE:Gonzalo Peña Vera"
+      ],
+      "fp": []
+     },
+     "ooc-args-002": {
+      "fn": [
+       "NOMBRE:Noelia Cortés"
+      ],
+      "fp": []
+     },
+     "cat-001": {
+      "fn": [
+       "NOMBRE:Rodrigo Mena"
+      ],
+      "fp": []
+     },
+     "cat-002": {
+      "fn": [
+       "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+      ],
+      "fp": []
+     },
+     "dir-001": {
+      "fn": [
+       "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+      ],
+      "fp": []
+     },
+     "dir-002": {
+      "fn": [
+       "DIRECCION:C/ Mayor 15, 1ºA"
+      ],
+      "fp": []
+     },
+     "dir-003": {
+      "fn": [
+       "DIRECCION:Avda. de la Constitución 8, portal 2"
+      ],
+      "fp": []
+     },
+     "dir-004": {
+      "fn": [
+       "DIRECCION:Plaza del Pilar 3, bajo"
+      ],
+      "fp": []
+     },
+     "dir-005": {
+      "fn": [
+       "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+      ],
+      "fp": []
+     },
+     "dir-006": {
+      "fn": [
+       "DIRECCION:calle ancha 27, 4º d"
+      ],
+      "fp": []
+     },
+     "dir-007": {
+      "fn": [
+       "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+      ],
+      "fp": []
+     },
+     "dir-008": {
+      "fn": [
+       "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+      ],
+      "fp": []
+     },
+     "dir-009": {
+      "fn": [
+       "NOMBRE:Andrés Ruiz Ferrer",
+       "DIRECCION:Ronda de Valencia 6, 5º C"
+      ],
+      "fp": []
+     },
+     "dir-010": {
+      "fn": [
+       "DIRECCION:Calle María Pérez de la Rosa 12"
+      ],
+      "fp": [
+       "NOMBRE:María Pérez"
+      ]
+     },
+     "dir-011": {
+      "fn": [
+       "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+      ],
+      "fp": []
+     },
+     "dir-012": {
+      "fn": [
+       "NOMBRE:Julia Vega",
+       "DIRECCION:Avenida Reina Victoria 40, 2º"
+      ],
+      "fp": []
+     },
+     "dir-013": {
+      "fn": [
+       "NOMBRE:Emilio Navarro",
+       "DIRECCION:C/ Real 9, 37001 Salamanca"
+      ],
+      "fp": []
+     },
+     "dir-014": {
+      "fn": [
+       "DIRECCION:número 14 de la calle Larios"
+      ],
+      "fp": []
+     },
+     "dir-015": {
+      "fn": [
+       "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+      ],
+      "fp": []
+     },
+     "dir-args-001": {
+      "fn": [
+       "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza",
+       "NOMBRE:Carlos Ibarra"
+      ],
+      "fp": []
+     },
+     "dir-args-002": {
+      "fn": [
+       "DIRECCION:Avenida de América 33, 28002 Madrid"
+      ],
+      "fp": []
+     }
+    },
+    "groups": {
+     "out-of-catalog names": {
+      "cases": 33,
+      "gold": 40,
+      "strictR": 0.025,
+      "leakR": 0.025,
+      "charCov": 0.0193,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 17,
+      "gold": 21,
+      "strictR": 0.0,
+      "leakR": 0.0476,
+      "charCov": 0.0179,
+      "fpNOMBRE": 1,
+      "fpDIRECCION": 0
+     },
+     "hard negatives": {
+      "cases": 25,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     }
+    }
+   }
+  },
+  "bsc-meddocan": {
+   "model": "bsc-meddocan",
+   "model_id": "BSC-NLP4BIA/bsc-bio-ehr-es-carmen-meddocan",
+   "label_map": {
+    "NOMBRE_SUJETO_ASISTENCIA": "NOMBRE",
+    "NOMBRE_PERSONAL_SANITARIO": "NOMBRE",
+    "FAMILIARES_SUJETO_ASISTENCIA": "NOMBRE",
+    "CALLE": "DIRECCION",
+    "NUMERO_TELEFONO": "TEL",
+    "CORREO_ELECTRONICO": "EMAIL",
+    "ID_SUJETO_ASISTENCIA": "DNI",
+    "NUMERO_IDENTIF": "DNI"
+   },
+   "recognizers": null,
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 500.0,
+   "load_s": 2.345,
+   "cold_start_s": 3.299,
+   "rss_before_load_mb": 218.0,
+   "rss_loaded_mb": 710.7,
+   "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 766.0,
+   "es-v1": {
+    "cases": 90,
+    "latency": {
+     "samples": 450,
+     "p50Micros": 30091.2,
+     "p95Micros": 56106.0,
+     "maxMicros": 126502.7
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 4,
+        "fp": 23,
+        "fn": 19,
+        "P": 0.1481,
+        "R": 0.1739,
+        "F1": 0.16,
+        "gold": 23,
+        "leaked": 8,
+        "leakR": 0.6522,
+        "charCov": 0.6636
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 13,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.9052
+       },
+       "EMAIL": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 12,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 12,
+        "leaked": 12,
+        "leakR": 0.0,
+        "charCov": 0.0
+       },
+       "TEL": {
+        "tp": 7,
+        "fp": 29,
+        "fn": 15,
+        "P": 0.1944,
+        "R": 0.3182,
+        "F1": 0.2414,
+        "gold": 22,
+        "leaked": 4,
+        "leakR": 0.8182,
+        "charCov": 0.7664
+       },
+       "NOMBRE": {
+        "tp": 8,
+        "fp": 6,
+        "fn": 8,
+        "P": 0.5714,
+        "R": 0.5,
+        "F1": 0.5333,
+        "gold": 16,
+        "leaked": 2,
+        "leakR": 0.875,
+        "charCov": 0.8551
+       }
+      },
+      "unscored_predictions": 4,
+      "micro": {
+       "tp": 19,
+       "fp": 58,
+       "fn": 67,
+       "P": 0.2468,
+       "R": 0.2209,
+       "F1": 0.2331
+      }
+     },
+     "errors": {
+      "dni-001": {
+       "fn": [
+        "DNI:12345678Z"
+       ],
+       "fp": [
+        "DNI:12345678Z,"
+       ]
+      },
+      "dni-002": {
+       "fn": [
+        "DNI:48291736Q"
+       ],
+       "fp": []
+      },
+      "dni-003": {
+       "fn": [
+        "DNI:70123456k"
+       ],
+       "fp": [
+        "TEL:70123456k"
+       ]
+      },
+      "dni-005": {
+       "fn": [
+        "DNI:31.415.926-L"
+       ],
+       "fp": [
+        "TEL:31.415.926-L"
+       ]
+      },
+      "dni-007": {
+       "fn": [
+        "DNI:60 606 060 W"
+       ],
+       "fp": [
+        "TEL:60 606 060 W."
+       ]
+      },
+      "dni-008": {
+       "fn": [
+        "DNI:11223344B",
+        "DNI:11223344B"
+       ],
+       "fp": []
+      },
+      "nie-002": {
+       "fn": [
+        "DNI:Y7654321G"
+       ],
+       "fp": []
+      },
+      "nie-003": {
+       "fn": [
+        "DNI:Z-1112223-V"
+       ],
+       "fp": []
+      },
+      "nie-004": {
+       "fn": [
+        "DNI:X9080706F"
+       ],
+       "fp": [
+        "DNI:NIE",
+        "DNI:X9080706F."
+       ]
+      },
+      "dni-010": {
+       "fn": [],
+       "fp": [
+        "TEL:48291736V",
+        "TEL:70123456E,"
+       ]
+      },
+      "dni-011": {
+       "fn": [],
+       "fp": [
+        "TEL:31.415.926-C"
+       ]
+      },
+      "dni-012": {
+       "fn": [],
+       "fp": [
+        "DNI:12345678"
+       ]
+      },
+      "dni-013": {
+       "fn": [],
+       "fp": [
+        "TEL:2024123456A"
+       ]
+      },
+      "dni-014": {
+       "fn": [
+        "DNI:99887766P"
+       ],
+       "fp": []
+      },
+      "dni-015": {
+       "fn": [
+        "DNI:40213579B",
+        "DNI:23456789D"
+       ],
+       "fp": [
+        "TEL:40213579B",
+        "TEL:23456789D."
+       ]
+      },
+      "iban-001": {
+       "fn": [
+        "IBAN:ES9121000418450200051332"
+       ],
+       "fp": [
+        "DNI:ES9121000418450200051332"
+       ]
+      },
+      "iban-002": {
+       "fn": [
+        "IBAN:ES60 0049 1500 0512 3456 7892"
+       ],
+       "fp": [
+        "TEL:ES60 0049"
+       ]
+      },
+      "iban-003": {
+       "fn": [
+        "IBAN:ES17-2085-2066-6234-5678-9011"
+       ],
+       "fp": [
+        "TEL:ES17-2085-2066-6234-5678-9011"
+       ]
+      },
+      "iban-004": {
+       "fn": [
+        "IBAN:ES10.0182.2370.4202.0123.4567"
+       ],
+       "fp": [
+        "DNI:ES10.0182.2370.4202.0123.4567."
+       ]
+      },
+      "iban-005": {
+       "fn": [
+        "IBAN:ES6814650100911701234567",
+        "IBAN:ES3800811234561234567890"
+       ],
+       "fp": [
+        "DNI:ES6814650100911701234567;",
+        "TEL:ES3800811234561234567890."
+       ]
+      },
+      "iban-006": {
+       "fn": [
+        "IBAN:DE89370400440532013000"
+       ],
+       "fp": [
+        "DNI:DE89370400440532013000"
+       ]
+      },
+      "iban-007": {
+       "fn": [
+        "IBAN:FR14 2004 1010 0505 0001 3M02 606"
+       ],
+       "fp": [
+        "DNI:1010",
+        "DNI:0505 0001",
+        "DNI:3M02 606"
+       ]
+      },
+      "iban-008": {
+       "fn": [
+        "IBAN:PT50000201231234567890154"
+       ],
+       "fp": [
+        "DNI:PT50000201231234567890154."
+       ]
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "DNI:ES0021000418450200051332,"
+       ]
+      },
+      "iban-011": {
+       "fn": [],
+       "fp": [
+        "DNI:AB12CDEFGHIJ0123"
+       ]
+      },
+      "iban-013": {
+       "fn": [
+        "IBAN:GB82 WEST 1234 5698 7654 32"
+       ],
+       "fp": [
+        "DNI:GB82 WEST 1234",
+        "TEL:5698 7654 32,"
+       ]
+      },
+      "email-001": {
+       "fn": [
+        "EMAIL:lucia.martin@example.com"
+       ],
+       "fp": []
+      },
+      "email-002": {
+       "fn": [
+        "EMAIL:rrhh+nominas@empresa.example.es",
+        "EMAIL:j_ortiz@correo.example.org"
+       ],
+       "fp": []
+      },
+      "email-003": {
+       "fn": [
+        "EMAIL:soporte@ejemplo.example"
+       ],
+       "fp": []
+      },
+      "email-006": {
+       "fn": [
+        "EMAIL:info@gestoria.example.com"
+       ],
+       "fp": []
+      },
+      "email-007": {
+       "fn": [
+        "EMAIL:josé@dominio.example.es"
+       ],
+       "fp": []
+      },
+      "email-008": {
+       "fn": [
+        "EMAIL:ñandú.pérez@bücher.example.de"
+       ],
+       "fp": []
+      },
+      "tel-001": {
+       "fn": [
+        "TEL:612345678"
+       ],
+       "fp": [
+        "TEL:612345678."
+       ]
+      },
+      "tel-004": {
+       "fn": [
+        "TEL:954 12 34 56"
+       ],
+       "fp": [
+        "TEL:954 12 34 56,"
+       ]
+      },
+      "tel-005": {
+       "fn": [
+        "TEL:699.123.457"
+       ],
+       "fp": [
+        "TEL:699.123.457."
+       ]
+      },
+      "tel-006": {
+       "fn": [
+        "TEL:910000000"
+       ],
+       "fp": []
+      },
+      "tel-007": {
+       "fn": [
+        "TEL:+34 699 12 34 56"
+       ],
+       "fp": [
+        "TEL:699 12 34 56"
+       ]
+      },
+      "tel-009": {
+       "fn": [
+        "TEL:(+34) 612 345 670"
+       ],
+       "fp": [
+        "TEL:612 345 670"
+       ]
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "DNI:912345678"
+       ]
+      },
+      "tel-013": {
+       "fn": [],
+       "fp": [
+        "DNI:123",
+        "TEL:456 789 012"
+       ]
+      },
+      "tel-016": {
+       "fn": [
+        "TEL:(0034) 699-123-458"
+       ],
+       "fp": [
+        "TEL:699-123-458"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "DNI:712.345.678"
+       ]
+      },
+      "tel-018": {
+       "fn": [
+        "TEL:612345671"
+       ],
+       "fp": [
+        "TEL:612345671,"
+       ]
+      },
+      "tel-019": {
+       "fn": [
+        "TEL:(+34) 612-345-672",
+        "TEL:+34 912 345 673"
+       ],
+       "fp": [
+        "TEL:612-345-672",
+        "TEL:+34",
+        "TEL:912 345 673."
+       ]
+      },
+      "tel-020": {
+       "fn": [],
+       "fp": [
+        "DNI:10034612345675."
+       ]
+      },
+      "nombre-003": {
+       "fn": [
+        "NOMBRE:José Ángel Núñez"
+       ],
+       "fp": [
+        "NOMBRE:José Ángel Núñez?"
+       ]
+      },
+      "nombre-004": {
+       "fn": [
+        "NOMBRE:Lucía Martín"
+       ],
+       "fp": [
+        "NOMBRE:Martín»"
+       ]
+      },
+      "nombre-005": {
+       "fn": [
+        "NOMBRE:begoña iñiguez"
+       ],
+       "fp": []
+      },
+      "nombre-009": {
+       "fn": [
+        "NOMBRE:Juan García-López"
+       ],
+       "fp": [
+        "NOMBRE:Juan García-López."
+       ]
+      },
+      "nombre-011": {
+       "fn": [
+        "NOMBRE:Ana-María Pérez"
+       ],
+       "fp": [
+        "NOMBRE:Ana-María Pérez."
+       ]
+      },
+      "mix-001": {
+       "fn": [
+        "NOMBRE:María Pérez",
+        "DNI:51515151G",
+        "IBAN:ES91 2100 0418 4502 0005 1332",
+        "TEL:+34 600 123 456",
+        "EMAIL:maria.perez@example.com"
+       ],
+       "fp": [
+        "NOMBRE:María Pérez,",
+        "DNI:51515151G,",
+        "TEL:ES91 2100 0418 4502 0005 1332,",
+        "TEL:600 123 456,"
+       ]
+      },
+      "mix-002": {
+       "fn": [
+        "EMAIL:jgarcia@example.org"
+       ],
+       "fp": []
+      },
+      "args-001": {
+       "fn": [
+        "NOMBRE:María Pérez",
+        "DNI:12345678Z",
+        "IBAN:ES6000491500051234567892"
+       ],
+       "fp": [
+        "NOMBRE:María Pérez;12345678Z",
+        "DNI:ES6000491500051234567892"
+       ]
+      },
+      "args-002": {
+       "fn": [
+        "EMAIL:ana@example.com",
+        "TEL:612000111"
+       ],
+       "fp": []
+      },
+      "args-003": {
+       "fn": [
+        "DNI:31.415.926-L",
+        "TEL:954 12 34 56"
+       ],
+       "fp": [
+        "TEL:31.415.926-L\n-",
+        "TEL:954 12 34 56\n"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "DNI:600123456"
+       ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": []
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z",
+        "EMAIL:zed@exa​mple.org"
+       ],
+       "fp": [
+        "TEL:1234​5678Z,"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": [
+        "DNI:ES91­2100­0418­4502­0005­1332"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-006": {
+       "fn": [
+        "TEL:٦١٢٣٤٥٦٧٨"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 23,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 22,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.88,
+        "R": 1.0,
+        "F1": 0.9362,
+        "gold": 22,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 12,
+        "fp": 4,
+        "fn": 4,
+        "P": 0.75,
+        "R": 0.75,
+        "F1": 0.75,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 4,
+      "micro": {
+       "tp": 82,
+       "fp": 7,
+       "fn": 4,
+       "P": 0.9213,
+       "R": 0.9535,
+       "F1": 0.9371
+      }
+     },
+     "errors": {
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "TEL:912345678"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "TEL:712.345.678"
+       ]
+      },
+      "nombre-003": {
+       "fn": [
+        "NOMBRE:José Ángel Núñez"
+       ],
+       "fp": [
+        "NOMBRE:José Ángel Núñez?"
+       ]
+      },
+      "nombre-009": {
+       "fn": [
+        "NOMBRE:Juan García-López"
+       ],
+       "fp": [
+        "NOMBRE:Juan García-López."
+       ]
+      },
+      "nombre-011": {
+       "fn": [
+        "NOMBRE:Ana-María Pérez"
+       ],
+       "fp": [
+        "NOMBRE:Ana-María Pérez."
+       ]
+      },
+      "mix-001": {
+       "fn": [
+        "NOMBRE:María Pérez"
+       ],
+       "fp": [
+        "NOMBRE:María Pérez,"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "TEL:600123456"
+       ]
+      }
+     }
+    }
+   },
+   "es-ext-v1": {
+    "cases": 76,
+    "latency": {
+     "samples": 380,
+     "p50Micros": 29439.4,
+     "p95Micros": 48717.3,
+     "maxMicros": 57003.0
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 1,
+        "leaked": 1,
+        "leakR": 0.0,
+        "charCov": 0.0
+       },
+       "TEL": {
+        "tp": 0,
+        "fp": 3,
+        "fn": 2,
+        "P": 0.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 25,
+        "fp": 17,
+        "fn": 20,
+        "P": 0.5952,
+        "R": 0.5556,
+        "F1": 0.5747,
+        "gold": 45,
+        "leaked": 5,
+        "leakR": 0.8889,
+        "charCov": 0.9009
+       },
+       "DIRECCION": {
+        "tp": 1,
+        "fp": 24,
+        "fn": 17,
+        "P": 0.04,
+        "R": 0.0556,
+        "F1": 0.0465,
+        "gold": 18,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.7032
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 26,
+       "fp": 44,
+       "fn": 41,
+       "P": 0.3714,
+       "R": 0.3881,
+       "F1": 0.3796
+      }
+     },
+     "errors": {
+      "ooc-004": {
+       "fn": [
+        "NOMBRE:Nerea"
+       ],
+       "fp": [
+        "NOMBRE:Nerea?"
+       ]
+      },
+      "ooc-005": {
+       "fn": [
+        "NOMBRE:Francisco Javier de la Fuente"
+       ],
+       "fp": [
+        "NOMBRE:Francisco Javier de la Fuente."
+       ]
+      },
+      "ooc-006": {
+       "fn": [
+        "NOMBRE:Mercedes del Río Ballesteros"
+       ],
+       "fp": [
+        "NOMBRE:Mercedes del Río Ballesteros,"
+       ]
+      },
+      "ooc-009": {
+       "fn": [
+        "NOMBRE:CARMEN VIDAL ORTEGA"
+       ],
+       "fp": []
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara,",
+        "NOMBRE:Patricia;"
+       ]
+      },
+      "ooc-017": {
+       "fn": [
+        "NOMBRE:Jordi Puigdomènech i Serra"
+       ],
+       "fp": [
+        "NOMBRE:Jordi Puigdomènech i Serra."
+       ]
+      },
+      "ooc-019": {
+       "fn": [
+        "NOMBRE:Paco"
+       ],
+       "fp": []
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina",
+        "DNI:48291736Q",
+        "TEL:612345678"
+       ],
+       "fp": [
+        "NOMBRE:Alta de Valeria Ríos Medina,",
+        "TEL:48291736Q,",
+        "TEL:612345678."
+       ]
+      },
+      "ooc-021": {
+       "fn": [
+        "EMAIL:hugo.serrano@example.com"
+       ],
+       "fp": []
+      },
+      "ooc-023": {
+       "fn": [
+        "NOMBRE:Guillermo"
+       ],
+       "fp": [
+        "NOMBRE:Guillermo,"
+       ]
+      },
+      "ooc-024": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:hermana"
+       ]
+      },
+      "ooc-025": {
+       "fn": [
+        "NOMBRE:Raúl Cano",
+        "NOMBRE:Irene Lozano",
+        "NOMBRE:Tomás Pastor"
+       ],
+       "fp": [
+        "NOMBRE:Raúl Cano,",
+        "NOMBRE:Irene Lozano,",
+        "NOMBRE:Tomás Pastor."
+       ]
+      },
+      "ooc-027": {
+       "fn": [
+        "NOMBRE:Pilar"
+       ],
+       "fp": []
+      },
+      "ooc-029": {
+       "fn": [
+        "NOMBRE:Beatriz Arias"
+       ],
+       "fp": [
+        "NOMBRE:Arias\""
+       ]
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": []
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña Vera"
+       ]
+      },
+      "cat-001": {
+       "fn": [
+        "NOMBRE:Rodrigo Mena"
+       ],
+       "fp": [
+        "NOMBRE:Rodrigo Mena."
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras 4, 2º B,"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq.,"
+       ]
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:C/ Mayor 15, 1ºA,"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2."
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "DIRECCION:Paseo de Gracia 55,"
+       ]
+      },
+      "dir-006": {
+       "fn": [
+        "DIRECCION:calle ancha 27, 4º d"
+       ],
+       "fp": [
+        "DIRECCION:calle ancha 27, 4º d,"
+       ]
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos s/n,"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Urb. Los Pinos, parcela 14,"
+       ]
+      },
+      "dir-009": {
+       "fn": [
+        "NOMBRE:Andrés Ruiz Ferrer",
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "DIRECCION:Andrés Ruiz Ferrer,",
+        "DIRECCION:Ronda de Valencia 6, 5º C,"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "DIRECCION:Calle María Pérez de la Rosa 12, segundo piso."
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Notificar",
+        "DIRECCION:Travesía del Carmen 2, 3º dcha.,"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "DIRECCION:Avenida Reina Victoria 40, 2º"
+       ],
+       "fp": [
+        "DIRECCION:Avenida Reina Victoria 40, 2º."
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "NOMBRE:Emilio Navarro",
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "NOMBRE:Navarro\nC/",
+        "DIRECCION:Real 9,"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:calle Larios,"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo",
+        "TEL:985123456"
+       ],
+       "fp": [
+        "DIRECCION:Recoger en",
+        "DIRECCION:Calle Uría 21, 3º F,",
+        "TEL:985123456."
+       ]
+      },
+      "dir-args-001": {
+       "fn": [
+        "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza"
+       ],
+       "fp": [
+        "DIRECCION:Calle Alfonso I 17,"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [
+        "DIRECCION:Avenida de América 33, 28002 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:de América 33,"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:calle Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Plaza de España."
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Lope"
+       ]
+      },
+      "neg-022": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:parroquia de Santa María"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.55,
+       "leakR": 0.875,
+       "charCov": 0.9016,
+       "fpNOMBRE": 15,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.1429,
+       "leakR": 1.0,
+       "charCov": 0.7227,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 19
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 4
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 25,
+        "fp": 17,
+        "fn": 20,
+        "P": 0.5952,
+        "R": 0.5556,
+        "F1": 0.5747,
+        "gold": 45,
+        "leaked": 5,
+        "leakR": 0.8889,
+        "charCov": 0.9009
+       },
+       "DIRECCION": {
+        "tp": 1,
+        "fp": 24,
+        "fn": 17,
+        "P": 0.04,
+        "R": 0.0556,
+        "F1": 0.0465,
+        "gold": 18,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.7032
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 30,
+       "fp": 41,
+       "fn": 37,
+       "P": 0.4225,
+       "R": 0.4478,
+       "F1": 0.4348
+      }
+     },
+     "errors": {
+      "ooc-004": {
+       "fn": [
+        "NOMBRE:Nerea"
+       ],
+       "fp": [
+        "NOMBRE:Nerea?"
+       ]
+      },
+      "ooc-005": {
+       "fn": [
+        "NOMBRE:Francisco Javier de la Fuente"
+       ],
+       "fp": [
+        "NOMBRE:Francisco Javier de la Fuente."
+       ]
+      },
+      "ooc-006": {
+       "fn": [
+        "NOMBRE:Mercedes del Río Ballesteros"
+       ],
+       "fp": [
+        "NOMBRE:Mercedes del Río Ballesteros,"
+       ]
+      },
+      "ooc-009": {
+       "fn": [
+        "NOMBRE:CARMEN VIDAL ORTEGA"
+       ],
+       "fp": []
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara,",
+        "NOMBRE:Patricia;"
+       ]
+      },
+      "ooc-017": {
+       "fn": [
+        "NOMBRE:Jordi Puigdomènech i Serra"
+       ],
+       "fp": [
+        "NOMBRE:Jordi Puigdomènech i Serra."
+       ]
+      },
+      "ooc-019": {
+       "fn": [
+        "NOMBRE:Paco"
+       ],
+       "fp": []
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": [
+        "NOMBRE:Alta de Valeria Ríos Medina,"
+       ]
+      },
+      "ooc-023": {
+       "fn": [
+        "NOMBRE:Guillermo"
+       ],
+       "fp": [
+        "NOMBRE:Guillermo,"
+       ]
+      },
+      "ooc-024": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:hermana"
+       ]
+      },
+      "ooc-025": {
+       "fn": [
+        "NOMBRE:Raúl Cano",
+        "NOMBRE:Irene Lozano",
+        "NOMBRE:Tomás Pastor"
+       ],
+       "fp": [
+        "NOMBRE:Raúl Cano,",
+        "NOMBRE:Irene Lozano,",
+        "NOMBRE:Tomás Pastor."
+       ]
+      },
+      "ooc-027": {
+       "fn": [
+        "NOMBRE:Pilar"
+       ],
+       "fp": []
+      },
+      "ooc-029": {
+       "fn": [
+        "NOMBRE:Beatriz Arias"
+       ],
+       "fp": [
+        "NOMBRE:Arias\""
+       ]
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": []
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña Vera"
+       ]
+      },
+      "cat-001": {
+       "fn": [
+        "NOMBRE:Rodrigo Mena"
+       ],
+       "fp": [
+        "NOMBRE:Rodrigo Mena."
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras 4, 2º B,"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq.,"
+       ]
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:C/ Mayor 15, 1ºA,"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2."
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "DIRECCION:Paseo de Gracia 55,"
+       ]
+      },
+      "dir-006": {
+       "fn": [
+        "DIRECCION:calle ancha 27, 4º d"
+       ],
+       "fp": [
+        "DIRECCION:calle ancha 27, 4º d,"
+       ]
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos s/n,"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Urb. Los Pinos, parcela 14,"
+       ]
+      },
+      "dir-009": {
+       "fn": [
+        "NOMBRE:Andrés Ruiz Ferrer",
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "DIRECCION:Andrés Ruiz Ferrer,",
+        "DIRECCION:Ronda de Valencia 6, 5º C,"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "DIRECCION:Calle María Pérez de la Rosa 12, segundo piso."
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Notificar",
+        "DIRECCION:Travesía del Carmen 2, 3º dcha.,"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "DIRECCION:Avenida Reina Victoria 40, 2º"
+       ],
+       "fp": [
+        "DIRECCION:Avenida Reina Victoria 40, 2º."
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "NOMBRE:Emilio Navarro",
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "NOMBRE:Navarro\nC/",
+        "DIRECCION:Real 9,"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:calle Larios,"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:Recoger en",
+        "DIRECCION:Calle Uría 21, 3º F,"
+       ]
+      },
+      "dir-args-001": {
+       "fn": [
+        "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza"
+       ],
+       "fp": [
+        "DIRECCION:Calle Alfonso I 17,"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [
+        "DIRECCION:Avenida de América 33, 28002 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:de América 33,"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:calle Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Plaza de España."
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Lope"
+       ]
+      },
+      "neg-022": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:parroquia de Santa María"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.55,
+       "leakR": 0.875,
+       "charCov": 0.9016,
+       "fpNOMBRE": 15,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.1429,
+       "leakR": 1.0,
+       "charCov": 0.7227,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 19
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 4
+      }
+     }
+    }
+   }
+  },
+  "gliner2-pii-street": {
+   "model": "gliner2-pii-street",
+   "model_id": "fastino/gliner2-privacy-filter-PII-multi",
+   "label_map": {
+    "person": "NOMBRE",
+    "address": "DIRECCION",
+    "email": "EMAIL",
+    "phone_number": "TEL",
+    "iban": "IBAN",
+    "national_id_number": "DNI",
+    "street_address": "DIRECCION"
+   },
+   "recognizers": null,
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 1245.1,
+   "load_s": 5.78,
+   "cold_start_s": 6.722,
+   "rss_before_load_mb": 218.2,
+   "rss_loaded_mb": 1764.0,
+   "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 2934.8,
+   "es-v1": {
+    "cases": 90,
+    "latency": {
+     "samples": 450,
+     "p50Micros": 91704.4,
+     "p95Micros": 178913.7,
+     "maxMicros": 432720.0
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 17,
+        "fp": 7,
+        "fn": 6,
+        "P": 0.7083,
+        "R": 0.7391,
+        "F1": 0.7234,
+        "gold": 23,
+        "leaked": 3,
+        "leakR": 0.8696,
+        "charCov": 0.8773
+       },
+       "IBAN": {
+        "tp": 11,
+        "fp": 5,
+        "fn": 2,
+        "P": 0.6875,
+        "R": 0.8462,
+        "F1": 0.7586,
+        "gold": 13,
+        "leaked": 2,
+        "leakR": 0.8462,
+        "charCov": 0.8333
+       },
+       "EMAIL": {
+        "tp": 9,
+        "fp": 2,
+        "fn": 3,
+        "P": 0.8182,
+        "R": 0.75,
+        "F1": 0.7826,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.8587
+       },
+       "TEL": {
+        "tp": 20,
+        "fp": 3,
+        "fn": 2,
+        "P": 0.8696,
+        "R": 0.9091,
+        "F1": 0.8889,
+        "gold": 22,
+        "leaked": 1,
+        "leakR": 0.9545,
+        "charCov": 0.9672
+       },
+       "NOMBRE": {
+        "tp": 15,
+        "fp": 6,
+        "fn": 1,
+        "P": 0.7143,
+        "R": 0.9375,
+        "F1": 0.8108,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.9486
+       }
+      },
+      "unscored_predictions": 4,
+      "micro": {
+       "tp": 72,
+       "fp": 23,
+       "fn": 14,
+       "P": 0.7579,
+       "R": 0.8372,
+       "F1": 0.7956
+      }
+     },
+     "errors": {
+      "dni-004": {
+       "fn": [
+        "DNI:05555123W"
+       ],
+       "fp": []
+      },
+      "dni-007": {
+       "fn": [
+        "DNI:60 606 060 W"
+       ],
+       "fp": [
+        "TEL:60 606 060 W"
+       ]
+      },
+      "dni-008": {
+       "fn": [
+        "DNI:11223344B",
+        "DNI:11223344B"
+       ],
+       "fp": [
+        "TEL:11223344B",
+        "TEL:11223344B"
+       ]
+      },
+      "dni-009": {
+       "fn": [],
+       "fp": [
+        "DNI:12345678S"
+       ]
+      },
+      "dni-010": {
+       "fn": [],
+       "fp": [
+        "DNI:48291736V",
+        "DNI:70123456E"
+       ]
+      },
+      "dni-011": {
+       "fn": [],
+       "fp": [
+        "DNI:31.415.926-C"
+       ]
+      },
+      "dni-012": {
+       "fn": [],
+       "fp": [
+        "DNI:12345678"
+       ]
+      },
+      "dni-015": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:40213579B"
+       ]
+      },
+      "iban-004": {
+       "fn": [
+        "IBAN:ES10.0182.2370.4202.0123.4567"
+       ],
+       "fp": []
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "IBAN:ES0021000418450200051332",
+        "NOMBRE:cliente"
+       ]
+      },
+      "iban-010": {
+       "fn": [],
+       "fp": [
+        "IBAN:ES12 2100 0418 4502 0005 1332"
+       ]
+      },
+      "iban-011": {
+       "fn": [],
+       "fp": [
+        "IBAN:AB12CDEFGHIJ0123"
+       ]
+      },
+      "email-004": {
+       "fn": [],
+       "fp": [
+        "EMAIL:@lucia"
+       ]
+      },
+      "email-007": {
+       "fn": [
+        "EMAIL:josé@dominio.example.es"
+       ],
+       "fp": [
+        "NOMBRE:josé"
+       ]
+      },
+      "email-008": {
+       "fn": [
+        "EMAIL:ñandú.pérez@bücher.example.de"
+       ],
+       "fp": [
+        "NOMBRE:ñandú.pérez"
+       ]
+      },
+      "tel-006": {
+       "fn": [
+        "TEL:910000000"
+       ],
+       "fp": []
+      },
+      "tel-013": {
+       "fn": [],
+       "fp": [
+        "IBAN:600 123 456 789 012"
+       ]
+      },
+      "args-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:y"
+       ]
+      },
+      "args-004": {
+       "fn": [],
+       "fp": [
+        "IBAN:X1234567L"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "DNI:600123456"
+       ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": [
+        "DNI:dni",
+        "NOMBRE:zed",
+        "EMAIL:example.org"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": []
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 23,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 22,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.88,
+        "R": 1.0,
+        "F1": 0.9362,
+        "gold": 22,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 16,
+        "fp": 2,
+        "fn": 0,
+        "P": 0.8889,
+        "R": 1.0,
+        "F1": 0.9412,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 3,
+      "micro": {
+       "tp": 86,
+       "fp": 5,
+       "fn": 0,
+       "P": 0.9451,
+       "R": 1.0,
+       "F1": 0.9718
+      }
+     },
+     "errors": {
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:cliente"
+       ]
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "TEL:912345678"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "TEL:712.345.678"
+       ]
+      },
+      "args-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:y"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "TEL:600123456"
+       ]
+      }
+     }
+    }
+   },
+   "es-ext-v1": {
+    "cases": 76,
+    "latency": {
+     "samples": 380,
+     "p50Micros": 93438.7,
+     "p95Micros": 178562.8,
+     "maxMicros": 203891.8
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "P": 0.0,
+        "R": 1.0,
+        "F1": 0.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 41,
+        "fp": 5,
+        "fn": 4,
+        "P": 0.8913,
+        "R": 0.9111,
+        "F1": 0.9011,
+        "gold": 45,
+        "leaked": 2,
+        "leakR": 0.9556,
+        "charCov": 0.9575
+       },
+       "DIRECCION": {
+        "tp": 9,
+        "fp": 20,
+        "fn": 9,
+        "P": 0.3103,
+        "R": 0.5,
+        "F1": 0.383,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.6779
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 54,
+       "fp": 26,
+       "fn": 13,
+       "P": 0.675,
+       "R": 0.806,
+       "F1": 0.7347
+      }
+     },
+     "errors": {
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": []
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": [
+        "DIRECCION:Cuesta Molina"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras 4, 2º B"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": []
+      },
+      "dir-002": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:C/ Mayor 15, 1ºA, Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": []
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar 3"
+       ]
+      },
+      "dir-005": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Paseo de Gracia 55"
+       ]
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos s/n"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Urb. Los Pinos, parcela 14"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha."
+       ]
+      },
+      "dir-013": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:C/ Real 9"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:calle Larios"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:Calle Uría 21, 3º F"
+       ]
+      },
+      "dir-args-001": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Calle Alfonso I 17"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de América 33"
+       ]
+      },
+      "neg-003": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:pilar central del puente"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:calle Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Gran Vía",
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-009": {
+       "fn": [],
+       "fp": [
+        "IBAN:Banco Santander"
+       ]
+      },
+      "neg-011": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Santiago de Compostela"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-018": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:director financiero"
+       ]
+      },
+      "neg-019": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:barrio de Los Remedios"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.9,
+       "leakR": 0.95,
+       "charCov": 0.9525,
+       "fpNOMBRE": 2,
+       "fpDIRECCION": 1
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.619,
+       "leakR": 0.9048,
+       "charCov": 0.7113,
+       "fpNOMBRE": 0,
+       "fpDIRECCION": 11
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 7
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 41,
+        "fp": 5,
+        "fn": 4,
+        "P": 0.8913,
+        "R": 0.9111,
+        "F1": 0.9011,
+        "gold": 45,
+        "leaked": 2,
+        "leakR": 0.9556,
+        "charCov": 0.9575
+       },
+       "DIRECCION": {
+        "tp": 8,
+        "fp": 16,
+        "fn": 10,
+        "P": 0.3333,
+        "R": 0.4444,
+        "F1": 0.381,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.6779
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 53,
+       "fp": 21,
+       "fn": 14,
+       "P": 0.7162,
+       "R": 0.791,
+       "F1": 0.7518
+      }
+     },
+     "errors": {
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": []
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": [
+        "DIRECCION:Cuesta Molina"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras 4, 2º B"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": []
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:C/ Mayor 15, 1ºA, Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": []
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar 3"
+       ]
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos s/n"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Urb. Los Pinos, parcela 14"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha."
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:calle Larios"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:Calle Uría 21, 3º F"
+       ]
+      },
+      "neg-003": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:pilar central del puente"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:calle Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Gran Vía",
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-011": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Santiago de Compostela"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-018": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:director financiero"
+       ]
+      },
+      "neg-019": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:barrio de Los Remedios"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.9,
+       "leakR": 0.95,
+       "charCov": 0.9525,
+       "fpNOMBRE": 2,
+       "fpDIRECCION": 1
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.5714,
+       "leakR": 0.9048,
+       "charCov": 0.7113,
+       "fpNOMBRE": 0,
+       "fpDIRECCION": 7
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 7
+      }
+     }
+    }
+   }
+  },
+  "gliner2-pii": {
+   "model": "gliner2-pii",
+   "model_id": "fastino/gliner2-privacy-filter-PII-multi",
+   "label_map": {
+    "person": "NOMBRE",
+    "address": "DIRECCION",
+    "email": "EMAIL",
+    "phone_number": "TEL",
+    "iban": "IBAN",
+    "national_id_number": "DNI"
+   },
+   "recognizers": null,
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 1245.1,
+   "load_s": 6.295,
+   "cold_start_s": 7.196,
+   "rss_before_load_mb": 218.1,
+   "rss_loaded_mb": 1764.3,
+   "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 2935.0,
+   "es-v1": {
+    "cases": 90,
+    "latency": {
+     "samples": 450,
+     "p50Micros": 90102.5,
+     "p95Micros": 175888.8,
+     "maxMicros": 428752.0
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 17,
+        "fp": 7,
+        "fn": 6,
+        "P": 0.7083,
+        "R": 0.7391,
+        "F1": 0.7234,
+        "gold": 23,
+        "leaked": 3,
+        "leakR": 0.8696,
+        "charCov": 0.8773
+       },
+       "IBAN": {
+        "tp": 11,
+        "fp": 5,
+        "fn": 2,
+        "P": 0.6875,
+        "R": 0.8462,
+        "F1": 0.7586,
+        "gold": 13,
+        "leaked": 1,
+        "leakR": 0.9231,
+        "charCov": 0.8448
+       },
+       "EMAIL": {
+        "tp": 9,
+        "fp": 2,
+        "fn": 3,
+        "P": 0.8182,
+        "R": 0.75,
+        "F1": 0.7826,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.8587
+       },
+       "TEL": {
+        "tp": 21,
+        "fp": 3,
+        "fn": 1,
+        "P": 0.875,
+        "R": 0.9545,
+        "F1": 0.913,
+        "gold": 22,
+        "leaked": 1,
+        "leakR": 0.9545,
+        "charCov": 0.9672
+       },
+       "NOMBRE": {
+        "tp": 15,
+        "fp": 7,
+        "fn": 1,
+        "P": 0.6818,
+        "R": 0.9375,
+        "F1": 0.7895,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.9486
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 73,
+       "fp": 24,
+       "fn": 13,
+       "P": 0.7526,
+       "R": 0.8488,
+       "F1": 0.7978
+      }
+     },
+     "errors": {
+      "dni-004": {
+       "fn": [
+        "DNI:05555123W"
+       ],
+       "fp": []
+      },
+      "dni-007": {
+       "fn": [
+        "DNI:60 606 060 W"
+       ],
+       "fp": [
+        "TEL:60 606 060 W"
+       ]
+      },
+      "dni-008": {
+       "fn": [
+        "DNI:11223344B",
+        "DNI:11223344B"
+       ],
+       "fp": [
+        "TEL:11223344B",
+        "TEL:11223344B"
+       ]
+      },
+      "dni-009": {
+       "fn": [],
+       "fp": [
+        "DNI:12345678S"
+       ]
+      },
+      "dni-010": {
+       "fn": [],
+       "fp": [
+        "DNI:48291736V",
+        "DNI:70123456E"
+       ]
+      },
+      "dni-011": {
+       "fn": [],
+       "fp": [
+        "DNI:31.415.926-C"
+       ]
+      },
+      "dni-012": {
+       "fn": [],
+       "fp": [
+        "DNI:12345678"
+       ]
+      },
+      "dni-015": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:40213579B"
+       ]
+      },
+      "iban-004": {
+       "fn": [
+        "IBAN:ES10.0182.2370.4202.0123.4567"
+       ],
+       "fp": []
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "IBAN:ES0021000418450200051332",
+        "NOMBRE:cliente"
+       ]
+      },
+      "iban-010": {
+       "fn": [],
+       "fp": [
+        "IBAN:ES12 2100 0418 4502 0005 1332"
+       ]
+      },
+      "iban-011": {
+       "fn": [],
+       "fp": [
+        "IBAN:AB12CDEFGHIJ0123"
+       ]
+      },
+      "email-004": {
+       "fn": [],
+       "fp": [
+        "EMAIL:@lucia"
+       ]
+      },
+      "email-007": {
+       "fn": [
+        "EMAIL:josé@dominio.example.es"
+       ],
+       "fp": [
+        "NOMBRE:josé"
+       ]
+      },
+      "email-008": {
+       "fn": [
+        "EMAIL:ñandú.pérez@bücher.example.de"
+       ],
+       "fp": [
+        "NOMBRE:ñandú.pérez"
+       ]
+      },
+      "tel-013": {
+       "fn": [],
+       "fp": [
+        "IBAN:600 123 456 789 012"
+       ]
+      },
+      "args-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:y"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "DNI:600123456"
+       ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": [
+        "DNI:dni",
+        "NOMBRE:zed",
+        "EMAIL:example.org"
+       ]
+      },
+      "lookalike-002": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:zed"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": [
+        "IBAN:ES91"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 23,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 22,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.88,
+        "R": 1.0,
+        "F1": 0.9362,
+        "gold": 22,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 16,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.8421,
+        "R": 1.0,
+        "F1": 0.9143,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 86,
+       "fp": 6,
+       "fn": 0,
+       "P": 0.9348,
+       "R": 1.0,
+       "F1": 0.9663
+      }
+     },
+     "errors": {
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:cliente"
+       ]
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "TEL:912345678"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "TEL:712.345.678"
+       ]
+      },
+      "nombre-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:María Pérez"
+       ]
+      },
+      "args-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:y"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "TEL:600123456"
+       ]
+      }
+     }
+    }
+   },
+   "es-ext-v1": {
+    "cases": 76,
+    "latency": {
+     "samples": 380,
+     "p50Micros": 91546.7,
+     "p95Micros": 172478.7,
+     "maxMicros": 190813.7
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "P": 0.0,
+        "R": 1.0,
+        "F1": 0.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 41,
+        "fp": 5,
+        "fn": 4,
+        "P": 0.8913,
+        "R": 0.9111,
+        "F1": 0.9011,
+        "gold": 45,
+        "leaked": 3,
+        "leakR": 0.9333,
+        "charCov": 0.9371
+       },
+       "DIRECCION": {
+        "tp": 7,
+        "fp": 3,
+        "fn": 11,
+        "P": 0.7,
+        "R": 0.3889,
+        "F1": 0.5,
+        "gold": 18,
+        "leaked": 10,
+        "leakR": 0.4444,
+        "charCov": 0.371
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 52,
+       "fp": 9,
+       "fn": 15,
+       "P": 0.8525,
+       "R": 0.7761,
+       "F1": 0.8125
+      }
+     },
+     "errors": {
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": []
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": []
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": []
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": []
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:C/ Mayor 15, 1ºA, Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": []
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": []
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": []
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": []
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": []
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": []
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": []
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": []
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-009": {
+       "fn": [],
+       "fp": [
+        "IBAN:Banco Santander"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-018": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:director financiero"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.9,
+       "leakR": 0.925,
+       "charCov": 0.9297,
+       "fpNOMBRE": 2,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.5238,
+       "leakR": 0.5714,
+       "charCov": 0.4486,
+       "fpNOMBRE": 0,
+       "fpDIRECCION": 1
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 2
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 41,
+        "fp": 6,
+        "fn": 4,
+        "P": 0.8723,
+        "R": 0.9111,
+        "F1": 0.8913,
+        "gold": 45,
+        "leaked": 3,
+        "leakR": 0.9333,
+        "charCov": 0.9371
+       },
+       "DIRECCION": {
+        "tp": 7,
+        "fp": 3,
+        "fn": 11,
+        "P": 0.7,
+        "R": 0.3889,
+        "F1": 0.5,
+        "gold": 18,
+        "leaked": 9,
+        "leakR": 0.5,
+        "charCov": 0.3895
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 52,
+       "fp": 9,
+       "fn": 15,
+       "P": 0.8525,
+       "R": 0.7761,
+       "F1": 0.8125
+      }
+     },
+     "errors": {
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": []
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": []
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": []
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": []
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:C/ Mayor 15, 1ºA, Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": []
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": []
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": []
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": []
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "NOMBRE:María Pérez"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": []
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": []
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": []
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-018": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:director financiero"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.9,
+       "leakR": 0.925,
+       "charCov": 0.9297,
+       "fpNOMBRE": 2,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.5238,
+       "leakR": 0.619,
+       "charCov": 0.4666,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 1
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 2
+      }
+     }
+    }
+   }
+  },
+  "memprivacy-1.7b": {
+   "model": "memprivacy-1.7b",
+   "model_id": "IAAR-Shanghai/MemPrivacy-1.7B-RL",
+   "label_map": {
+    "Real Name": "NOMBRE",
+    "Third-Party Identifiable Info": "NOMBRE",
+    "Detailed Address": "DIRECCION",
+    "Work Address": "DIRECCION",
+    "Phone Number": "TEL",
+    "Email": "EMAIL",
+    "ID Number": "DNI",
+    "Financial Account": "IBAN"
+   },
+   "recognizers": null,
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 3457.1,
+   "load_s": 126.376,
+   "cold_start_s": 127.387,
+   "rss_before_load_mb": 217.8,
+   "rss_loaded_mb": 3788.6,
+   "repeats": 1,
+   "subset": {
+    "corpus": "es-ext-v1",
+    "every": 3
+   },
+   "rss_peak_mb": 4368.1,
+   "raw_outputs": [
+    {
+     "text": "Hola.",
+     "output": "[]"
+    },
+    {
+     "text": "Mañana viene Rodrigo Castaño Villar a revisar el contrato.",
+     "output": "[\n  {\n    \"original_text\": \"Rodrigo Castaño Villar\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "¿Puedes reenviar esto a Nerea? Gracias.",
+     "output": "[\n  {\n    \"original_text\": \"Nerea\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "El expediente de Óscar Gil-Robles sigue abierto.",
+     "output": "[\n  {\n    \"original_text\": \"Óscar Gil-Robles\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "La Dra. Elena Quiroga firmó el alta.",
+     "output": "[\n  {\n    \"original_text\": \"La Dra. Elena Quiroga\",\n    \"privacy_type\": \"Real Name\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Listado: Domínguez Lara, Patricia; pendiente de pago.",
+     "output": "[\n  {\n    \"original_text\": \"Domínguez Lara, Patricia\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Aitor y Itziar Etxeberria llegan en el tren de las 9.",
+     "output": "[\n  {\n    \"original_text\": \"Aitor y Itziar Etxeberria\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Que Paco me llame cuando pueda.",
+     "output": "[]"
+    },
+    {
+     "text": "Hola, soy Marta Ibáñez y quiero cambiar mi tarifa.",
+     "output": "[]"
+    },
+    {
+     "text": "Asistentes: Raúl Cano, Irene Lozano, Tomás Pastor.",
+     "output": "[\n  {\n    \"original_text\": \"Raúl Cano\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Irene Lozano\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Tomás Pastor\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "El paciente Victoria Paz Delgado no acudió.",
+     "output": "[\n  {\n    \"original_text\": \"Victoria Paz Delgado\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "acta.md",
+     "output": "[]"
+    },
+    {
+     "text": "Asiste Gonzalo Peña Vera en representación de la comunidad.",
+     "output": "[\n  {\n    \"original_text\": \"Asiste Gonzalo Peña Vera\",\n    \"privacy_type\": \"Third-Party Identifiable Info\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Lucía Martín vive en Calle Hileras 4, 2º B, 28013 Madrid.",
+     "output": "[\n  {\n    \"original_text\": \"Calle Hileras 4, 2º B, 28013 Madrid\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Vive en Avda. de la Constitución 8, portal 2.",
+     "output": "[\n  {\n    \"original_text\": \"Vive en Avda. de la Constitución 8, portal 2\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "mi casa es en calle ancha 27, 4º d, pásate luego",
+     "output": "[\n  {\n    \"original_text\": \"calle ancha 27, 4º d\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Andrés Ruiz Ferrer, Ronda de Valencia 6, 5º C, ha pedido la baja.",
+     "output": "[\n  {\n    \"original_text\": \"Andrés Ruiz Ferrer\",\n    \"privacy_type\": \"Real Name\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Ronda de Valencia 6, 5º C\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Soy Julia Vega y mi dirección es Avenida Reina Victoria 40, 2º.",
+     "output": "[\n  {\n    \"original_text\": \"Soy Julia Vega\",\n    \"privacy_type\": \"Real Name\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"Avenida Reina Victoria 40, 2º\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Recoger en Calle Uría 21, 3º F, 33003 Oviedo; tel. 985123456.",
+     "output": "[\n  {\n    \"original_text\": \"Calle Uría 21, 3º F, 33003 Oviedo\",\n    \"privacy_type\": \"Detailed Address\",\n    \"privacy_level\": \"PL2\"\n  },\n  {\n    \"original_text\": \"985123456\",\n    \"privacy_type\": \"Phone Number\",\n    \"privacy_level\": \"PL2\"\n  }\n]"
+    },
+    {
+     "text": "Compra una rosa blanca y dos claveles para la mesa.",
+     "output": "[]"
+    },
+    {
+     "text": "Victoria clara del equipo local: 3 a 0.",
+     "output": "[]"
+    },
+    {
+     "text": "El desfile recorre la Gran Vía y termina en la Plaza de España.",
+     "output": "[\n  {\n    \"original_text\": \"Gran Vía\",\n    \"privacy_type\": \"Precise Location\",\n    \"privacy_level\": \"PL3\"\n  },\n  {\n    \"original_text\": \"Plaza de España\",\n    \"privacy_type\": \"Precise Location\",\n    \"privacy_level\": \"PL3\"\n  }\n]"
+    },
+    {
+     "text": "El Hospital Universitario Virgen del Rocío amplía su horario.",
+     "output": "[]"
+    },
+    {
+     "text": "Cervantes y Lope de Vega fueron contemporáneos.",
+     "output": "[]"
+    },
+    {
+     "text": "El día de San Juan cerramos la oficina a mediodía.",
+     "output": "[]"
+    },
+    {
+     "text": "Sevilla celebra la feria en el barrio de Los Remedios.",
+     "output": "[]"
+    },
+    {
+     "text": "La parroquia de Santa María celebra misa a las 12.",
+     "output": "[]"
+    },
+    {
+     "text": "Según la Ley Orgánica 3/2018 y el artículo 9 del RGPD.",
+     "output": "[]"
+    }
+   ],
+   "es-ext-v1": {
+    "cases": 26,
+    "latency": {
+     "samples": 26,
+     "p50Micros": 117432701.7,
+     "p95Micros": 142259360.0,
+     "maxMicros": 229552762.0
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 9,
+        "fp": 4,
+        "fn": 8,
+        "P": 0.6923,
+        "R": 0.5294,
+        "F1": 0.6,
+        "gold": 17,
+        "leaked": 3,
+        "leakR": 0.8235,
+        "charCov": 0.8772
+       },
+       "DIRECCION": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 1,
+        "P": 0.8333,
+        "R": 0.8333,
+        "F1": 0.8333,
+        "gold": 6,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 15,
+       "fp": 5,
+       "fn": 9,
+       "P": 0.75,
+       "R": 0.625,
+       "F1": 0.6818
+      }
+     },
+     "errors": {
+      "ooc-010": {
+       "fn": [
+        "NOMBRE:Elena Quiroga"
+       ],
+       "fp": [
+        "NOMBRE:La Dra. Elena Quiroga"
+       ]
+      },
+      "ooc-016": {
+       "fn": [
+        "NOMBRE:Aitor",
+        "NOMBRE:Itziar Etxeberria"
+       ],
+       "fp": [
+        "NOMBRE:Aitor y Itziar Etxeberria"
+       ]
+      },
+      "ooc-019": {
+       "fn": [
+        "NOMBRE:Paco"
+       ],
+       "fp": []
+      },
+      "ooc-022": {
+       "fn": [
+        "NOMBRE:Marta Ibáñez"
+       ],
+       "fp": []
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña Vera"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "NOMBRE:Lucía Martín"
+       ],
+       "fp": []
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Vive en Avda. de la Constitución 8, portal 2"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "NOMBRE:Julia Vega"
+       ],
+       "fp": [
+        "NOMBRE:Soy Julia Vega"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 11,
+       "gold": 14,
+       "strictR": 0.5714,
+       "leakR": 0.8571,
+       "charCov": 0.9149,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 5,
+       "gold": 7,
+       "strictR": 0.7143,
+       "leakR": 1.0,
+       "charCov": 1.0,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 1
+      },
+      "hard negatives": {
+       "cases": 9,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 0,
+       "fpDIRECCION": 0
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 10,
+        "fp": 4,
+        "fn": 7,
+        "P": 0.7143,
+        "R": 0.5882,
+        "F1": 0.6452,
+        "gold": 17,
+        "leaked": 2,
+        "leakR": 0.8824,
+        "charCov": 0.9298
+       },
+       "DIRECCION": {
+        "tp": 5,
+        "fp": 1,
+        "fn": 1,
+        "P": 0.8333,
+        "R": 0.8333,
+        "F1": 0.8333,
+        "gold": 6,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 16,
+       "fp": 5,
+       "fn": 8,
+       "P": 0.7619,
+       "R": 0.6667,
+       "F1": 0.7111
+      }
+     },
+     "errors": {
+      "ooc-010": {
+       "fn": [
+        "NOMBRE:Elena Quiroga"
+       ],
+       "fp": [
+        "NOMBRE:La Dra. Elena Quiroga"
+       ]
+      },
+      "ooc-016": {
+       "fn": [
+        "NOMBRE:Aitor",
+        "NOMBRE:Itziar Etxeberria"
+       ],
+       "fp": [
+        "NOMBRE:Aitor y Itziar Etxeberria"
+       ]
+      },
+      "ooc-019": {
+       "fn": [
+        "NOMBRE:Paco"
+       ],
+       "fp": []
+      },
+      "ooc-022": {
+       "fn": [
+        "NOMBRE:Marta Ibáñez"
+       ],
+       "fp": []
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña Vera"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Vive en Avda. de la Constitución 8, portal 2"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "NOMBRE:Julia Vega"
+       ],
+       "fp": [
+        "NOMBRE:Soy Julia Vega"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 11,
+       "gold": 14,
+       "strictR": 0.5714,
+       "leakR": 0.8571,
+       "charCov": 0.9149,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 5,
+       "gold": 7,
+       "strictR": 0.7143,
+       "leakR": 1.0,
+       "charCov": 1.0,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 1
+      },
+      "hard negatives": {
+       "cases": 9,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 0,
+       "fpDIRECCION": 0
+      }
+     }
+    }
+   },
+   "subset_ids": [
+    "cat-002",
+    "dir-003",
+    "dir-006",
+    "dir-009",
+    "dir-012",
+    "dir-015",
+    "neg-001",
+    "neg-004",
+    "neg-007",
+    "neg-010",
+    "neg-013",
+    "neg-016",
+    "neg-019",
+    "neg-022",
+    "neg-025",
+    "ooc-001",
+    "ooc-004",
+    "ooc-007",
+    "ooc-010",
+    "ooc-013",
+    "ooc-016",
+    "ooc-019",
+    "ooc-022",
+    "ooc-025",
+    "ooc-028",
+    "ooc-args-001"
+   ]
+  },
+  "opf": {
+   "model": "opf",
+   "model_id": "openai/privacy-filter",
+   "label_map": {
+    "private_person": "NOMBRE",
+    "private_address": "DIRECCION",
+    "private_email": "EMAIL",
+    "private_phone": "TEL",
+    "account_number": "IBAN"
+   },
+   "recognizers": null,
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 2799.0,
+   "load_s": 9.121,
+   "cold_start_s": 10.023,
+   "rss_before_load_mb": 218.1,
+   "rss_loaded_mb": 3463.9,
+   "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 4164.4,
+   "es-v1": {
+    "cases": 90,
+    "latency": {
+     "samples": 450,
+     "p50Micros": 757046.7,
+     "p95Micros": 1411521.8,
+     "maxMicros": 2464306.4
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 23,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 23,
+        "leaked": 4,
+        "leakR": 0.8261,
+        "charCov": 0.8136
+       },
+       "IBAN": {
+        "tp": 9,
+        "fp": 32,
+        "fn": 4,
+        "P": 0.2195,
+        "R": 0.6923,
+        "F1": 0.3333,
+        "gold": 13,
+        "leaked": 3,
+        "leakR": 0.7692,
+        "charCov": 0.7787
+       },
+       "EMAIL": {
+        "tp": 9,
+        "fp": 2,
+        "fn": 3,
+        "P": 0.8182,
+        "R": 0.75,
+        "F1": 0.7826,
+        "gold": 12,
+        "leaked": 1,
+        "leakR": 0.9167,
+        "charCov": 0.9442
+       },
+       "TEL": {
+        "tp": 17,
+        "fp": 3,
+        "fn": 5,
+        "P": 0.85,
+        "R": 0.7727,
+        "F1": 0.8095,
+        "gold": 22,
+        "leaked": 3,
+        "leakR": 0.8636,
+        "charCov": 0.8978
+       },
+       "NOMBRE": {
+        "tp": 14,
+        "fp": 11,
+        "fn": 2,
+        "P": 0.56,
+        "R": 0.875,
+        "F1": 0.6829,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 3,
+      "micro": {
+       "tp": 49,
+       "fp": 48,
+       "fn": 37,
+       "P": 0.5052,
+       "R": 0.5698,
+       "F1": 0.5355
+      }
+     },
+     "errors": {
+      "dni-001": {
+       "fn": [
+        "DNI:12345678Z"
+       ],
+       "fp": [
+        "IBAN:12345678Z"
+       ]
+      },
+      "dni-002": {
+       "fn": [
+        "DNI:48291736Q"
+       ],
+       "fp": [
+        "IBAN:48291736Q"
+       ]
+      },
+      "dni-003": {
+       "fn": [
+        "DNI:70123456k"
+       ],
+       "fp": [
+        "IBAN:70123456k"
+       ]
+      },
+      "dni-004": {
+       "fn": [
+        "DNI:05555123W"
+       ],
+       "fp": [
+        "IBAN:05555123W"
+       ]
+      },
+      "dni-005": {
+       "fn": [
+        "DNI:31.415.926-L"
+       ],
+       "fp": [
+        "IBAN:31.415.926-L"
+       ]
+      },
+      "dni-006": {
+       "fn": [
+        "DNI:27182818-S"
+       ],
+       "fp": [
+        "IBAN:27182818-S"
+       ]
+      },
+      "dni-007": {
+       "fn": [
+        "DNI:60 606 060 W"
+       ],
+       "fp": [
+        "IBAN:con 60 606 060 W."
+       ]
+      },
+      "dni-008": {
+       "fn": [
+        "DNI:11223344B",
+        "DNI:11223344B"
+       ],
+       "fp": []
+      },
+      "nie-001": {
+       "fn": [
+        "DNI:X1234567L"
+       ],
+       "fp": [
+        "IBAN:X1234567L"
+       ]
+      },
+      "nie-002": {
+       "fn": [
+        "DNI:Y7654321G"
+       ],
+       "fp": [
+        "IBAN:Y7654321"
+       ]
+      },
+      "nie-003": {
+       "fn": [
+        "DNI:Z-1112223-V"
+       ],
+       "fp": []
+      },
+      "nie-004": {
+       "fn": [
+        "DNI:X9080706F"
+       ],
+       "fp": [
+        "IBAN:X9080706F"
+       ]
+      },
+      "dni-009": {
+       "fn": [],
+       "fp": [
+        "IBAN:12345678S"
+       ]
+      },
+      "dni-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Revisa",
+        "IBAN:48291736V",
+        "IBAN:70123456E"
+       ]
+      },
+      "dni-011": {
+       "fn": [],
+       "fp": [
+        "IBAN:31.415.926"
+       ]
+      },
+      "dni-012": {
+       "fn": [],
+       "fp": [
+        "IBAN:12345678"
+       ]
+      },
+      "dni-013": {
+       "fn": [],
+       "fp": [
+        "IBAN:2024123456"
+       ]
+      },
+      "dni-014": {
+       "fn": [
+        "DNI:99887766P"
+       ],
+       "fp": [
+        "IBAN:99887766P"
+       ]
+      },
+      "dni-015": {
+       "fn": [
+        "DNI:40213579B",
+        "DNI:23456789D"
+       ],
+       "fp": [
+        "IBAN:40213579B",
+        "IBAN:23456789D"
+       ]
+      },
+      "iban-001": {
+       "fn": [
+        "IBAN:ES9121000418450200051332"
+       ],
+       "fp": []
+      },
+      "iban-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:abono"
+       ]
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:IBAN erróneo"
+       ]
+      },
+      "iban-010": {
+       "fn": [],
+       "fp": [
+        "IBAN:ES12 2100 0418 4502 0005 1332"
+       ]
+      },
+      "iban-011": {
+       "fn": [],
+       "fp": [
+        "IBAN:AB12CDEFGHIJ0123"
+       ]
+      },
+      "iban-013": {
+       "fn": [],
+       "fp": [
+        "IBAN:7"
+       ]
+      },
+      "email-002": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:CC"
+       ]
+      },
+      "email-003": {
+       "fn": [
+        "EMAIL:soporte@ejemplo.example"
+       ],
+       "fp": [
+        "EMAIL:soporte@ejemplo.example 📧"
+       ]
+      },
+      "email-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:@lucia"
+       ]
+      },
+      "email-006": {
+       "fn": [
+        "EMAIL:info@gestoria.example.com"
+       ],
+       "fp": [
+        "EMAIL:Gestoría <info@gestoria.example.com"
+       ]
+      },
+      "tel-002": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Móvil"
+       ]
+      },
+      "tel-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Fijo"
+       ]
+      },
+      "tel-006": {
+       "fn": [
+        "TEL:910000000"
+       ],
+       "fp": []
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "IBAN:.º 912345678"
+       ]
+      },
+      "tel-013": {
+       "fn": [],
+       "fp": [
+        "TEL:600 123 456 789 012"
+       ]
+      },
+      "tel-016": {
+       "fn": [
+        "TEL:(0034) 699-123-458"
+       ],
+       "fp": [
+        "TEL:0034) 699-123-458"
+       ]
+      },
+      "tel-020": {
+       "fn": [],
+       "fp": [
+        "IBAN:0034612345674",
+        "IBAN:10034612345675"
+       ]
+      },
+      "nombre-002": {
+       "fn": [
+        "NOMBRE:JUAN GARCIA"
+       ],
+       "fp": [
+        "NOMBRE:A JUAN GARCIA"
+       ]
+      },
+      "nombre-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Juan Garcíazar S.L."
+       ]
+      },
+      "nombre-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Calle María Pérez de la Rosa"
+       ]
+      },
+      "nombre-011": {
+       "fn": [
+        "NOMBRE:Juan García-López"
+       ],
+       "fp": [
+        "NOMBRE:Juan García-López ni"
+       ]
+      },
+      "mix-001": {
+       "fn": [
+        "DNI:51515151G",
+        "IBAN:ES91 2100 0418 4502 0005 1332"
+       ],
+       "fp": [
+        "IBAN:DNI 51515151G",
+        "IBAN:IBAN ES91 2100 0418 4502 0005 1332"
+       ]
+      },
+      "mix-002": {
+       "fn": [
+        "TEL:655443322"
+       ],
+       "fp": [
+        "TEL:655443322 ✓"
+       ]
+      },
+      "args-001": {
+       "fn": [
+        "DNI:12345678Z",
+        "IBAN:ES6000491500051234567892"
+       ],
+       "fp": [
+        "IBAN:12345678Z"
+       ]
+      },
+      "args-002": {
+       "fn": [
+        "EMAIL:ana@example.com",
+        "TEL:612000111"
+       ],
+       "fp": []
+      },
+      "args-003": {
+       "fn": [
+        "DNI:31.415.926-L"
+       ],
+       "fp": [
+        "IBAN:31.415.926-L"
+       ]
+      },
+      "args-004": {
+       "fn": [
+        "DNI:X1234567L"
+       ],
+       "fp": [
+        "IBAN:X1234567L"
+       ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": [
+        "IBAN:１２３４５６７"
+       ]
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z"
+       ],
+       "fp": [
+        "IBAN:1234​5678Z"
+       ]
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 23,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 22,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.88,
+        "R": 1.0,
+        "F1": 0.9362,
+        "gold": 22,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 14,
+        "fp": 11,
+        "fn": 2,
+        "P": 0.56,
+        "R": 0.875,
+        "F1": 0.6829,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 2,
+      "micro": {
+       "tp": 84,
+       "fp": 14,
+       "fn": 2,
+       "P": 0.8571,
+       "R": 0.9767,
+       "F1": 0.913
+      }
+     },
+     "errors": {
+      "dni-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Revisa"
+       ]
+      },
+      "iban-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:abono"
+       ]
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:IBAN erróneo"
+       ]
+      },
+      "email-002": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:CC"
+       ]
+      },
+      "email-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:@lucia"
+       ]
+      },
+      "tel-002": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Móvil"
+       ]
+      },
+      "tel-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Fijo"
+       ]
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "TEL:912345678"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "TEL:712.345.678"
+       ]
+      },
+      "nombre-002": {
+       "fn": [
+        "NOMBRE:JUAN GARCIA"
+       ],
+       "fp": [
+        "NOMBRE:A JUAN GARCIA"
+       ]
+      },
+      "nombre-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Juan Garcíazar S.L."
+       ]
+      },
+      "nombre-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Calle María Pérez de la Rosa"
+       ]
+      },
+      "nombre-011": {
+       "fn": [
+        "NOMBRE:Juan García-López"
+       ],
+       "fp": [
+        "NOMBRE:Juan García-López ni"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "TEL:600123456"
+       ]
+      }
+     }
+    }
+   },
+   "es-ext-v1": {
+    "cases": 76,
+    "latency": {
+     "samples": 380,
+     "p50Micros": 750270.2,
+     "p95Micros": 1215642.5,
+     "maxMicros": 1432064.7
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 1,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 1,
+        "fn": 0,
+        "P": 0.0,
+        "R": 1.0,
+        "F1": 0.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 31,
+        "fp": 12,
+        "fn": 14,
+        "P": 0.7209,
+        "R": 0.6889,
+        "F1": 0.7045,
+        "gold": 45,
+        "leaked": 5,
+        "leakR": 0.8889,
+        "charCov": 0.7925
+       },
+       "DIRECCION": {
+        "tp": 6,
+        "fp": 19,
+        "fn": 12,
+        "P": 0.24,
+        "R": 0.3333,
+        "F1": 0.2791,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.7066
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 40,
+       "fp": 32,
+       "fn": 27,
+       "P": 0.5556,
+       "R": 0.597,
+       "F1": 0.5755
+      }
+     },
+     "errors": {
+      "ooc-001": {
+       "fn": [
+        "NOMBRE:Rodrigo Castaño Villar"
+       ],
+       "fp": [
+        "NOMBRE:Rodrigo Castaño"
+       ]
+      },
+      "ooc-002": {
+       "fn": [
+        "NOMBRE:Inmaculada Herrero Soto"
+       ],
+       "fp": [
+        "NOMBRE:Herrero Soto"
+       ]
+      },
+      "ooc-003": {
+       "fn": [
+        "NOMBRE:Alberto"
+       ],
+       "fp": []
+      },
+      "ooc-006": {
+       "fn": [
+        "NOMBRE:Mercedes del Río Ballesteros"
+       ],
+       "fp": []
+      },
+      "ooc-008": {
+       "fn": [
+        "NOMBRE:jorge menéndez"
+       ],
+       "fp": []
+      },
+      "ooc-009": {
+       "fn": [
+        "NOMBRE:CARMEN VIDAL ORTEGA"
+       ],
+       "fp": []
+      },
+      "ooc-011": {
+       "fn": [
+        "NOMBRE:Ramón Iglesias Prieto"
+       ],
+       "fp": [
+        "NOMBRE:D. Ramón Iglesias Prieto"
+       ]
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara"
+       ]
+      },
+      "ooc-014": {
+       "fn": [
+        "NOMBRE:Mohamed El Amrani"
+       ],
+       "fp": [
+        "NOMBRE:El inquilino Mohamed El Amrani"
+       ]
+      },
+      "ooc-017": {
+       "fn": [
+        "NOMBRE:Jordi Puigdomènech i Serra"
+       ],
+       "fp": []
+      },
+      "ooc-018": {
+       "fn": [
+        "NOMBRE:Xoán Carballo Rey"
+       ],
+       "fp": [
+        "NOMBRE:Xoán Carballo"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina",
+        "DNI:48291736Q"
+       ],
+       "fp": [
+        "NOMBRE:Alta de Valeria Ríos Medina",
+        "IBAN:DNI 48291736Q"
+       ]
+      },
+      "ooc-030": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Toledo"
+       ]
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle de Santa Engracia",
+        "DIRECCION:112",
+        "DIRECCION:3º izq.,",
+        "DIRECCION:28003"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Vive en Avda. de la Constitución 8, portal 2"
+       ]
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar 3"
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "DIRECCION:Paseo de Gracia 55, 08007"
+       ]
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Vivo en Camino de los Molinos",
+        "DIRECCION:41500",
+        "DIRECCION:Alcalá de Guadaíra"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": []
+      },
+      "dir-009": {
+       "fn": [
+        "NOMBRE:Andrés Ruiz Ferrer",
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "NOMBRE:Andrés Ruiz",
+        "NOMBRE:Ferrer"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "DIRECCION:Calle María Pérez de la Rosa 12, segundo piso"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:33201",
+        "DIRECCION:Gijón"
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "DIRECCION:37001 Salamanca"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:14 de la calle Larios, en Málaga"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:33003 Oviedo"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Alcalá estará cortada el domingo por la maratón"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:El desfile recorre la Gran Vía y termina en la Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Lope de Vega"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.675,
+       "leakR": 0.875,
+       "charCov": 0.7698,
+       "fpNOMBRE": 9,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.381,
+       "leakR": 0.9048,
+       "charCov": 0.7145,
+       "fpNOMBRE": 2,
+       "fpDIRECCION": 16
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 3
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 31,
+        "fp": 12,
+        "fn": 14,
+        "P": 0.7209,
+        "R": 0.6889,
+        "F1": 0.7045,
+        "gold": 45,
+        "leaked": 5,
+        "leakR": 0.8889,
+        "charCov": 0.7925
+       },
+       "DIRECCION": {
+        "tp": 6,
+        "fp": 19,
+        "fn": 12,
+        "P": 0.24,
+        "R": 0.3333,
+        "F1": 0.2791,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.7066
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 41,
+       "fp": 31,
+       "fn": 26,
+       "P": 0.5694,
+       "R": 0.6119,
+       "F1": 0.5899
+      }
+     },
+     "errors": {
+      "ooc-001": {
+       "fn": [
+        "NOMBRE:Rodrigo Castaño Villar"
+       ],
+       "fp": [
+        "NOMBRE:Rodrigo Castaño"
+       ]
+      },
+      "ooc-002": {
+       "fn": [
+        "NOMBRE:Inmaculada Herrero Soto"
+       ],
+       "fp": [
+        "NOMBRE:Herrero Soto"
+       ]
+      },
+      "ooc-003": {
+       "fn": [
+        "NOMBRE:Alberto"
+       ],
+       "fp": []
+      },
+      "ooc-006": {
+       "fn": [
+        "NOMBRE:Mercedes del Río Ballesteros"
+       ],
+       "fp": []
+      },
+      "ooc-008": {
+       "fn": [
+        "NOMBRE:jorge menéndez"
+       ],
+       "fp": []
+      },
+      "ooc-009": {
+       "fn": [
+        "NOMBRE:CARMEN VIDAL ORTEGA"
+       ],
+       "fp": []
+      },
+      "ooc-011": {
+       "fn": [
+        "NOMBRE:Ramón Iglesias Prieto"
+       ],
+       "fp": [
+        "NOMBRE:D. Ramón Iglesias Prieto"
+       ]
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara"
+       ]
+      },
+      "ooc-014": {
+       "fn": [
+        "NOMBRE:Mohamed El Amrani"
+       ],
+       "fp": [
+        "NOMBRE:El inquilino Mohamed El Amrani"
+       ]
+      },
+      "ooc-017": {
+       "fn": [
+        "NOMBRE:Jordi Puigdomènech i Serra"
+       ],
+       "fp": []
+      },
+      "ooc-018": {
+       "fn": [
+        "NOMBRE:Xoán Carballo Rey"
+       ],
+       "fp": [
+        "NOMBRE:Xoán Carballo"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": [
+        "NOMBRE:Alta de Valeria Ríos Medina"
+       ]
+      },
+      "ooc-030": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Toledo"
+       ]
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle de Santa Engracia",
+        "DIRECCION:112",
+        "DIRECCION:3º izq.,",
+        "DIRECCION:28003"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Vive en Avda. de la Constitución 8, portal 2"
+       ]
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar 3"
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "DIRECCION:Paseo de Gracia 55, 08007"
+       ]
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Vivo en Camino de los Molinos",
+        "DIRECCION:41500",
+        "DIRECCION:Alcalá de Guadaíra"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": []
+      },
+      "dir-009": {
+       "fn": [
+        "NOMBRE:Andrés Ruiz Ferrer",
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "NOMBRE:Andrés Ruiz",
+        "NOMBRE:Ferrer"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "DIRECCION:Calle María Pérez de la Rosa 12, segundo piso"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:33201",
+        "DIRECCION:Gijón"
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "DIRECCION:37001 Salamanca"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:14 de la calle Larios, en Málaga"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:33003 Oviedo"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Alcalá estará cortada el domingo por la maratón"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:El desfile recorre la Gran Vía y termina en la Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Lope de Vega"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.675,
+       "leakR": 0.875,
+       "charCov": 0.7698,
+       "fpNOMBRE": 9,
+       "fpDIRECCION": 0
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.381,
+       "leakR": 0.9048,
+       "charCov": 0.7145,
+       "fpNOMBRE": 2,
+       "fpDIRECCION": 16
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 1,
+       "fpDIRECCION": 3
+      }
+     }
+    }
+   }
+  },
+  "presidio-lg": {
+   "model": "presidio-lg",
+   "model_id": "presidio-analyzer + es_core_news_lg",
+   "label_map": {
+    "PERSON": "NOMBRE",
+    "LOCATION": "DIRECCION",
+    "EMAIL_ADDRESS": "EMAIL",
+    "PHONE_NUMBER": "TEL",
+    "IBAN_CODE": "IBAN",
+    "ES_NIF": "DNI",
+    "ES_NIE": "DNI"
+   },
+   "recognizers": [
+    "CreditCardRecognizer",
+    "CryptoRecognizer",
+    "DateRecognizer",
+    "EmailRecognizer",
+    "EsNieRecognizer",
+    "EsNifRecognizer",
+    "IbanRecognizer",
+    "IpRecognizer",
+    "MacAddressRecognizer",
+    "MedicalLicenseRecognizer",
+    "PhoneRecognizer",
+    "SpacyRecognizer",
+    "UrlRecognizer",
+    "UuidRecognizer"
+   ],
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 631.2,
+   "load_s": 4.849,
+   "cold_start_s": 5.75,
+   "rss_before_load_mb": 218.1,
+   "rss_loaded_mb": 1196.3,
+   "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 1197.3,
+   "es-v1": {
+    "cases": 90,
+    "latency": {
+     "samples": 450,
+     "p50Micros": 4010.2,
+     "p95Micros": 7116.6,
+     "maxMicros": 18015.2
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 7,
+        "P": 1.0,
+        "R": 0.6957,
+        "F1": 0.8205,
+        "gold": 23,
+        "leaked": 6,
+        "leakR": 0.7391,
+        "charCov": 0.7045
+       },
+       "IBAN": {
+        "tp": 10,
+        "fp": 1,
+        "fn": 3,
+        "P": 0.9091,
+        "R": 0.7692,
+        "F1": 0.8333,
+        "gold": 13,
+        "leaked": 1,
+        "leakR": 0.9231,
+        "charCov": 0.9167
+       },
+       "EMAIL": {
+        "tp": 8,
+        "fp": 1,
+        "fn": 4,
+        "P": 0.8889,
+        "R": 0.6667,
+        "F1": 0.7619,
+        "gold": 12,
+        "leaked": 2,
+        "leakR": 0.8333,
+        "charCov": 0.8587
+       },
+       "TEL": {
+        "tp": 10,
+        "fp": 2,
+        "fn": 12,
+        "P": 0.8333,
+        "R": 0.4545,
+        "F1": 0.5882,
+        "gold": 22,
+        "leaked": 11,
+        "leakR": 0.5,
+        "charCov": 0.5949
+       },
+       "NOMBRE": {
+        "tp": 13,
+        "fp": 11,
+        "fn": 3,
+        "P": 0.5417,
+        "R": 0.8125,
+        "F1": 0.65,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.9486
+       }
+      },
+      "unscored_predictions": 13,
+      "micro": {
+       "tp": 57,
+       "fp": 15,
+       "fn": 29,
+       "P": 0.7917,
+       "R": 0.6628,
+       "F1": 0.7215
+      }
+     },
+     "errors": {
+      "dni-005": {
+       "fn": [
+        "DNI:31.415.926-L"
+       ],
+       "fp": []
+      },
+      "dni-007": {
+       "fn": [
+        "DNI:60 606 060 W"
+       ],
+       "fp": []
+      },
+      "dni-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:11223344B"
+       ]
+      },
+      "nie-003": {
+       "fn": [
+        "DNI:Z-1112223-V"
+       ],
+       "fp": []
+      },
+      "iban-001": {
+       "fn": [
+        "IBAN:ES9121000418450200051332"
+       ],
+       "fp": [
+        "IBAN:ES9121000418450200051332 antes"
+       ]
+      },
+      "iban-004": {
+       "fn": [
+        "IBAN:ES10.0182.2370.4202.0123.4567"
+       ],
+       "fp": []
+      },
+      "iban-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:ES3800811234561234567890"
+       ]
+      },
+      "iban-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:PT50000201231234567890154"
+       ]
+      },
+      "iban-012": {
+       "fn": [],
+       "fp": [
+        "TEL:2024-000123"
+       ]
+      },
+      "email-003": {
+       "fn": [
+        "EMAIL:soporte@ejemplo.example"
+       ],
+       "fp": []
+      },
+      "email-006": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Gestoría"
+       ]
+      },
+      "email-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:ñandú.pérez@bücher.example.de"
+       ]
+      },
+      "tel-001": {
+       "fn": [
+        "TEL:612345678"
+       ],
+       "fp": []
+      },
+      "tel-003": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Teléfono"
+       ]
+      },
+      "tel-004": {
+       "fn": [
+        "TEL:954 12 34 56"
+       ],
+       "fp": []
+      },
+      "tel-005": {
+       "fn": [
+        "TEL:699-123-456",
+        "TEL:699.123.457"
+       ],
+       "fp": []
+      },
+      "tel-006": {
+       "fn": [
+        "TEL:910000000"
+       ],
+       "fp": []
+      },
+      "tel-015": {
+       "fn": [],
+       "fp": [
+        "TEL:1700000000"
+       ]
+      },
+      "tel-018": {
+       "fn": [
+        "TEL:612345671"
+       ],
+       "fp": []
+      },
+      "nombre-002": {
+       "fn": [
+        "NOMBRE:JUAN GARCIA"
+       ],
+       "fp": [
+        "NOMBRE:JUAN GARCIA HOY"
+       ]
+      },
+      "nombre-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Juan Garcíazar"
+       ]
+      },
+      "nombre-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:María Pérez de la Rosa"
+       ]
+      },
+      "mix-002": {
+       "fn": [
+        "TEL:655443322"
+       ],
+       "fp": []
+      },
+      "args-001": {
+       "fn": [
+        "NOMBRE:María Pérez"
+       ],
+       "fp": [
+        "NOMBRE:María Pérez;12345678Z"
+       ]
+      },
+      "args-002": {
+       "fn": [
+        "EMAIL:ana@example.com",
+        "TEL:612000111"
+       ],
+       "fp": [
+        "EMAIL:email=ana@example.com"
+       ]
+      },
+      "args-003": {
+       "fn": [
+        "DNI:31.415.926-L",
+        "TEL:954 12 34 56"
+       ],
+       "fp": []
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": []
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z",
+        "EMAIL:zed@exa​mple.org"
+       ],
+       "fp": [
+        "NOMBRE:dni 1234​5678Z"
+       ]
+      },
+      "lookalike-003": {
+       "fn": [
+        "TEL:612 345 678"
+       ],
+       "fp": []
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": []
+      },
+      "lookalike-005": {
+       "fn": [
+        "NOMBRE:Ｍａｒíａ Ｐéｒｅｚ"
+       ],
+       "fp": []
+      },
+      "lookalike-006": {
+       "fn": [
+        "TEL:٦١٢٣٤٥٦٧٨"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 23,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 22,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.88,
+        "R": 1.0,
+        "F1": 0.9362,
+        "gold": 22,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 15,
+        "fp": 5,
+        "fn": 1,
+        "P": 0.75,
+        "R": 0.9375,
+        "F1": 0.8333,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       }
+      },
+      "unscored_predictions": 5,
+      "micro": {
+       "tp": 85,
+       "fp": 8,
+       "fn": 1,
+       "P": 0.914,
+       "R": 0.9884,
+       "F1": 0.9497
+      }
+     },
+     "errors": {
+      "email-006": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Gestoría"
+       ]
+      },
+      "tel-003": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Teléfono"
+       ]
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "TEL:912345678"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "TEL:712.345.678"
+       ]
+      },
+      "nombre-002": {
+       "fn": [
+        "NOMBRE:JUAN GARCIA"
+       ],
+       "fp": [
+        "NOMBRE:JUAN GARCIA HOY"
+       ]
+      },
+      "nombre-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Juan Garcíazar"
+       ]
+      },
+      "nombre-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:María Pérez de la Rosa"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "TEL:600123456"
+       ]
+      }
+     }
+    }
+   },
+   "es-ext-v1": {
+    "cases": 76,
+    "latency": {
+     "samples": 380,
+     "p50Micros": 3942.4,
+     "p95Micros": 6524.4,
+     "maxMicros": 7844.7
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 2,
+        "leaked": 2,
+        "leakR": 0.0,
+        "charCov": 0.0
+       },
+       "NOMBRE": {
+        "tp": 36,
+        "fp": 11,
+        "fn": 9,
+        "P": 0.766,
+        "R": 0.8,
+        "F1": 0.7826,
+        "gold": 45,
+        "leaked": 1,
+        "leakR": 0.9778,
+        "charCov": 0.9827
+       },
+       "DIRECCION": {
+        "tp": 0,
+        "fp": 48,
+        "fn": 18,
+        "P": 0.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.5835
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 38,
+       "fp": 59,
+       "fn": 29,
+       "P": 0.3918,
+       "R": 0.5672,
+       "F1": 0.4634
+      }
+     },
+     "errors": {
+      "ooc-004": {
+       "fn": [
+        "NOMBRE:Nerea"
+       ],
+       "fp": [
+        "NOMBRE:Nerea?"
+       ]
+      },
+      "ooc-010": {
+       "fn": [
+        "NOMBRE:Elena Quiroga"
+       ],
+       "fp": [
+        "DIRECCION:Dra. Elena Quiroga"
+       ]
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-016": {
+       "fn": [
+        "NOMBRE:Aitor"
+       ],
+       "fp": [
+        "DIRECCION:Aitor"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina",
+        "TEL:612345678"
+       ],
+       "fp": [
+        "DIRECCION:Valeria Ríos Medina"
+       ]
+      },
+      "ooc-023": {
+       "fn": [
+        "NOMBRE:Guillermo"
+       ],
+       "fp": []
+      },
+      "ooc-024": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Mi hermana"
+       ]
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": [
+        "NOMBRE:nombre;apellidos;ciudad\nLorena;Cuesta Molina;Toledo"
+       ]
+      },
+      "ooc-args-001": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:acta.md"
+       ]
+      },
+      "ooc-args-002": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Bilbao"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle de Santa Engracia",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Avda. de la Constitución"
+       ]
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar"
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "DIRECCION:Paseo de Gracia",
+        "DIRECCION:Barcelona"
+       ]
+      },
+      "dir-006": {
+       "fn": [
+        "DIRECCION:calle ancha 27, 4º d"
+       ],
+       "fp": []
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos s/n",
+        "DIRECCION:Alcalá de Guadaíra"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Nueva",
+        "DIRECCION:Urb",
+        "DIRECCION:Los Pinos",
+        "DIRECCION:Marbella"
+       ]
+      },
+      "dir-009": {
+       "fn": [
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "DIRECCION:Ronda de Valencia"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "NOMBRE:Calle María Pérez de la Rosa"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Travesía del Carmen",
+        "DIRECCION:Gijón"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "DIRECCION:Avenida Reina Victoria 40, 2º"
+       ],
+       "fp": [
+        "DIRECCION:Avenida Reina Victoria"
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "NOMBRE:Emilio Navarro",
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "NOMBRE:Emilio Navarro\nC/ Real 9",
+        "DIRECCION:Salamanca"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:Larios",
+        "DIRECCION:Málaga"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo",
+        "TEL:985123456"
+       ],
+       "fp": [
+        "DIRECCION:Calle Uría",
+        "DIRECCION:Oviedo",
+        "DIRECCION:tel."
+       ]
+      },
+      "dir-args-001": {
+       "fn": [
+        "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza"
+       ],
+       "fp": [
+        "NOMBRE:Alfonso I",
+        "DIRECCION:Zaragoza"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [
+        "DIRECCION:Avenida de América 33, 28002 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Avenida de América",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "neg-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Victoria"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Gran Vía",
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-009": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Banco Santander"
+       ]
+      },
+      "neg-010": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Hospital Universitario Virgen del Rocío"
+       ]
+      },
+      "neg-011": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Santiago de Compostela"
+       ]
+      },
+      "neg-012": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Las Palmas",
+        "DIRECCION:Santa Cruz de Tenerife"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-016": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:San Juan"
+       ]
+      },
+      "neg-019": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Sevilla",
+        "DIRECCION:Los Remedios"
+       ]
+      },
+      "neg-020": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Mercadona"
+       ]
+      },
+      "neg-022": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:parroquia de Santa María"
+       ]
+      },
+      "neg-024": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:grep"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.8,
+       "leakR": 0.975,
+       "charCov": 0.9807,
+       "fpNOMBRE": 5,
+       "fpDIRECCION": 5
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.1429,
+       "leakR": 0.9048,
+       "charCov": 0.6231,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 26
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 15
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 36,
+        "fp": 11,
+        "fn": 9,
+        "P": 0.766,
+        "R": 0.8,
+        "F1": 0.7826,
+        "gold": 45,
+        "leaked": 1,
+        "leakR": 0.9778,
+        "charCov": 0.9827
+       },
+       "DIRECCION": {
+        "tp": 0,
+        "fp": 48,
+        "fn": 18,
+        "P": 0.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.5835
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 40,
+       "fp": 59,
+       "fn": 27,
+       "P": 0.404,
+       "R": 0.597,
+       "F1": 0.4819
+      }
+     },
+     "errors": {
+      "ooc-004": {
+       "fn": [
+        "NOMBRE:Nerea"
+       ],
+       "fp": [
+        "NOMBRE:Nerea?"
+       ]
+      },
+      "ooc-010": {
+       "fn": [
+        "NOMBRE:Elena Quiroga"
+       ],
+       "fp": [
+        "DIRECCION:Dra. Elena Quiroga"
+       ]
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-016": {
+       "fn": [
+        "NOMBRE:Aitor"
+       ],
+       "fp": [
+        "DIRECCION:Aitor"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": [
+        "DIRECCION:Valeria Ríos Medina"
+       ]
+      },
+      "ooc-023": {
+       "fn": [
+        "NOMBRE:Guillermo"
+       ],
+       "fp": []
+      },
+      "ooc-024": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Mi hermana"
+       ]
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": [
+        "NOMBRE:nombre;apellidos;ciudad\nLorena;Cuesta Molina;Toledo"
+       ]
+      },
+      "ooc-args-001": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:acta.md"
+       ]
+      },
+      "ooc-args-002": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Bilbao"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle de Santa Engracia",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Avda. de la Constitución"
+       ]
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar"
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "DIRECCION:Paseo de Gracia",
+        "DIRECCION:Barcelona"
+       ]
+      },
+      "dir-006": {
+       "fn": [
+        "DIRECCION:calle ancha 27, 4º d"
+       ],
+       "fp": []
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos s/n",
+        "DIRECCION:Alcalá de Guadaíra"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Nueva",
+        "DIRECCION:Urb",
+        "DIRECCION:Los Pinos",
+        "DIRECCION:Marbella"
+       ]
+      },
+      "dir-009": {
+       "fn": [
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "DIRECCION:Ronda de Valencia"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "NOMBRE:Calle María Pérez de la Rosa"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Travesía del Carmen",
+        "DIRECCION:Gijón"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "DIRECCION:Avenida Reina Victoria 40, 2º"
+       ],
+       "fp": [
+        "DIRECCION:Avenida Reina Victoria"
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "NOMBRE:Emilio Navarro",
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "NOMBRE:Emilio Navarro\nC/ Real 9",
+        "DIRECCION:Salamanca"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:Larios",
+        "DIRECCION:Málaga"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:Calle Uría",
+        "DIRECCION:Oviedo",
+        "DIRECCION:tel."
+       ]
+      },
+      "dir-args-001": {
+       "fn": [
+        "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza"
+       ],
+       "fp": [
+        "NOMBRE:Alfonso I",
+        "DIRECCION:Zaragoza"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [
+        "DIRECCION:Avenida de América 33, 28002 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Avenida de América",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "neg-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Victoria"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Gran Vía",
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-009": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Banco Santander"
+       ]
+      },
+      "neg-010": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Hospital Universitario Virgen del Rocío"
+       ]
+      },
+      "neg-011": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Santiago de Compostela"
+       ]
+      },
+      "neg-012": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Las Palmas",
+        "DIRECCION:Santa Cruz de Tenerife"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-016": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:San Juan"
+       ]
+      },
+      "neg-019": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Sevilla",
+        "DIRECCION:Los Remedios"
+       ]
+      },
+      "neg-020": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Mercadona"
+       ]
+      },
+      "neg-022": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:parroquia de Santa María"
+       ]
+      },
+      "neg-024": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:grep"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.8,
+       "leakR": 0.975,
+       "charCov": 0.9807,
+       "fpNOMBRE": 5,
+       "fpDIRECCION": 5
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.1429,
+       "leakR": 0.9048,
+       "charCov": 0.6231,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 26
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 3,
+       "fpDIRECCION": 15
+      }
+     }
+    }
+   }
+  },
+  "presidio-sm": {
+   "model": "presidio-sm",
+   "model_id": "presidio-analyzer + es_core_news_sm",
+   "label_map": {
+    "PERSON": "NOMBRE",
+    "LOCATION": "DIRECCION",
+    "EMAIL_ADDRESS": "EMAIL",
+    "PHONE_NUMBER": "TEL",
+    "IBAN_CODE": "IBAN",
+    "ES_NIF": "DNI",
+    "ES_NIE": "DNI"
+   },
+   "recognizers": [
+    "CreditCardRecognizer",
+    "CryptoRecognizer",
+    "DateRecognizer",
+    "EmailRecognizer",
+    "EsNieRecognizer",
+    "EsNifRecognizer",
+    "IbanRecognizer",
+    "IpRecognizer",
+    "MacAddressRecognizer",
+    "MedicalLicenseRecognizer",
+    "PhoneRecognizer",
+    "SpacyRecognizer",
+    "UrlRecognizer",
+    "UuidRecognizer"
+   ],
+   "env": {
+    "cpu": "AMD Ryzen 5 5500",
+    "logical_cpus": 12,
+    "torch_threads": 6,
+    "torch": "2.15.0+cpu",
+    "python": "3.12.3"
+   },
+   "size_on_disk_mb": 16.3,
+   "load_s": 3.14,
+   "cold_start_s": 4.097,
+   "rss_before_load_mb": 217.9,
+   "rss_loaded_mb": 448.7,
+   "repeats": 5,
+   "subset": {
+    "corpus": null,
+    "every": 1
+   },
+   "rss_peak_mb": 449.1,
+   "es-v1": {
+    "cases": 90,
+    "latency": {
+     "samples": 450,
+     "p50Micros": 3672.0,
+     "p95Micros": 6674.3,
+     "maxMicros": 19162.1
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 16,
+        "fp": 0,
+        "fn": 7,
+        "P": 1.0,
+        "R": 0.6957,
+        "F1": 0.8205,
+        "gold": 23,
+        "leaked": 6,
+        "leakR": 0.7391,
+        "charCov": 0.7091
+       },
+       "IBAN": {
+        "tp": 10,
+        "fp": 1,
+        "fn": 3,
+        "P": 0.9091,
+        "R": 0.7692,
+        "F1": 0.8333,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 8,
+        "fp": 1,
+        "fn": 4,
+        "P": 0.8889,
+        "R": 0.6667,
+        "F1": 0.7619,
+        "gold": 12,
+        "leaked": 2,
+        "leakR": 0.8333,
+        "charCov": 0.8587
+       },
+       "TEL": {
+        "tp": 10,
+        "fp": 2,
+        "fn": 12,
+        "P": 0.8333,
+        "R": 0.4545,
+        "F1": 0.5882,
+        "gold": 22,
+        "leaked": 12,
+        "leakR": 0.4545,
+        "charCov": 0.562
+       },
+       "NOMBRE": {
+        "tp": 14,
+        "fp": 14,
+        "fn": 2,
+        "P": 0.5,
+        "R": 0.875,
+        "F1": 0.6364,
+        "gold": 16,
+        "leaked": 1,
+        "leakR": 0.9375,
+        "charCov": 0.8832
+       }
+      },
+      "unscored_predictions": 20,
+      "micro": {
+       "tp": 58,
+       "fp": 18,
+       "fn": 28,
+       "P": 0.7632,
+       "R": 0.6744,
+       "F1": 0.716
+      }
+     },
+     "errors": {
+      "dni-005": {
+       "fn": [
+        "DNI:31.415.926-L"
+       ],
+       "fp": []
+      },
+      "dni-007": {
+       "fn": [
+        "DNI:60 606 060 W"
+       ],
+       "fp": []
+      },
+      "dni-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:11223344B."
+       ]
+      },
+      "nie-003": {
+       "fn": [
+        "DNI:Z-1112223-V"
+       ],
+       "fp": []
+      },
+      "iban-001": {
+       "fn": [
+        "IBAN:ES9121000418450200051332"
+       ],
+       "fp": [
+        "IBAN:ES9121000418450200051332 antes"
+       ]
+      },
+      "iban-003": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:ES17-2085-2066-6234-5678-9011"
+       ]
+      },
+      "iban-004": {
+       "fn": [
+        "IBAN:ES10.0182.2370.4202.0123.4567"
+       ],
+       "fp": []
+      },
+      "iban-007": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Proveedor"
+       ]
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:erróneo ES0021000418450200051332"
+       ]
+      },
+      "iban-012": {
+       "fn": [],
+       "fp": [
+        "TEL:2024-000123"
+       ]
+      },
+      "email-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Escríbeme"
+       ]
+      },
+      "email-003": {
+       "fn": [
+        "EMAIL:soporte@ejemplo.example"
+       ],
+       "fp": []
+      },
+      "email-006": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Gestoría"
+       ]
+      },
+      "tel-001": {
+       "fn": [
+        "TEL:612345678"
+       ],
+       "fp": []
+      },
+      "tel-004": {
+       "fn": [
+        "TEL:954 12 34 56"
+       ],
+       "fp": []
+      },
+      "tel-005": {
+       "fn": [
+        "TEL:699-123-456",
+        "TEL:699.123.457"
+       ],
+       "fp": []
+      },
+      "tel-006": {
+       "fn": [
+        "TEL:910000000"
+       ],
+       "fp": []
+      },
+      "tel-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "tel-015": {
+       "fn": [],
+       "fp": [
+        "TEL:1700000000"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Población"
+       ]
+      },
+      "tel-018": {
+       "fn": [
+        "TEL:612345671"
+       ],
+       "fp": []
+      },
+      "nombre-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "nombre-006": {
+       "fn": [
+        "NOMBRE:Pedro Sánchez Ruiz"
+       ],
+       "fp": [
+        "NOMBRE:Ruiz llamó"
+       ]
+      },
+      "nombre-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Juan Garcíazar"
+       ]
+      },
+      "mix-002": {
+       "fn": [
+        "TEL:655443322"
+       ],
+       "fp": []
+      },
+      "args-001": {
+       "fn": [
+        "NOMBRE:María Pérez"
+       ],
+       "fp": []
+      },
+      "args-002": {
+       "fn": [
+        "EMAIL:ana@example.com",
+        "TEL:612000111"
+       ],
+       "fp": [
+        "EMAIL:email=ana@example.com"
+       ]
+      },
+      "args-003": {
+       "fn": [
+        "DNI:31.415.926-L",
+        "TEL:954 12 34 56"
+       ],
+       "fp": [
+        "NOMBRE:Tel"
+       ]
+      },
+      "lookalike-001": {
+       "fn": [
+        "DNI:１２３４５６７８Ｚ",
+        "EMAIL:zed＠example.org",
+        "TEL:６１２３４５６７８"
+       ],
+       "fp": []
+      },
+      "lookalike-002": {
+       "fn": [
+        "DNI:1234​5678Z",
+        "EMAIL:zed@exa​mple.org"
+       ],
+       "fp": []
+      },
+      "lookalike-003": {
+       "fn": [
+        "TEL:612 345 678"
+       ],
+       "fp": []
+      },
+      "lookalike-004": {
+       "fn": [
+        "IBAN:ES91­2100­0418­4502­0005­1332"
+       ],
+       "fp": [
+        "NOMBRE:ES91­2100­0418­4502­0005­1332"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "lookalike-006": {
+       "fn": [
+        "TEL:٦١٢٣٤٥٦٧٨"
+       ],
+       "fp": []
+      },
+      "lookalike-007": {
+       "fn": [
+        "DNI:Ｘ１２３４５６７Ｌ"
+       ],
+       "fp": []
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 23,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 23,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 13,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 13,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 12,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 12,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 22,
+        "fp": 3,
+        "fn": 0,
+        "P": 0.88,
+        "R": 1.0,
+        "F1": 0.9362,
+        "gold": 22,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 15,
+        "fp": 11,
+        "fn": 1,
+        "P": 0.5769,
+        "R": 0.9375,
+        "F1": 0.7143,
+        "gold": 16,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 0.9346
+       }
+      },
+      "unscored_predictions": 14,
+      "micro": {
+       "tp": 85,
+       "fp": 14,
+       "fn": 1,
+       "P": 0.8586,
+       "R": 0.9884,
+       "F1": 0.9189
+      }
+     },
+     "errors": {
+      "iban-007": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Proveedor"
+       ]
+      },
+      "iban-009": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:erróneo ES0021000418450200051332"
+       ]
+      },
+      "email-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Escríbeme"
+       ]
+      },
+      "email-006": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Gestoría"
+       ]
+      },
+      "tel-010": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "tel-012": {
+       "fn": [],
+       "fp": [
+        "TEL:912345678"
+       ]
+      },
+      "tel-017": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Población",
+        "TEL:712.345.678"
+       ]
+      },
+      "nombre-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "nombre-006": {
+       "fn": [
+        "NOMBRE:Pedro Sánchez Ruiz"
+       ],
+       "fp": [
+        "NOMBRE:Ruiz llamó"
+       ]
+      },
+      "nombre-008": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Juan Garcíazar"
+       ]
+      },
+      "args-003": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Tel"
+       ]
+      },
+      "args-005": {
+       "fn": [],
+       "fp": [
+        "TEL:600123456"
+       ]
+      },
+      "lookalike-005": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      }
+     }
+    }
+   },
+   "es-ext-v1": {
+    "cases": 76,
+    "latency": {
+     "samples": 380,
+     "p50Micros": 3772.5,
+     "p95Micros": 6117.0,
+     "maxMicros": 7717.5
+    },
+    "model": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 2,
+        "P": 1.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 2,
+        "leaked": 2,
+        "leakR": 0.0,
+        "charCov": 0.0
+       },
+       "NOMBRE": {
+        "tp": 27,
+        "fp": 26,
+        "fn": 18,
+        "P": 0.5094,
+        "R": 0.6,
+        "F1": 0.551,
+        "gold": 45,
+        "leaked": 7,
+        "leakR": 0.8444,
+        "charCov": 0.8868
+       },
+       "DIRECCION": {
+        "tp": 0,
+        "fp": 46,
+        "fn": 18,
+        "P": 0.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.5649
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 29,
+       "fp": 72,
+       "fn": 38,
+       "P": 0.2871,
+       "R": 0.4328,
+       "F1": 0.3452
+      }
+     },
+     "errors": {
+      "ooc-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Mañana"
+       ]
+      },
+      "ooc-003": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Dile"
+       ]
+      },
+      "ooc-004": {
+       "fn": [
+        "NOMBRE:Nerea"
+       ],
+       "fp": [
+        "DIRECCION:Nerea?"
+       ]
+      },
+      "ooc-009": {
+       "fn": [
+        "NOMBRE:CARMEN VIDAL ORTEGA"
+       ],
+       "fp": []
+      },
+      "ooc-010": {
+       "fn": [
+        "NOMBRE:Elena Quiroga"
+       ],
+       "fp": []
+      },
+      "ooc-011": {
+       "fn": [
+        "NOMBRE:Ramón Iglesias Prieto"
+       ],
+       "fp": [
+        "NOMBRE:D. Ramón Iglesias Prieto"
+       ]
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-015": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "ooc-016": {
+       "fn": [
+        "NOMBRE:Aitor",
+        "NOMBRE:Itziar Etxeberria"
+       ],
+       "fp": [
+        "DIRECCION:Itziar Etxeberria"
+       ]
+      },
+      "ooc-018": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Avisa"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina",
+        "TEL:612345678"
+       ],
+       "fp": [
+        "DIRECCION:Alta de Valeria Ríos Medina"
+       ]
+      },
+      "ooc-022": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Hola",
+        "DIRECCION:tarifa"
+       ]
+      },
+      "ooc-023": {
+       "fn": [
+        "NOMBRE:Guillermo"
+       ],
+       "fp": []
+      },
+      "ooc-024": {
+       "fn": [
+        "NOMBRE:Sofía"
+       ],
+       "fp": [
+        "DIRECCION:Sofía"
+       ]
+      },
+      "ooc-025": {
+       "fn": [
+        "NOMBRE:Raúl Cano",
+        "NOMBRE:Tomás Pastor"
+       ],
+       "fp": [
+        "NOMBRE:Asistentes",
+        "DIRECCION:Raúl Cano",
+        "DIRECCION:Tomás Pastor"
+       ]
+      },
+      "ooc-027": {
+       "fn": [
+        "NOMBRE:Pilar"
+       ],
+       "fp": []
+      },
+      "ooc-029": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:author"
+       ]
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": []
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña Vera",
+        "DIRECCION:acta.md"
+       ]
+      },
+      "ooc-args-002": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Bilbao"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "NOMBRE:Envíalo",
+        "DIRECCION:Calle de Santa Engracia",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Avda. de la Constitución 8"
+       ]
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar"
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "NOMBRE:Dirección",
+        "DIRECCION:Paseo de Gracia",
+        "DIRECCION:Barcelona"
+       ]
+      },
+      "dir-006": {
+       "fn": [
+        "DIRECCION:calle ancha 27, 4º d"
+       ],
+       "fp": []
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos",
+        "NOMBRE:Alcalá de Guadaíra"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Nueva",
+        "DIRECCION:Urb",
+        "NOMBRE:Marbella"
+       ]
+      },
+      "dir-009": {
+       "fn": [
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "DIRECCION:Ronda de Valencia"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "DIRECCION:Calle María Pérez de la Rosa"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Travesía del Carmen",
+        "NOMBRE:Gijón"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "NOMBRE:Julia Vega",
+        "DIRECCION:Avenida Reina Victoria 40, 2º"
+       ],
+       "fp": [
+        "NOMBRE:Soy Julia Vega",
+        "DIRECCION:Avenida Reina Victoria"
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "NOMBRE:Emilio Navarro",
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "NOMBRE:Emilio Navarro\nC/ Real 9",
+        "DIRECCION:Salamanca"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:Larios",
+        "DIRECCION:Málaga"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo",
+        "TEL:985123456"
+       ],
+       "fp": [
+        "DIRECCION:Calle Uría",
+        "DIRECCION:Oviedo"
+       ]
+      },
+      "dir-args-001": {
+       "fn": [
+        "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza"
+       ],
+       "fp": [
+        "NOMBRE:Alfonso I",
+        "DIRECCION:Zaragoza"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [
+        "DIRECCION:Avenida de América 33, 28002 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Avenida de América",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "neg-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Victoria"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:calle Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Gran Vía",
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-010": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Hospital Universitario Virgen del Rocío"
+       ]
+      },
+      "neg-011": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Santiago de Compostela"
+       ]
+      },
+      "neg-012": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Las Palmas",
+        "DIRECCION:Santa Cruz de Tenerife"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-014": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Instala",
+        "NOMBRE:Pandas"
+       ]
+      },
+      "neg-016": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:San Juan",
+        "NOMBRE:mediodía"
+       ]
+      },
+      "neg-019": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Sevilla",
+        "DIRECCION:Los Remedios"
+       ]
+      },
+      "neg-022": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:parroquia de Santa María"
+       ]
+      },
+      "neg-024": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:grep"
+       ]
+      },
+      "neg-025": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Según la Ley Orgánica"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.6,
+       "leakR": 0.825,
+       "charCov": 0.8735,
+       "fpNOMBRE": 11,
+       "fpDIRECCION": 9
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.0952,
+       "leakR": 0.9048,
+       "charCov": 0.6052,
+       "fpNOMBRE": 8,
+       "fpDIRECCION": 22
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 7,
+       "fpDIRECCION": 13
+      }
+     }
+    },
+    "union": {
+     "scores": {
+      "labels": {
+       "DNI": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "IBAN": {
+        "tp": 0,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 0,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "EMAIL": {
+        "tp": 1,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 1,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "TEL": {
+        "tp": 2,
+        "fp": 0,
+        "fn": 0,
+        "P": 1.0,
+        "R": 1.0,
+        "F1": 1.0,
+        "gold": 2,
+        "leaked": 0,
+        "leakR": 1.0,
+        "charCov": 1.0
+       },
+       "NOMBRE": {
+        "tp": 27,
+        "fp": 26,
+        "fn": 18,
+        "P": 0.5094,
+        "R": 0.6,
+        "F1": 0.551,
+        "gold": 45,
+        "leaked": 7,
+        "leakR": 0.8444,
+        "charCov": 0.8868
+       },
+       "DIRECCION": {
+        "tp": 0,
+        "fp": 46,
+        "fn": 18,
+        "P": 0.0,
+        "R": 0.0,
+        "F1": 0.0,
+        "gold": 18,
+        "leaked": 2,
+        "leakR": 0.8889,
+        "charCov": 0.5649
+       }
+      },
+      "unscored_predictions": 0,
+      "micro": {
+       "tp": 31,
+       "fp": 72,
+       "fn": 36,
+       "P": 0.301,
+       "R": 0.4627,
+       "F1": 0.3647
+      }
+     },
+     "errors": {
+      "ooc-001": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Mañana"
+       ]
+      },
+      "ooc-003": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Dile"
+       ]
+      },
+      "ooc-004": {
+       "fn": [
+        "NOMBRE:Nerea"
+       ],
+       "fp": [
+        "DIRECCION:Nerea?"
+       ]
+      },
+      "ooc-009": {
+       "fn": [
+        "NOMBRE:CARMEN VIDAL ORTEGA"
+       ],
+       "fp": []
+      },
+      "ooc-010": {
+       "fn": [
+        "NOMBRE:Elena Quiroga"
+       ],
+       "fp": []
+      },
+      "ooc-011": {
+       "fn": [
+        "NOMBRE:Ramón Iglesias Prieto"
+       ],
+       "fp": [
+        "NOMBRE:D. Ramón Iglesias Prieto"
+       ]
+      },
+      "ooc-013": {
+       "fn": [
+        "NOMBRE:Domínguez Lara, Patricia"
+       ],
+       "fp": [
+        "NOMBRE:Domínguez Lara",
+        "NOMBRE:Patricia"
+       ]
+      },
+      "ooc-015": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Reunión"
+       ]
+      },
+      "ooc-016": {
+       "fn": [
+        "NOMBRE:Aitor",
+        "NOMBRE:Itziar Etxeberria"
+       ],
+       "fp": [
+        "DIRECCION:Itziar Etxeberria"
+       ]
+      },
+      "ooc-018": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Avisa"
+       ]
+      },
+      "ooc-020": {
+       "fn": [
+        "NOMBRE:Valeria Ríos Medina"
+       ],
+       "fp": [
+        "DIRECCION:Alta de Valeria Ríos Medina"
+       ]
+      },
+      "ooc-022": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Hola",
+        "DIRECCION:tarifa"
+       ]
+      },
+      "ooc-023": {
+       "fn": [
+        "NOMBRE:Guillermo"
+       ],
+       "fp": []
+      },
+      "ooc-024": {
+       "fn": [
+        "NOMBRE:Sofía"
+       ],
+       "fp": [
+        "DIRECCION:Sofía"
+       ]
+      },
+      "ooc-025": {
+       "fn": [
+        "NOMBRE:Raúl Cano",
+        "NOMBRE:Tomás Pastor"
+       ],
+       "fp": [
+        "NOMBRE:Asistentes",
+        "DIRECCION:Raúl Cano",
+        "DIRECCION:Tomás Pastor"
+       ]
+      },
+      "ooc-027": {
+       "fn": [
+        "NOMBRE:Pilar"
+       ],
+       "fp": []
+      },
+      "ooc-029": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:author"
+       ]
+      },
+      "ooc-030": {
+       "fn": [
+        "NOMBRE:Lorena",
+        "NOMBRE:Cuesta Molina"
+       ],
+       "fp": []
+      },
+      "ooc-args-001": {
+       "fn": [
+        "NOMBRE:Gonzalo Peña Vera"
+       ],
+       "fp": [
+        "NOMBRE:Asiste Gonzalo Peña Vera",
+        "DIRECCION:acta.md"
+       ]
+      },
+      "ooc-args-002": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Bilbao"
+       ]
+      },
+      "cat-002": {
+       "fn": [
+        "DIRECCION:Calle Hileras 4, 2º B, 28013 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Calle Hileras",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-001": {
+       "fn": [
+        "DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid"
+       ],
+       "fp": [
+        "NOMBRE:Envíalo",
+        "DIRECCION:Calle de Santa Engracia",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "dir-002": {
+       "fn": [
+        "DIRECCION:C/ Mayor 15, 1ºA"
+       ],
+       "fp": [
+        "DIRECCION:Valladolid"
+       ]
+      },
+      "dir-003": {
+       "fn": [
+        "DIRECCION:Avda. de la Constitución 8, portal 2"
+       ],
+       "fp": [
+        "DIRECCION:Avda. de la Constitución 8"
+       ]
+      },
+      "dir-004": {
+       "fn": [
+        "DIRECCION:Plaza del Pilar 3, bajo"
+       ],
+       "fp": [
+        "DIRECCION:Plaza del Pilar"
+       ]
+      },
+      "dir-005": {
+       "fn": [
+        "DIRECCION:Paseo de Gracia 55, 08007 Barcelona"
+       ],
+       "fp": [
+        "NOMBRE:Dirección",
+        "DIRECCION:Paseo de Gracia",
+        "DIRECCION:Barcelona"
+       ]
+      },
+      "dir-006": {
+       "fn": [
+        "DIRECCION:calle ancha 27, 4º d"
+       ],
+       "fp": []
+      },
+      "dir-007": {
+       "fn": [
+        "DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra"
+       ],
+       "fp": [
+        "DIRECCION:Camino de los Molinos",
+        "NOMBRE:Alcalá de Guadaíra"
+       ]
+      },
+      "dir-008": {
+       "fn": [
+        "DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella"
+       ],
+       "fp": [
+        "DIRECCION:Nueva",
+        "DIRECCION:Urb",
+        "NOMBRE:Marbella"
+       ]
+      },
+      "dir-009": {
+       "fn": [
+        "DIRECCION:Ronda de Valencia 6, 5º C"
+       ],
+       "fp": [
+        "DIRECCION:Ronda de Valencia"
+       ]
+      },
+      "dir-010": {
+       "fn": [
+        "DIRECCION:Calle María Pérez de la Rosa 12"
+       ],
+       "fp": [
+        "DIRECCION:Calle María Pérez de la Rosa"
+       ]
+      },
+      "dir-011": {
+       "fn": [
+        "DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón"
+       ],
+       "fp": [
+        "DIRECCION:Travesía del Carmen",
+        "NOMBRE:Gijón"
+       ]
+      },
+      "dir-012": {
+       "fn": [
+        "NOMBRE:Julia Vega",
+        "DIRECCION:Avenida Reina Victoria 40, 2º"
+       ],
+       "fp": [
+        "NOMBRE:Soy Julia Vega",
+        "DIRECCION:Avenida Reina Victoria"
+       ]
+      },
+      "dir-013": {
+       "fn": [
+        "NOMBRE:Emilio Navarro",
+        "DIRECCION:C/ Real 9, 37001 Salamanca"
+       ],
+       "fp": [
+        "NOMBRE:Emilio Navarro\nC/ Real 9",
+        "DIRECCION:Salamanca"
+       ]
+      },
+      "dir-014": {
+       "fn": [
+        "DIRECCION:número 14 de la calle Larios"
+       ],
+       "fp": [
+        "DIRECCION:Larios",
+        "DIRECCION:Málaga"
+       ]
+      },
+      "dir-015": {
+       "fn": [
+        "DIRECCION:Calle Uría 21, 3º F, 33003 Oviedo"
+       ],
+       "fp": [
+        "DIRECCION:Calle Uría",
+        "DIRECCION:Oviedo"
+       ]
+      },
+      "dir-args-001": {
+       "fn": [
+        "DIRECCION:Calle Alfonso I 17, 50003 Zaragoza"
+       ],
+       "fp": [
+        "NOMBRE:Alfonso I",
+        "DIRECCION:Zaragoza"
+       ]
+      },
+      "dir-args-002": {
+       "fn": [
+        "DIRECCION:Avenida de América 33, 28002 Madrid"
+       ],
+       "fp": [
+        "DIRECCION:Avenida de América",
+        "DIRECCION:Madrid"
+       ]
+      },
+      "neg-004": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Victoria"
+       ]
+      },
+      "neg-006": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:calle Alcalá"
+       ]
+      },
+      "neg-007": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Gran Vía",
+        "DIRECCION:Plaza de España"
+       ]
+      },
+      "neg-008": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Avenida de la Constitución"
+       ]
+      },
+      "neg-010": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Hospital Universitario Virgen del Rocío"
+       ]
+      },
+      "neg-011": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Santiago de Compostela"
+       ]
+      },
+      "neg-012": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Las Palmas",
+        "DIRECCION:Santa Cruz de Tenerife"
+       ]
+      },
+      "neg-013": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Cervantes",
+        "NOMBRE:Lope de Vega"
+       ]
+      },
+      "neg-014": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Instala",
+        "NOMBRE:Pandas"
+       ]
+      },
+      "neg-016": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:San Juan",
+        "NOMBRE:mediodía"
+       ]
+      },
+      "neg-019": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:Sevilla",
+        "DIRECCION:Los Remedios"
+       ]
+      },
+      "neg-022": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:parroquia de Santa María"
+       ]
+      },
+      "neg-024": {
+       "fn": [],
+       "fp": [
+        "DIRECCION:grep"
+       ]
+      },
+      "neg-025": {
+       "fn": [],
+       "fp": [
+        "NOMBRE:Según la Ley Orgánica"
+       ]
+      }
+     },
+     "groups": {
+      "out-of-catalog names": {
+       "cases": 33,
+       "gold": 40,
+       "strictR": 0.6,
+       "leakR": 0.825,
+       "charCov": 0.8735,
+       "fpNOMBRE": 11,
+       "fpDIRECCION": 9
+      },
+      "addresses": {
+       "cases": 17,
+       "gold": 21,
+       "strictR": 0.0952,
+       "leakR": 0.9048,
+       "charCov": 0.6052,
+       "fpNOMBRE": 8,
+       "fpDIRECCION": 22
+      },
+      "hard negatives": {
+       "cases": 25,
+       "gold": 0,
+       "strictR": null,
+       "leakR": null,
+       "charCov": null,
+       "fpNOMBRE": 7,
+       "fpDIRECCION": 13
+      }
+     }
+    }
+   }
+  }
+ },
+ "subset_comparisons": {
+  "memprivacy-1.7b": {
+   "cases": 26,
+   "ids": [
+    "cat-002",
+    "dir-003",
+    "dir-006",
+    "dir-009",
+    "dir-012",
+    "dir-015",
+    "neg-001",
+    "neg-004",
+    "neg-007",
+    "neg-010",
+    "neg-013",
+    "neg-016",
+    "neg-019",
+    "neg-022",
+    "neg-025",
+    "ooc-001",
+    "ooc-004",
+    "ooc-007",
+    "ooc-010",
+    "ooc-013",
+    "ooc-016",
+    "ooc-019",
+    "ooc-022",
+    "ooc-025",
+    "ooc-028",
+    "ooc-args-001"
+   ],
+   "groups": {
+    "veil": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.0,
+      "leakR": 0.0,
+      "charCov": 0.0,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.0,
+      "leakR": 0.0,
+      "charCov": 0.0,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     }
+    },
+    "veil + bsc-meddocan": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.5,
+      "leakR": 0.9286,
+      "charCov": 0.9734,
+      "fpNOMBRE": 7,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.1429,
+      "leakR": 1.0,
+      "charCov": 0.924,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 7
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 1,
+      "fpDIRECCION": 2
+     }
+    },
+    "veil + gliner2-pii-street": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.9286,
+      "leakR": 1.0,
+      "charCov": 0.9894,
+      "fpNOMBRE": 2,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.7143,
+      "leakR": 0.8571,
+      "charCov": 0.7076,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 1
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 2,
+      "fpDIRECCION": 3
+     }
+    },
+    "veil + gliner2-pii": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.9286,
+      "leakR": 1.0,
+      "charCov": 0.9894,
+      "fpNOMBRE": 2,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.7143,
+      "leakR": 0.7143,
+      "charCov": 0.5965,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 2,
+      "fpDIRECCION": 1
+     }
+    },
+    "veil + memprivacy-1.7b": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.5714,
+      "leakR": 0.8571,
+      "charCov": 0.9149,
+      "fpNOMBRE": 3,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.7143,
+      "leakR": 1.0,
+      "charCov": 1.0,
+      "fpNOMBRE": 1,
+      "fpDIRECCION": 1
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 0
+     }
+    },
+    "veil + opf": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.7857,
+      "leakR": 1.0,
+      "charCov": 0.883,
+      "fpNOMBRE": 3,
+      "fpDIRECCION": 0
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.4286,
+      "leakR": 0.8571,
+      "charCov": 0.7251,
+      "fpNOMBRE": 2,
+      "fpDIRECCION": 2
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 1,
+      "fpDIRECCION": 1
+     }
+    },
+    "veil + presidio-lg": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.7143,
+      "leakR": 1.0,
+      "charCov": 0.9894,
+      "fpNOMBRE": 3,
+      "fpDIRECCION": 3
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.2857,
+      "leakR": 0.8571,
+      "charCov": 0.6257,
+      "fpNOMBRE": 0,
+      "fpDIRECCION": 6
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 3,
+      "fpDIRECCION": 7
+     }
+    },
+    "veil + presidio-sm": {
+     "out-of-catalog names": {
+      "cases": 11,
+      "gold": 14,
+      "strictR": 0.4286,
+      "leakR": 0.8571,
+      "charCov": 0.8936,
+      "fpNOMBRE": 6,
+      "fpDIRECCION": 6
+     },
+     "addresses": {
+      "cases": 5,
+      "gold": 7,
+      "strictR": 0.1429,
+      "leakR": 0.8571,
+      "charCov": 0.6374,
+      "fpNOMBRE": 1,
+      "fpDIRECCION": 5
+     },
+     "hard negatives": {
+      "cases": 9,
+      "gold": 0,
+      "strictR": null,
+      "leakR": null,
+      "charCov": null,
+      "fpNOMBRE": 6,
+      "fpDIRECCION": 6
+     }
+    }
+   }
+  }
+ }
+}

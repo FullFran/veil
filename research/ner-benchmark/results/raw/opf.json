@@ -1,0 +1,1562 @@
+{
+ "model": "opf",
+ "model_id": "openai/privacy-filter",
+ "label_map": {
+  "private_person": "NOMBRE",
+  "private_address": "DIRECCION",
+  "private_email": "EMAIL",
+  "private_phone": "TEL",
+  "account_number": "IBAN"
+ },
+ "recognizers": null,
+ "env": {
+  "cpu": "AMD Ryzen 5 5500",
+  "logical_cpus": 12,
+  "torch_threads": 6,
+  "torch": "2.15.0+cpu",
+  "python": "3.12.3"
+ },
+ "size_on_disk_mb": 2799.0,
+ "load_s": 9.121,
+ "cold_start_s": 10.023,
+ "rss_before_load_mb": 218.1,
+ "rss_loaded_mb": 3463.9,
+ "repeats": 5,
+ "corpora": {
+  "es-v1": {
+   "cases": 90,
+   "predictions": {
+    "dni-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-002": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 26,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-004": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-005": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 20,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-006": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 15,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-007": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-008": [],
+    "nie-001": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 29,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "nie-002": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 15,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "nie-003": [],
+    "nie-004": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 27,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-009": [
+     {
+      "unit": "",
+      "start": 29,
+      "end": 38,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-010": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 6,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 7,
+      "end": 16,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 19,
+      "end": 28,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-011": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-012": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 27,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-013": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 24,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-014": [
+     {
+      "unit": "",
+      "start": 1,
+      "end": 10,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "dni-015": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-001": [],
+    "iban-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 35,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 36,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-004": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 46,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-005": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 40,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 52,
+      "end": 57,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 58,
+      "end": 82,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-006": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 40,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-007": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 52,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-008": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 43,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 12,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "iban-010": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 39,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-011": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 35,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "iban-012": [],
+    "iban-013": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 44,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 56,
+      "end": 57,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "email-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 36,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "email-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 2,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 4,
+      "end": 35,
+      "raw": "private_email",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 63,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "email-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 36,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "email-004": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 17,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "email-005": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 31,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "email-006": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 39,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "email-007": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 30,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "email-008": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 39,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "tel-001": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 20,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 6,
+      "end": 18,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-003": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 25,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-004": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 4,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 5,
+      "end": 17,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-005": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 20,
+      "raw": "private_phone",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-006": [],
+    "tel-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-008": [
+     {
+      "unit": "",
+      "start": 21,
+      "end": 37,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-009": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 22,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-010": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 21,
+      "raw": "private_date",
+      "score": null
+     }
+    ],
+    "tel-011": [],
+    "tel-012": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 21,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "tel-013": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 24,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-014": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 30,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "tel-015": [],
+    "tel-016": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 28,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-017": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 23,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "private_phone",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 37,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "private_phone",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "tel-020": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 27,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 35,
+      "end": 49,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "nombre-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 23,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-002": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 21,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-004": [
+     {
+      "unit": "",
+      "start": 1,
+      "end": 13,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-005": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 28,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-006": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 29,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-008": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 30,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-009": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 27,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-010": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 28,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "nombre-011": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 38,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 39,
+      "end": 54,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "mix-001": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 26,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 62,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 68,
+      "end": 83,
+      "raw": "private_phone",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 85,
+      "end": 108,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "mix-002": [
+     {
+      "unit": "",
+      "start": 2,
+      "end": 13,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 15,
+      "end": 34,
+      "raw": "private_email",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 44,
+      "end": 55,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "clean-001": [],
+    "clean-002": [],
+    "clean-003": [],
+    "args-001": [
+     {
+      "unit": "edits.0.newString",
+      "start": 0,
+      "end": 11,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "edits.0.newString",
+      "start": 12,
+      "end": 21,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "args-002": [],
+    "args-003": [
+     {
+      "unit": "content",
+      "start": 17,
+      "end": 29,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "content",
+      "start": 37,
+      "end": 49,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "args-004": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 12,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "record.contact.ids.0",
+      "start": 0,
+      "end": 9,
+      "raw": "account_number",
+      "score": null
+     }
+    ],
+    "args-005": [
+     {
+      "unit": "command",
+      "start": 16,
+      "end": 26,
+      "raw": "private_date",
+      "score": null
+     }
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 11,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 19,
+      "end": 34,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "lookalike-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "lookalike-004": [],
+    "lookalike-005": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 23,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "lookalike-006": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "lookalike-007": [],
+    "lookalike-008": [],
+    "lookalike-009": []
+   },
+   "latency": {
+    "samples": 450,
+    "p50Micros": 757046.7,
+    "p95Micros": 1411521.8,
+    "maxMicros": 2464306.4
+   }
+  },
+  "es-ext-v1": {
+   "cases": 76,
+   "predictions": {
+    "ooc-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 28,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-002": [
+     {
+      "unit": "",
+      "start": 23,
+      "end": 35,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-003": [],
+    "ooc-004": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 29,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-005": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 51,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-006": [],
+    "ooc-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-008": [],
+    "ooc-009": [],
+    "ooc-010": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 21,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-011": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 37,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-012": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 13,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 28,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-013": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 23,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-014": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 30,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-015": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 25,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-016": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-017": [],
+    "ooc-018": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 21,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-019": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 8,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-020": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 27,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 42,
+      "raw": "account_number",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 49,
+      "end": 58,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "ooc-021": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 48,
+      "raw": "private_email",
+      "score": null
+     }
+    ],
+    "ooc-022": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-023": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 18,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-024": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 16,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 42,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-025": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 35,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 49,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-026": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-027": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-028": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 32,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-029": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 23,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-030": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 30,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 31,
+      "end": 44,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 45,
+      "end": 51,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-args-001": [
+     {
+      "unit": "content",
+      "start": 0,
+      "end": 19,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "ooc-args-002": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 13,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "cat-001": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 33,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 38,
+      "end": 50,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "cat-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 12,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 21,
+      "end": 56,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 33,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 34,
+      "end": 37,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 39,
+      "end": 47,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 48,
+      "end": 53,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-002": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 27,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-003": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 44,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-004": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 34,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-005": [
+     {
+      "unit": "",
+      "start": 26,
+      "end": 51,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-006": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 34,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-007": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 29,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 35,
+      "end": 40,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 59,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-008": [],
+    "dir-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 18,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "dir-010": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 61,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-011": [
+     {
+      "unit": "",
+      "start": 46,
+      "end": 51,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 52,
+      "end": 57,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-012": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 62,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-013": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 30,
+      "raw": "private_person",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 42,
+      "end": 57,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-014": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 51,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "dir-015": [
+     {
+      "unit": "",
+      "start": 32,
+      "end": 44,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "",
+      "start": 51,
+      "end": 60,
+      "raw": "private_phone",
+      "score": null
+     }
+    ],
+    "dir-args-001": [
+     {
+      "unit": "record.address",
+      "start": 0,
+      "end": 34,
+      "raw": "private_address",
+      "score": null
+     },
+     {
+      "unit": "record.name",
+      "start": 0,
+      "end": 13,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "dir-args-002": [
+     {
+      "unit": "content",
+      "start": 8,
+      "end": 43,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "neg-001": [],
+    "neg-002": [],
+    "neg-003": [],
+    "neg-004": [],
+    "neg-005": [],
+    "neg-006": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 56,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "neg-007": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 62,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "neg-008": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 42,
+      "raw": "private_address",
+      "score": null
+     }
+    ],
+    "neg-009": [],
+    "neg-010": [],
+    "neg-011": [],
+    "neg-012": [],
+    "neg-013": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 24,
+      "raw": "private_person",
+      "score": null
+     }
+    ],
+    "neg-014": [],
+    "neg-015": [],
+    "neg-016": [],
+    "neg-017": [],
+    "neg-018": [],
+    "neg-019": [],
+    "neg-020": [],
+    "neg-021": [],
+    "neg-022": [],
+    "neg-023": [],
+    "neg-024": [],
+    "neg-025": []
+   },
+   "latency": {
+    "samples": 380,
+    "p50Micros": 750270.2,
+    "p95Micros": 1215642.5,
+    "maxMicros": 1432064.7
+   }
+  }
+ },
+ "subset": {
+  "corpus": null,
+  "every": 1
+ },
+ "rss_peak_mb": 4164.4
+}

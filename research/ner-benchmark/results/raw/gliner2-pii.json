@@ -1,0 +1,1443 @@
+{
+ "model": "gliner2-pii",
+ "model_id": "fastino/gliner2-privacy-filter-PII-multi",
+ "label_map": {
+  "person": "NOMBRE",
+  "address": "DIRECCION",
+  "email": "EMAIL",
+  "phone_number": "TEL",
+  "iban": "IBAN",
+  "national_id_number": "DNI"
+ },
+ "recognizers": null,
+ "env": {
+  "cpu": "AMD Ryzen 5 5500",
+  "logical_cpus": 12,
+  "torch_threads": 6,
+  "torch": "2.15.0+cpu",
+  "python": "3.12.3"
+ },
+ "size_on_disk_mb": 1245.1,
+ "load_s": 6.295,
+ "cold_start_s": 7.196,
+ "rss_before_load_mb": 218.1,
+ "rss_loaded_mb": 1764.3,
+ "repeats": 5,
+ "corpora": {
+  "es-v1": {
+   "cases": 90,
+   "predictions": {
+    "dni-001": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "national_id_number",
+      "score": 0.9993361830711365
+     }
+    ],
+    "dni-002": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "national_id_number",
+      "score": 0.9335166811943054
+     }
+    ],
+    "dni-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 26,
+      "raw": "national_id_number",
+      "score": 0.9971447587013245
+     }
+    ],
+    "dni-004": [],
+    "dni-005": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 20,
+      "raw": "national_id_number",
+      "score": 0.9913203120231628
+     }
+    ],
+    "dni-006": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 15,
+      "raw": "national_id_number",
+      "score": 0.9935964345932007
+     }
+    ],
+    "dni-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 29,
+      "raw": "phone_number",
+      "score": 0.9744113683700562
+     }
+    ],
+    "dni-008": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "phone_number",
+      "score": 0.8456759452819824
+     },
+     {
+      "unit": "",
+      "start": 29,
+      "end": 38,
+      "raw": "phone_number",
+      "score": 0.6671497225761414
+     }
+    ],
+    "nie-001": [
+     {
+      "unit": "",
+      "start": 20,
+      "end": 29,
+      "raw": "national_id_number",
+      "score": 0.9988031387329102
+     }
+    ],
+    "nie-002": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 16,
+      "raw": "national_id_number",
+      "score": 0.9957528114318848
+     }
+    ],
+    "nie-003": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 15,
+      "raw": "national_id_number",
+      "score": 0.8707163333892822
+     }
+    ],
+    "nie-004": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 27,
+      "raw": "national_id_number",
+      "score": 0.9968488812446594
+     }
+    ],
+    "dni-009": [
+     {
+      "unit": "",
+      "start": 29,
+      "end": 38,
+      "raw": "national_id_number",
+      "score": 0.9913899302482605
+     }
+    ],
+    "dni-010": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 16,
+      "raw": "national_id_number",
+      "score": 0.8863129019737244
+     },
+     {
+      "unit": "",
+      "start": 19,
+      "end": 28,
+      "raw": "national_id_number",
+      "score": 0.7619979381561279
+     }
+    ],
+    "dni-011": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 16,
+      "raw": "national_id_number",
+      "score": 0.9374068379402161
+     }
+    ],
+    "dni-012": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 27,
+      "raw": "national_id_number",
+      "score": 0.9884001016616821
+     }
+    ],
+    "dni-013": [],
+    "dni-014": [
+     {
+      "unit": "",
+      "start": 1,
+      "end": 10,
+      "raw": "national_id_number",
+      "score": 0.9993836879730225
+     }
+    ],
+    "dni-015": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "person",
+      "score": 0.5139614343643188
+     },
+     {
+      "unit": "",
+      "start": 10,
+      "end": 19,
+      "raw": "national_id_number",
+      "score": 0.8562734723091125
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "national_id_number",
+      "score": 0.7635816931724548
+     }
+    ],
+    "iban-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 37,
+      "raw": "iban",
+      "score": 0.993077278137207
+     }
+    ],
+    "iban-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 35,
+      "raw": "iban",
+      "score": 0.9978959560394287
+     }
+    ],
+    "iban-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 36,
+      "raw": "iban",
+      "score": 0.9169906973838806
+     }
+    ],
+    "iban-004": [],
+    "iban-005": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 40,
+      "raw": "iban",
+      "score": 0.9819115400314331
+     },
+     {
+      "unit": "",
+      "start": 58,
+      "end": 82,
+      "raw": "iban",
+      "score": 0.9709732532501221
+     }
+    ],
+    "iban-006": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 40,
+      "raw": "iban",
+      "score": 0.9929667711257935
+     }
+    ],
+    "iban-007": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 52,
+      "raw": "iban",
+      "score": 0.9943406581878662
+     }
+    ],
+    "iban-008": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 43,
+      "raw": "iban",
+      "score": 0.981060266494751
+     }
+    ],
+    "iban-009": [
+     {
+      "unit": "",
+      "start": 51,
+      "end": 58,
+      "raw": "person",
+      "score": 0.7691894769668579
+     },
+     {
+      "unit": "",
+      "start": 13,
+      "end": 37,
+      "raw": "iban",
+      "score": 0.997921884059906
+     }
+    ],
+    "iban-010": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 39,
+      "raw": "iban",
+      "score": 0.9975594282150269
+     }
+    ],
+    "iban-011": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 35,
+      "raw": "iban",
+      "score": 0.59309983253479
+     }
+    ],
+    "iban-012": [],
+    "iban-013": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 44,
+      "raw": "iban",
+      "score": 0.9849753975868225
+     }
+    ],
+    "email-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 36,
+      "raw": "email",
+      "score": 0.9998559951782227
+     }
+    ],
+    "email-002": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 35,
+      "raw": "email",
+      "score": 0.9999769926071167
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 63,
+      "raw": "email",
+      "score": 0.9999217987060547
+     }
+    ],
+    "email-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 34,
+      "raw": "email",
+      "score": 0.9995988011360168
+     }
+    ],
+    "email-004": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 17,
+      "raw": "email",
+      "score": 0.9918584227561951
+     }
+    ],
+    "email-005": [],
+    "email-006": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 39,
+      "raw": "email",
+      "score": 0.9985734224319458
+     }
+    ],
+    "email-007": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 11,
+      "raw": "person",
+      "score": 0.7590928673744202
+     }
+    ],
+    "email-008": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 21,
+      "raw": "person",
+      "score": 0.8264729380607605
+     }
+    ],
+    "tel-001": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 20,
+      "raw": "phone_number",
+      "score": 0.9924038052558899
+     }
+    ],
+    "tel-002": [
+     {
+      "unit": "",
+      "start": 6,
+      "end": 18,
+      "raw": "phone_number",
+      "score": 0.999970555305481
+     }
+    ],
+    "tel-003": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 25,
+      "raw": "phone_number",
+      "score": 0.9999775886535645
+     }
+    ],
+    "tel-004": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 17,
+      "raw": "phone_number",
+      "score": 0.9997878670692444
+     }
+    ],
+    "tel-005": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 20,
+      "raw": "phone_number",
+      "score": 0.9999572038650513
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "phone_number",
+      "score": 0.9989111423492432
+     }
+    ],
+    "tel-006": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 20,
+      "raw": "phone_number",
+      "score": 0.8225067853927612
+     }
+    ],
+    "tel-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "phone_number",
+      "score": 0.9999094009399414
+     }
+    ],
+    "tel-008": [
+     {
+      "unit": "",
+      "start": 21,
+      "end": 37,
+      "raw": "phone_number",
+      "score": 0.9998185038566589
+     }
+    ],
+    "tel-009": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9988357424736023
+     }
+    ],
+    "tel-010": [],
+    "tel-011": [],
+    "tel-012": [],
+    "tel-013": [
+     {
+      "unit": "",
+      "start": 5,
+      "end": 24,
+      "raw": "iban",
+      "score": 0.6955808997154236
+     }
+    ],
+    "tel-014": [],
+    "tel-015": [],
+    "tel-016": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 28,
+      "raw": "phone_number",
+      "score": 0.9976722598075867
+     }
+    ],
+    "tel-017": [],
+    "tel-018": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9997832179069519
+     },
+     {
+      "unit": "",
+      "start": 28,
+      "end": 37,
+      "raw": "phone_number",
+      "score": 0.9994226694107056
+     }
+    ],
+    "tel-019": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "phone_number",
+      "score": 0.9999184608459473
+     },
+     {
+      "unit": "",
+      "start": 41,
+      "end": 56,
+      "raw": "phone_number",
+      "score": 0.99991774559021
+     }
+    ],
+    "tel-020": [],
+    "nombre-001": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 23,
+      "raw": "person",
+      "score": 0.9974775910377502
+     }
+    ],
+    "nombre-002": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 21,
+      "raw": "person",
+      "score": 0.9967659711837769
+     }
+    ],
+    "nombre-003": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "person",
+      "score": 0.9911655783653259
+     }
+    ],
+    "nombre-004": [
+     {
+      "unit": "",
+      "start": 1,
+      "end": 13,
+      "raw": "person",
+      "score": 0.9977322816848755
+     }
+    ],
+    "nombre-005": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 28,
+      "raw": "person",
+      "score": 0.9913955330848694
+     }
+    ],
+    "nombre-006": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 29,
+      "raw": "person",
+      "score": 0.9970448613166809
+     }
+    ],
+    "nombre-007": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 25,
+      "raw": "person",
+      "score": 0.9964463114738464
+     }
+    ],
+    "nombre-008": [],
+    "nombre-009": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 27,
+      "raw": "person",
+      "score": 0.9962827563285828
+     }
+    ],
+    "nombre-010": [],
+    "nombre-011": [
+     {
+      "unit": "",
+      "start": 39,
+      "end": 54,
+      "raw": "person",
+      "score": 0.999481737613678
+     },
+     {
+      "unit": "",
+      "start": 18,
+      "end": 35,
+      "raw": "person",
+      "score": 0.9975680708885193
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "person",
+      "score": 0.9975510239601135
+     }
+    ],
+    "mix-001": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 11,
+      "raw": "person",
+      "score": 0.9939711093902588
+     },
+     {
+      "unit": "",
+      "start": 85,
+      "end": 108,
+      "raw": "email",
+      "score": 0.9999980926513672
+     },
+     {
+      "unit": "",
+      "start": 68,
+      "end": 83,
+      "raw": "phone_number",
+      "score": 0.9999995231628418
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 62,
+      "raw": "iban",
+      "score": 0.9999613761901855
+     },
+     {
+      "unit": "",
+      "start": 17,
+      "end": 26,
+      "raw": "national_id_number",
+      "score": 0.9997944235801697
+     }
+    ],
+    "mix-002": [
+     {
+      "unit": "",
+      "start": 2,
+      "end": 13,
+      "raw": "person",
+      "score": 0.9896915555000305
+     },
+     {
+      "unit": "",
+      "start": 15,
+      "end": 34,
+      "raw": "email",
+      "score": 0.9999808073043823
+     },
+     {
+      "unit": "",
+      "start": 44,
+      "end": 53,
+      "raw": "phone_number",
+      "score": 0.9997445940971375
+     }
+    ],
+    "clean-001": [],
+    "clean-002": [],
+    "clean-003": [],
+    "args-001": [
+     {
+      "unit": "edits.0.newString",
+      "start": 0,
+      "end": 11,
+      "raw": "person",
+      "score": 0.9984051585197449
+     },
+     {
+      "unit": "edits.0.newString",
+      "start": 12,
+      "end": 21,
+      "raw": "national_id_number",
+      "score": 0.997099757194519
+     },
+     {
+      "unit": "edits.1.oldString",
+      "start": 0,
+      "end": 2,
+      "raw": "person",
+      "score": 0.6377728581428528
+     },
+     {
+      "unit": "edits.1.newString",
+      "start": 0,
+      "end": 24,
+      "raw": "iban",
+      "score": 0.9868673086166382
+     }
+    ],
+    "args-002": [
+     {
+      "unit": "command",
+      "start": 15,
+      "end": 30,
+      "raw": "email",
+      "score": 0.9958564639091492
+     },
+     {
+      "unit": "env.TEL",
+      "start": 0,
+      "end": 9,
+      "raw": "phone_number",
+      "score": 0.9577084183692932
+     }
+    ],
+    "args-003": [
+     {
+      "unit": "content",
+      "start": 37,
+      "end": 49,
+      "raw": "phone_number",
+      "score": 0.9999816417694092
+     },
+     {
+      "unit": "content",
+      "start": 17,
+      "end": 29,
+      "raw": "national_id_number",
+      "score": 0.9948551654815674
+     }
+    ],
+    "args-004": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 12,
+      "raw": "person",
+      "score": 0.9967806339263916
+     },
+     {
+      "unit": "record.contact.ids.0",
+      "start": 0,
+      "end": 9,
+      "raw": "national_id_number",
+      "score": 0.8249630331993103
+     }
+    ],
+    "args-005": [
+     {
+      "unit": "command",
+      "start": 30,
+      "end": 39,
+      "raw": "national_id_number",
+      "score": 0.9591582417488098
+     }
+    ],
+    "lookalike-001": [
+     {
+      "unit": "",
+      "start": 19,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9366757869720459
+     },
+     {
+      "unit": "",
+      "start": 23,
+      "end": 34,
+      "raw": "email",
+      "score": 0.9830384254455566
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 3,
+      "raw": "national_id_number",
+      "score": 0.7726173400878906
+     }
+    ],
+    "lookalike-002": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 19,
+      "raw": "person",
+      "score": 0.596479058265686
+     },
+     {
+      "unit": "",
+      "start": 16,
+      "end": 32,
+      "raw": "email",
+      "score": 0.7656198740005493
+     },
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "national_id_number",
+      "score": 0.9951267242431641
+     }
+    ],
+    "lookalike-003": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "phone_number",
+      "score": 0.9999654293060303
+     }
+    ],
+    "lookalike-004": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 20,
+      "raw": "iban",
+      "score": 0.6937215924263
+     }
+    ],
+    "lookalike-005": [],
+    "lookalike-006": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 31,
+      "raw": "phone_number",
+      "score": 0.9990414977073669
+     }
+    ],
+    "lookalike-007": [],
+    "lookalike-008": [],
+    "lookalike-009": []
+   },
+   "latency": {
+    "samples": 450,
+    "p50Micros": 90102.5,
+    "p95Micros": 175888.8,
+    "maxMicros": 428752.0
+   }
+  },
+  "es-ext-v1": {
+   "cases": 76,
+   "predictions": {
+    "ooc-001": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 35,
+      "raw": "person",
+      "score": 0.9924836754798889
+     }
+    ],
+    "ooc-002": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 35,
+      "raw": "person",
+      "score": 0.9934964179992676
+     }
+    ],
+    "ooc-003": [
+     {
+      "unit": "",
+      "start": 7,
+      "end": 14,
+      "raw": "person",
+      "score": 0.9980930685997009
+     }
+    ],
+    "ooc-004": [
+     {
+      "unit": "",
+      "start": 24,
+      "end": 29,
+      "raw": "person",
+      "score": 0.9935316443443298
+     }
+    ],
+    "ooc-005": [
+     {
+      "unit": "",
+      "start": 22,
+      "end": 51,
+      "raw": "person",
+      "score": 0.9895663261413574
+     }
+    ],
+    "ooc-006": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 38,
+      "raw": "person",
+      "score": 0.9971309900283813
+     }
+    ],
+    "ooc-007": [
+     {
+      "unit": "",
+      "start": 17,
+      "end": 33,
+      "raw": "person",
+      "score": 0.9937717318534851
+     }
+    ],
+    "ooc-008": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 24,
+      "raw": "person",
+      "score": 0.9963577389717102
+     }
+    ],
+    "ooc-009": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 28,
+      "raw": "person",
+      "score": 0.9924486875534058
+     }
+    ],
+    "ooc-010": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 21,
+      "raw": "person",
+      "score": 0.9856878519058228
+     }
+    ],
+    "ooc-011": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 37,
+      "raw": "person",
+      "score": 0.9473745226860046
+     }
+    ],
+    "ooc-012": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 28,
+      "raw": "person",
+      "score": 0.999810516834259
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 13,
+      "raw": "person",
+      "score": 0.9993177652359009
+     }
+    ],
+    "ooc-013": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 23,
+      "raw": "person",
+      "score": 0.7678288221359253
+     },
+     {
+      "unit": "",
+      "start": 25,
+      "end": 33,
+      "raw": "person",
+      "score": 0.634554922580719
+     }
+    ],
+    "ooc-014": [
+     {
+      "unit": "",
+      "start": 13,
+      "end": 30,
+      "raw": "person",
+      "score": 0.99737548828125
+     }
+    ],
+    "ooc-015": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 25,
+      "raw": "person",
+      "score": 0.9964974522590637
+     }
+    ],
+    "ooc-016": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "person",
+      "score": 0.9975046515464783
+     },
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "person",
+      "score": 0.7618581056594849
+     }
+    ],
+    "ooc-017": [
+     {
+      "unit": "",
+      "start": 18,
+      "end": 44,
+      "raw": "person",
+      "score": 0.9948223829269409
+     }
+    ],
+    "ooc-018": [
+     {
+      "unit": "",
+      "start": 8,
+      "end": 25,
+      "raw": "person",
+      "score": 0.9949122667312622
+     }
+    ],
+    "ooc-019": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 8,
+      "raw": "person",
+      "score": 0.9954238533973694
+     }
+    ],
+    "ooc-020": [
+     {
+      "unit": "",
+      "start": 49,
+      "end": 58,
+      "raw": "phone_number",
+      "score": 0.9991374015808105
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 42,
+      "raw": "national_id_number",
+      "score": 0.9990648627281189
+     }
+    ],
+    "ooc-021": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9861007332801819
+     },
+     {
+      "unit": "",
+      "start": 24,
+      "end": 48,
+      "raw": "email",
+      "score": 0.9999567270278931
+     }
+    ],
+    "ooc-022": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9976150989532471
+     }
+    ],
+    "ooc-023": [
+     {
+      "unit": "",
+      "start": 9,
+      "end": 18,
+      "raw": "person",
+      "score": 0.9946265816688538
+     }
+    ],
+    "ooc-024": [
+     {
+      "unit": "",
+      "start": 29,
+      "end": 42,
+      "raw": "person",
+      "score": 0.9988679885864258
+     },
+     {
+      "unit": "",
+      "start": 11,
+      "end": 16,
+      "raw": "person",
+      "score": 0.9884650707244873
+     }
+    ],
+    "ooc-025": [
+     {
+      "unit": "",
+      "start": 23,
+      "end": 35,
+      "raw": "person",
+      "score": 0.9999790191650391
+     },
+     {
+      "unit": "",
+      "start": 37,
+      "end": 49,
+      "raw": "person",
+      "score": 0.9999523162841797
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 21,
+      "raw": "person",
+      "score": 0.9999098777770996
+     }
+    ],
+    "ooc-026": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9974521994590759
+     }
+    ],
+    "ooc-027": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 5,
+      "raw": "person",
+      "score": 0.9984737038612366
+     }
+    ],
+    "ooc-028": [
+     {
+      "unit": "",
+      "start": 12,
+      "end": 32,
+      "raw": "person",
+      "score": 0.9964237809181213
+     }
+    ],
+    "ooc-029": [
+     {
+      "unit": "",
+      "start": 10,
+      "end": 23,
+      "raw": "person",
+      "score": 0.9905181527137756
+     }
+    ],
+    "ooc-030": [],
+    "ooc-args-001": [
+     {
+      "unit": "content",
+      "start": 7,
+      "end": 24,
+      "raw": "person",
+      "score": 0.9968459010124207
+     }
+    ],
+    "ooc-args-002": [
+     {
+      "unit": "record.contact.name",
+      "start": 0,
+      "end": 13,
+      "raw": "person",
+      "score": 0.9952867031097412
+     }
+    ],
+    "cat-001": [
+     {
+      "unit": "",
+      "start": 38,
+      "end": 50,
+      "raw": "person",
+      "score": 0.9994089603424072
+     },
+     {
+      "unit": "",
+      "start": 22,
+      "end": 33,
+      "raw": "person",
+      "score": 0.9991512298583984
+     }
+    ],
+    "cat-002": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 12,
+      "raw": "person",
+      "score": 0.996575653553009
+     }
+    ],
+    "dir-001": [],
+    "dir-002": [
+     {
+      "unit": "",
+      "start": 11,
+      "end": 39,
+      "raw": "address",
+      "score": 0.9203755855560303
+     }
+    ],
+    "dir-003": [],
+    "dir-004": [],
+    "dir-005": [
+     {
+      "unit": "",
+      "start": 26,
+      "end": 61,
+      "raw": "address",
+      "score": 0.9564365148544312
+     }
+    ],
+    "dir-006": [
+     {
+      "unit": "",
+      "start": 14,
+      "end": 34,
+      "raw": "address",
+      "score": 0.8326702117919922
+     }
+    ],
+    "dir-007": [],
+    "dir-008": [],
+    "dir-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 18,
+      "raw": "person",
+      "score": 0.9953796863555908
+     },
+     {
+      "unit": "",
+      "start": 20,
+      "end": 45,
+      "raw": "address",
+      "score": 0.8028753399848938
+     }
+    ],
+    "dir-010": [],
+    "dir-011": [],
+    "dir-012": [
+     {
+      "unit": "",
+      "start": 4,
+      "end": 14,
+      "raw": "person",
+      "score": 0.9961267113685608
+     },
+     {
+      "unit": "",
+      "start": 33,
+      "end": 62,
+      "raw": "address",
+      "score": 0.8573693633079529
+     }
+    ],
+    "dir-013": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 30,
+      "raw": "person",
+      "score": 0.9892162084579468
+     },
+     {
+      "unit": "",
+      "start": 31,
+      "end": 57,
+      "raw": "address",
+      "score": 0.7938947677612305
+     }
+    ],
+    "dir-014": [],
+    "dir-015": [
+     {
+      "unit": "",
+      "start": 51,
+      "end": 60,
+      "raw": "phone_number",
+      "score": 0.9999043941497803
+     }
+    ],
+    "dir-args-001": [
+     {
+      "unit": "record.address",
+      "start": 0,
+      "end": 34,
+      "raw": "address",
+      "score": 0.8719250559806824
+     },
+     {
+      "unit": "record.name",
+      "start": 0,
+      "end": 13,
+      "raw": "person",
+      "score": 0.9949014186859131
+     }
+    ],
+    "dir-args-002": [
+     {
+      "unit": "content",
+      "start": 8,
+      "end": 43,
+      "raw": "address",
+      "score": 0.9367417097091675
+     }
+    ],
+    "neg-001": [],
+    "neg-002": [],
+    "neg-003": [],
+    "neg-004": [],
+    "neg-005": [],
+    "neg-006": [],
+    "neg-007": [
+     {
+      "unit": "",
+      "start": 47,
+      "end": 62,
+      "raw": "address",
+      "score": 0.6888236999511719
+     }
+    ],
+    "neg-008": [
+     {
+      "unit": "",
+      "start": 16,
+      "end": 42,
+      "raw": "address",
+      "score": 0.6061186194419861
+     }
+    ],
+    "neg-009": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 15,
+      "raw": "iban",
+      "score": 0.8602790236473083
+     }
+    ],
+    "neg-010": [],
+    "neg-011": [],
+    "neg-012": [],
+    "neg-013": [
+     {
+      "unit": "",
+      "start": 0,
+      "end": 9,
+      "raw": "person",
+      "score": 0.9987333416938782
+     },
+     {
+      "unit": "",
+      "start": 12,
+      "end": 24,
+      "raw": "person",
+      "score": 0.9986310601234436
+     }
+    ],
+    "neg-014": [],
+    "neg-015": [],
+    "neg-016": [],
+    "neg-017": [],
+    "neg-018": [
+     {
+      "unit": "",
+      "start": 3,
+      "end": 22,
+      "raw": "person",
+      "score": 0.9102663993835449
+     }
+    ],
+    "neg-019": [],
+    "neg-020": [],
+    "neg-021": [],
+    "neg-022": [],
+    "neg-023": [],
+    "neg-024": [],
+    "neg-025": []
+   },
+   "latency": {
+    "samples": 380,
+    "p50Micros": 91546.7,
+    "p95Micros": 172478.7,
+    "maxMicros": 190813.7
+   }
+  }
+ },
+ "subset": {
+  "corpus": null,
+  "every": 1
+ },
+ "rss_peak_mb": 2935.0
+}
