@@ -156,7 +156,7 @@ func LoadCatalog(userPath string) (*Catalog, error) {
 }
 
 func readCatalog(path string) ([]byte, error) {
-	f, err := os.Open(path) // #nosec G304 -- the operator chooses the catalog file (VEIL_NER_CATALOG)
+	f, err := os.Open(path) // #nosec G304 G703 -- the operator chooses the catalog file (VEIL_NER_CATALOG)
 	if err != nil {
 		return nil, fmt.Errorf("%w: %v", ErrCatalogInvalid, err)
 	}

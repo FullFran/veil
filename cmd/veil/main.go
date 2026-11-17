@@ -414,27 +414,13 @@ func runPolicy(args []string, stdout, stderr io.Writer) int {
 // and returns it with what evidence records about that model (nil, nil
 // when off).
 func wireNER(p *policy.Policy, registry *domain.Registry) (*ner.Detector, *evidence.NERModel, error) {
-	rule, enabled, err := p.NER(os.Getenv(ner.ModelEnvVar))
+	sel, enabled, err := ner.FromPolicy(p)
 	if err != nil || !enabled {
 		return nil, nil, err
 	}
-	catalog, err := ner.LoadCatalog(os.Getenv(ner.CatalogEnvVar))
-	if err != nil {
-		return nil, nil, err
-	}
-	entry, err := catalog.Lookup(rule.Model)
-	if err != nil {
-		return nil, nil, err
-	}
-	model := entry.Model()
-	detector := ner.NewDetector(ner.Config{
-		Socket:  ner.SocketPath(),
-		Timeout: rule.Timeout,
-		Model:   model,
-		Labels:  entry.Labels,
-	})
-	registry.RegisterFallible(policy.WithAction(detector, rule.Action))
-	return detector, &evidence.NERModel{ID: model.ID, Revision: model.Revision, EntryDigest: model.EntryDigest}, nil
+	registry.RegisterFallible(policy.WithAction(sel.Detector, sel.Action))
+	model := sel.Entry.Model()
+	return sel.Detector, &evidence.NERModel{ID: model.ID, Revision: model.Revision, EntryDigest: model.EntryDigest}, nil
 }
 
 // nerServed is how many calls the NER sidecar has answered so far.

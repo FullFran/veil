@@ -5,7 +5,11 @@ import (
 	"errors"
 	"io"
 	"os"
+	"os/exec"
+	"os/signal"
+	"path/filepath"
 	"strings"
+	"syscall"
 
 	"github.com/FullFran/veil/internal/ner"
 	"github.com/FullFran/veil/internal/policy"
@@ -35,11 +39,15 @@ var modelErrors = []struct {
 //	veil model list
 //	veil model pull <id> --accept-license <SPDX id>
 //	veil model verify [<id>]
+//	veil model serve <command> [<arg> ...]
 //
 // list prints one JSON line per catalog entry. pull prints the model's
 // licence first, then downloads it only if --accept-license names exactly
 // that SPDX id, and prints where it is. verify re-hashes every cached
-// file of <id>, or of the model the policy selects. A failure is one
+// file of <id>, or of the model the policy selects. serve verifies the
+// selected model and runs <command>, the sidecar, in the foreground with
+// its socket, model directory and catalog entry in its environment, and
+// exits with its exit code. A failure is one
 // problem line on stderr and exit 1; bad arguments exit 2.
 func runModel(args []string, stdout, stderr io.Writer) int {
 	if len(args) == 0 {
@@ -65,6 +73,11 @@ func runModel(args []string, stdout, stderr io.Writer) int {
 			return usage(stderr)
 		}
 		return pullModel(stdout, stderr, catalog, root, id, accepted)
+	case "serve":
+		if len(rest) == 0 {
+			return usage(stderr)
+		}
+		return serveModel(stdout, stderr, catalog, root, rest[0], rest[1:])
 	case "verify":
 		if len(rest) > 1 {
 			return usage(stderr)
@@ -202,5 +215,76 @@ func failModel(stderr io.Writer, err error) int {
 		}
 	}
 	_ = problem.Write(stderr, problem.New(code))
+	return problem.ExitFailedClosed
+}
+
+// Environment of the sidecar `veil model serve` runs.
+const (
+	sidecarModelDirEnv = "VEIL_NER_MODEL_DIR"
+	sidecarEntryEnv    = "VEIL_NER_ENTRY"
+)
+
+// serveModel verifies the selected model and runs the sidecar command
+// with VEIL_NER_SOCKET, VEIL_NER_MODEL_DIR and VEIL_NER_ENTRY (the
+// entry's canonical JSON, whose SHA-256 is the entry digest the sidecar
+// reports). It never detaches: the sidecar lives as long as this process.
+func serveModel(stdout, stderr io.Writer, catalog *ner.Catalog, root, command string, args []string) int {
+	id, ok, err := selectedModel()
+	if err != nil {
+		return failPolicy(stderr, err)
+	}
+	if !ok {
+		return usage(stderr)
+	}
+	entry, err := catalog.Lookup(id)
+	if err != nil {
+		return failModel(stderr, err)
+	}
+	dir := ner.ModelDir(root, entry)
+	if err := ner.Verify(dir, entry); err != nil {
+		return failModel(stderr, err)
+	}
+	socket := ner.SocketPath()
+	if socket == "" {
+		return failNER(stderr)
+	}
+	if err := os.MkdirAll(filepath.Dir(socket), 0o700); err != nil {
+		return failNER(stderr)
+	}
+	cmd := exec.Command(command, args...) // #nosec G204 G702 -- the operator names the sidecar command to run
+	cmd.Stdout, cmd.Stderr = stdout, stderr
+	cmd.Env = append(os.Environ(),
+		ner.SocketEnvVar+"="+socket,
+		sidecarModelDirEnv+"="+dir,
+		sidecarEntryEnv+"="+string(entry.Canonical()),
+	)
+	// SIGINT and SIGTERM (Ctrl-C, systemd, kill) go to the sidecar, which
+	// removes its socket and exits; serve then exits with its code.
+	signals := make(chan os.Signal, 1)
+	signal.Notify(signals, os.Interrupt, syscall.SIGTERM)
+	defer signal.Stop(signals)
+	if err := cmd.Start(); err != nil {
+		return failNER(stderr)
+	}
+	go func() {
+		for sig := range signals {
+			_ = cmd.Process.Signal(sig)
+		}
+	}()
+	err = cmd.Wait()
+	var exit *exec.ExitError
+	switch {
+	case err == nil:
+		return problem.ExitDecision
+	case errors.As(err, &exit) && exit.ExitCode() >= 0:
+		return exit.ExitCode()
+	default:
+		return failNER(stderr)
+	}
+}
+
+// failNER reports a sidecar that could not be started.
+func failNER(stderr io.Writer) int {
+	_ = problem.Write(stderr, problem.New(problem.NERUnavailable))
 	return problem.ExitFailedClosed
 }
