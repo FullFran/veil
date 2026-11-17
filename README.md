@@ -738,8 +738,10 @@ parsers read differently (a case-insensitive decoder merges `value` and
 the host another.
 
 On an evaluated hook, a refusal is a **deny decision**, not an error: the
-code in `reason_codes`, the problem in `policy_data.veil.problem`,
-unsigned. An error carries no decision, and ACS section 6.4 has the
+code in `reason_codes`, the problem in `policy_data.veil.problem`, and,
+when veil holds the ACS key, signed with the request's session key even
+though the request itself did not verify (a host that requires signed
+responses would otherwise treat it as a failure). An error carries no decision, and ACS section 6.4 has the
 Observed Agent apply `on_decision_failure` to it, whose default is to
 proceed; a decision is always honoured. The same holds for a valid hook
 veil cannot decide (invalid policy, store, evidence or secret

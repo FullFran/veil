@@ -4,6 +4,7 @@ import (
 	"bytes"
 	"encoding/base64"
 	"encoding/json"
+	"fmt"
 	"maps"
 	"reflect"
 	"slices"
@@ -459,6 +460,7 @@ func TestAnswer_FailsClosedWithItsCode(t *testing.T) {
 				if reply.Failure != tc.code {
 					t.Fatalf("Failure = %q, want %q", reply.Failure, tc.code)
 				}
+				assertSignedIff(t, reply.Body, tc.secret, sessionOf(t, tc.msg))
 				return
 			}
 			data := assertError(t, reply, tc.rpc, tc.code)
@@ -490,6 +492,7 @@ func TestAnswer_ReplayedRequestID_IsRefused(t *testing.T) {
 			if replay.Failure != problem.ACSReplay {
 				t.Fatalf("Failure = %q, want %q", replay.Failure, problem.ACSReplay)
 			}
+			assertSignedIff(t, replay.Body, tc.secret, sessionOf(t, string(tc.msg)))
 		})
 	}
 }
@@ -566,9 +569,94 @@ func TestAnswer_ForgetsRequestIDsPastTheSkewWindow(t *testing.T) {
 func (v *version) remembered() int {
 	v.mu.Lock()
 	defer v.mu.Unlock()
-	n := 0
-	for _, ids := range v.seen {
-		n += len(ids)
+	if len(v.seen) != len(v.forgets) {
+		panic("replay map and forget queue disagree")
 	}
-	return n
+	return len(v.seen)
+}
+
+// sessionOf is the metadata.session_id of a request.
+func sessionOf(t *testing.T, msg string) string {
+	t.Helper()
+	var req struct {
+		Params struct {
+			Metadata struct {
+				SessionID string `json:"session_id"`
+			} `json:"metadata"`
+		} `json:"params"`
+	}
+	if err := json.Unmarshal([]byte(msg), &req); err != nil {
+		t.Fatal(err)
+	}
+	return req.Params.Metadata.SessionID
+}
+
+// assertSignedIff checks that a response carries a valid result.signature
+// under secret's session key when veil holds a secret, and none otherwise:
+// a host that requires signed responses treats an unsigned deny as a
+// failure and applies on_decision_failure.
+func assertSignedIff(t *testing.T, body []byte, secret *port.Secret, session string) {
+	t.Helper()
+	sig, signed := result(t, body)["signature"].(map[string]any)
+	if secret == nil {
+		if signed {
+			t.Fatalf("result.signature = %v, want none without a secret", sig)
+		}
+		return
+	}
+	if !signed || sig["algorithm"] != "HMAC-SHA256" || sig["key_id"] != secret.KeyID {
+		t.Fatalf("result.signature = %v, want HMAC-SHA256 with key_id %s", sig, secret.KeyID)
+	}
+	canonical, err := canonicalize(body, "result")
+	if err != nil {
+		t.Fatal(err)
+	}
+	key, err := deriveKey(secret.Bytes, session)
+	if err != nil {
+		t.Fatal(err)
+	}
+	if want := base64.StdEncoding.EncodeToString(mac(key, canonical)); sig["value"] != want {
+		t.Fatalf("result.signature.value = %v, want %s", sig["value"], want)
+	}
+}
+
+// TestCheckReplay_CostDoesNotGrowWithRememberedIDs remembers many
+// request_ids, none yet forgettable, then a few out-of-order ones expire.
+// Each request must cost the ids it looks up or forgets, not every id
+// remembered: a full scan per request makes this quadratic (minutes).
+func TestCheckReplay_CostDoesNotGrowWithRememberedIDs(t *testing.T) {
+	const n = 100000
+	now := readmeTime
+	v := New(port.Config{Guard: allowGuard, Now: func() time.Time { return now }}).(*version)
+	at := func(id int, ts time.Time) envelope {
+		var env envelope
+		env.params.RequestID = fmt.Sprintf("id-%d", id)
+		env.params.Timestamp = ts.Format(time.RFC3339Nano)
+		env.params.Metadata.SessionID = fmt.Sprintf("s-%d", id%7)
+		return env
+	}
+	start := time.Now()
+	for i := 0; i < n; i++ {
+		// Timestamps not in arrival order: the oldest arrives last.
+		if ref := v.checkReplay(at(i, readmeTime.Add(time.Duration(n-i)*time.Millisecond))); ref != nil {
+			t.Fatalf("request %d refused: %+v", i, ref)
+		}
+	}
+	if elapsed := time.Since(start); elapsed > 10*time.Second {
+		t.Fatalf("%d requests took %v, want work independent of the ids remembered", n, elapsed)
+	}
+	if ref := v.checkReplay(at(0, readmeTime)); ref == nil || ref.code != problem.ACSReplay {
+		t.Fatalf("replayed id-0 = %+v, want %s", ref, problem.ACSReplay)
+	}
+	// Forget exactly the ids whose timestamp + skewWindow is before now.
+	now = readmeTime.Add(skewWindow + time.Duration(n/2)*time.Millisecond).Add(time.Millisecond / 2)
+	if ref := v.checkReplay(at(n, now)); ref != nil {
+		t.Fatalf("fresh request refused: %+v", ref)
+	}
+	if got, want := v.remembered(), n/2+1; got != want {
+		t.Fatalf("remembered = %d, want %d", got, want)
+	}
+	if ref := v.checkReplay(at(n-1, readmeTime.Add(time.Millisecond))); ref != nil {
+		t.Fatalf("forgotten id-%d refused: %+v", n-1, ref)
+	}
 }

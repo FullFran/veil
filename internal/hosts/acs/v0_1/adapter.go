@@ -1,6 +1,7 @@
 package v0_1
 
 import (
+	"container/heap"
 	"crypto/hmac"
 	"encoding/base64"
 	"encoding/json"
@@ -33,16 +34,40 @@ var evaluated = []string{
 }
 
 type version struct {
-	cfg  port.Config
-	mu   sync.Mutex
-	seen map[string]map[string]time.Time // session_id -> request_id -> when it can be forgotten
+	cfg     port.Config
+	mu      sync.Mutex
+	seen    map[replayKey]struct{} // the request_ids remembered, per session
+	forgets forgetQueue            // the same, soonest forgettable first
+}
+
+// replayKey is a request_id within its session.
+type replayKey struct{ session, request string }
+
+// forgetQueue is a min-heap of remembered request_ids by the time each can
+// be forgotten, so pruning costs the ids it forgets, never all of them.
+type forgetQueue []forgetEntry
+
+type forgetEntry struct {
+	key    replayKey
+	forget time.Time
+}
+
+func (q forgetQueue) Len() int           { return len(q) }
+func (q forgetQueue) Less(i, j int) bool { return q[i].forget.Before(q[j].forget) }
+func (q forgetQueue) Swap(i, j int)      { q[i], q[j] = q[j], q[i] }
+func (q *forgetQueue) Push(x any)        { *q = append(*q, x.(forgetEntry)) }
+func (q *forgetQueue) Pop() any {
+	old := *q
+	last := old[len(old)-1]
+	*q = old[:len(old)-1]
+	return last
 }
 
 // New returns the ACS 0.1.0 answerer for cfg. It remembers request_ids
 // per session to refuse replays, each until its timestamp leaves the skew
 // window: from then on checkTimestamp refuses the request anyway.
 func New(cfg port.Config) port.Version {
-	return &version{cfg: cfg, seen: map[string]map[string]time.Time{}}
+	return &version{cfg: cfg, seen: map[replayKey]struct{}{}}
 }
 
 // Answer answers one JSON-RPC message. The checks run in this order, each
@@ -73,7 +98,7 @@ func (v *version) Answer(msg []byte) port.Reply {
 		if env.method == methodHello {
 			return v.refuse(env, refuse(rpcSessionRefused, v.cfg.Unavailable))
 		}
-		return v.reply(env, failureDeny(env, v.cfg.Unavailable), false, v.cfg.Unavailable)
+		return v.reply(env, failureDeny(env, v.cfg.Unavailable), v.cfg.Secret != nil, v.cfg.Unavailable)
 	}
 
 	verified, ref := v.verify(env)
@@ -120,13 +145,15 @@ var deniable = map[int]bool{
 	rpcTimestampOutOfWindow: true,
 }
 
-// refuse answers a refusal. On an evaluated hook it is an unsigned deny
-// carrying the problem, when that deny is a valid ACS response (it needs
+// refuse answers a refusal. On an evaluated hook it is a deny carrying
+// the problem, signed whenever veil holds a secret (a host that requires
+// signed responses would treat an unsigned one as a failure and apply
+// on_decision_failure), even though the request itself did not verify, when that deny is a valid ACS response (it needs
 // a string or number id and a uuid request_id); otherwise, and for every
 // other method, it is the JSON-RPC error.
 func (v *version) refuse(env envelope, r *refusal) port.Reply {
 	if !r.final && deniable[r.rpc] && slices.Contains(evaluated, env.method) {
-		reply := v.reply(env, failureDeny(env, r.code), false, r.code)
+		reply := v.reply(env, failureDeny(env, r.code), v.cfg.Secret != nil, r.code)
 		if validateResponse(reply.Body) == nil {
 			return reply
 		}
@@ -189,26 +216,15 @@ func (v *version) checkReplay(env envelope) *refusal {
 	v.mu.Lock()
 	defer v.mu.Unlock()
 	now := v.cfg.Clock()
-	for session, ids := range v.seen {
-		for id, forget := range ids {
-			if now.After(forget) {
-				delete(ids, id)
-			}
-		}
-		if len(ids) == 0 {
-			delete(v.seen, session)
-		}
+	for len(v.forgets) > 0 && now.After(v.forgets[0].forget) {
+		delete(v.seen, heap.Pop(&v.forgets).(forgetEntry).key)
 	}
-	session := env.params.Metadata.SessionID
-	ids := v.seen[session]
-	if ids == nil {
-		ids = map[string]time.Time{}
-		v.seen[session] = ids
-	}
-	if _, dup := ids[env.params.RequestID]; dup {
+	key := replayKey{env.params.Metadata.SessionID, env.params.RequestID}
+	if _, dup := v.seen[key]; dup {
 		return refuse(rpcReplayDetected, problem.ACSReplay)
 	}
-	ids[env.params.RequestID] = ts.Add(skewWindow)
+	v.seen[key] = struct{}{}
+	heap.Push(&v.forgets, forgetEntry{key, ts.Add(skewWindow)})
 	return nil
 }
 
@@ -263,13 +279,14 @@ func (v *version) hello(env envelope, verified bool) port.Reply {
 	}, verified, "")
 }
 
-// reply wraps result in a JSON-RPC response and, when the request was
-// verified, signs it with the request's session key over the JCS form of
-// the whole response minus result.signature (Specification section 10).
-func (v *version) reply(env envelope, result map[string]any, verified bool, failure problem.Code) port.Reply {
+// reply wraps result in a JSON-RPC response and, when sign is set (a
+// verified request, or a deny while veil holds a secret), signs it with
+// the request's session key over the JCS form of the whole response minus
+// result.signature (Specification section 10).
+func (v *version) reply(env envelope, result map[string]any, sign bool, failure problem.Code) port.Reply {
 	resp := map[string]any{"jsonrpc": "2.0", "id": port.EchoID(env.id), "result": result}
 	body, err := json.Marshal(resp)
-	if err == nil && verified {
+	if err == nil && sign {
 		var canonical, key []byte
 		canonical, err = canonicalize(body, "result")
 		if err == nil {
