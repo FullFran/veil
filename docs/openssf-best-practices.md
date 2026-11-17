@@ -22,8 +22,6 @@ Criteria IDs, order and wording come from the
 3. Go through the sections in order (Basics, Change Control, Reporting,
    Quality, Security, Analysis). For each criterion, pick the **Status** from
    the tables below and paste the **Justification** text into its box.
-   Criteria marked **"after #N"** are only true once pull request #N is
-   merged into `main`; fill them in after the merge.
 4. Save each section (**"Save (and continue)"**), then **"Submit"** at the end.
    Repeat for silver (<https://www.bestpractices.dev/en/projects/16829/silver/edit>)
    and gold (<https://www.bestpractices.dev/en/projects/16829/gold/edit>) once
@@ -176,7 +174,7 @@ unless they are listed here (at silver some SHOULDs become MUSTs).
 
 | Criterion | Status | Justification (paste) |
 |---|---|---|
-| `maintenance_or_update` | Met | Only the latest release is supported, and upgrading is replacing one binary; every change a host must act on is marked **Breaking** in https://github.com/FullFran/veil/blob/main/CHANGELOG.md with what to do, and old store formats are migrated on first use. See https://github.com/FullFran/veil/blob/main/docs/releasing.md#supported-versions (after #39). |
+| `maintenance_or_update` | Met | Only the latest release is supported, and upgrading is replacing one binary; every change a host must act on is marked **Breaking** in https://github.com/FullFran/veil/blob/main/CHANGELOG.md with what to do, and old store formats are migrated on first use. See https://github.com/FullFran/veil/blob/main/docs/releasing.md#supported-versions. |
 
 ### Reporting
 
@@ -195,17 +193,17 @@ unless they are listed here (at silver some SHOULDs become MUSTs).
 | `build_standard_variables` | Met | The Go toolchain honors its standard variables (`GOFLAGS`, `GOOS`, `GOARCH`, `CGO_ENABLED`, and `CC`/`CGO_CFLAGS`/`CGO_LDFLAGS` when cgo is on); the project adds no build system on top. |
 | `build_preserve_debug` | Met | `go build ./cmd/veil` keeps debugging information. Release binaries are stripped (`-s -w`) to reduce size; anyone can rebuild an unstripped binary from the tag. |
 | `build_non_recursive` | Met | `go build`; there is no recursive make. |
-| `build_repeatable` | Met (after #39) | Builds are reproducible: the same commit and Go version give the same bytes. https://github.com/FullFran/veil#reproducing-a-release-build |
+| `build_repeatable` | Met | Builds are reproducible: the same commit and Go version give the same bytes. https://github.com/FullFran/veil#reproducing-a-release-build |
 | `installation_common` | Met | Install: download a release binary or `go install github.com/FullFran/veil/cmd/veil@latest`. Uninstall: delete the binary (and the hook entry), documented in https://github.com/FullFran/veil#installing-on-claude-code |
 | `installation_standard_variables` | Met | `go install` honors `GOBIN` and `GOPATH`; prebuilt binaries go wherever the user puts them. |
 | `installation_development_quick` | Met | `git clone` and `go test ./...` with the Go version in `go.mod`: https://github.com/FullFran/veil#development |
 | `external_dependencies` | Met | `go.mod` and `go.sum` list every dependency with its version and checksum; the OpenCode plugin has none. |
-| `dependency_monitoring` | Met | Dependabot (https://github.com/FullFran/veil/blob/main/.github/dependabot.yml), govulncheck on every pull request, and osv-scanner over every lockfile (after #34). |
+| `dependency_monitoring` | Met | Dependabot (https://github.com/FullFran/veil/blob/main/.github/dependabot.yml), govulncheck on every pull request, and osv-scanner over every lockfile. |
 | `updateable_reused_components` | Met | Dependencies are Go modules, updated with `go get` and proposed weekly by Dependabot; none is copied into the repository. |
 | `interfaces_current` | Met | staticcheck (in golangci-lint) reports uses of deprecated APIs (SA1019) and fails CI. |
 | `automated_integration_testing` | Met | Every pull request and push to `main` runs the full suite, including end-to-end tests through the `veil` command: https://github.com/FullFran/veil/blob/main/.github/workflows/ci.yml |
 | `regression_tests_added50` | Met | Bug fixes add a regression test that fails without the fix (https://github.com/FullFran/veil/blob/main/.github/CONTRIBUTING.md#bug-fixes), e.g. https://github.com/FullFran/veil/pull/29 and https://github.com/FullFran/veil/pull/30 |
-| `test_statement_coverage80` | Met | 89.6% statement coverage over the module (`go test -coverpkg=./...`), measured on every pull request; CI fails below 80%. |
+| `test_statement_coverage80` | Met | 89.9% statement coverage over the module (`go test -coverpkg=./...`), measured on every pull request; CI fails below 80%. |
 | `test_policy_mandated` | Met | https://github.com/FullFran/veil/blob/main/.github/CONTRIBUTING.md (tests first, for every new behaviour). |
 | `tests_documented_added` | Met | https://github.com/FullFran/veil/blob/main/.github/CONTRIBUTING.md |
 | `warnings_strict` | Met | Any `go vet`, staticcheck or gosec finding fails CI. |
@@ -223,7 +221,7 @@ unless they are listed here (at silver some SHOULDs become MUSTs).
 | `crypto_certificate_verification` | N/A | veil does not use TLS. |
 | `crypto_verification_private` | N/A | veil does not use TLS. |
 | `signed_releases` | **Unmet until the next release (owner)** | The release workflow signs `SHA256SUMS` with Sigstore and attests SLSA provenance (https://github.com/FullFran/veil#verifying-a-release); v0.1.0 predates it, so it becomes Met when the next release is cut. |
-| `version_tags_signed` | **Unmet (owner)** | Tags are not signed yet; https://github.com/FullFran/veil/blob/main/docs/releasing.md (after #39) recommends `git tag -s`. |
+| `version_tags_signed` | **Unmet (owner)** | Tags are not signed yet; https://github.com/FullFran/veil/blob/main/docs/releasing.md recommends `git tag -s`. |
 | `input_validation` | Met | Host JSON is decoded strictly and size-limited, the policy is validated against a JSON Schema, session ids are encoded before they name files, and every parser is fuzzed: https://github.com/FullFran/veil/blob/main/docs/assurance-case.md |
 | `hardening` | Met | Memory-safe Go with `CGO_ENABLED=0`, owner-only store files, read-only CI tokens, fail-closed defaults, no network access. |
 | `assurance_case` | Met | https://github.com/FullFran/veil/blob/main/docs/assurance-case.md |
@@ -250,17 +248,17 @@ unless they are listed here (at silver some SHOULDs become MUSTs).
 | `secure_2FA` | **Owner confirms** | Met if the maintainer's GitHub 2FA is a passkey or security key, not SMS. |
 | `code_review_standards` | Met | https://github.com/FullFran/veil/blob/main/.github/CONTRIBUTING.md#code-review |
 | `two_person_review` | **Unmet (owner)** | Needs a second reviewer. |
-| `build_reproducible` | Met (after #39) | https://github.com/FullFran/veil#reproducing-a-release-build |
+| `build_reproducible` | Met | https://github.com/FullFran/veil#reproducing-a-release-build |
 | `test_invocation` | Met | `go test ./...` |
 | `test_continuous_integration` | Met | https://github.com/FullFran/veil/blob/main/.github/workflows/ci.yml on every pull request and push to `main`. |
-| `test_statement_coverage90` | Unmet | 89.6% statement coverage today (CI measures it on every pull request). |
+| `test_statement_coverage90` | Unmet | 89.9% statement coverage today (CI measures it on every pull request). |
 | `test_branch_coverage80` | Unmet | Go's tooling measures statements, not branches; branch coverage is not measured. |
 | `crypto_used_network` | N/A | No network communication. |
 | `crypto_tls12` | N/A | No TLS. |
 | `hardened_site` | Met | The repository and downloads are on github.com, which sends HSTS, `Content-Security-Policy`, `X-Content-Type-Options: nosniff` and `X-Frame-Options: deny`. |
 | `security_review` | Met | The LINDDUN and STRIDE threat model of November 2026 reviews every trust boundary, with each threat's mitigation and test: https://github.com/FullFran/veil/blob/main/docs/threat-model.md |
 | `hardening` | Met | As at silver. |
-| `dynamic_analysis` | Met | Every pull request runs the race detector over the whole suite and fuzzes every parser (https://github.com/FullFran/veil/blob/main/.github/workflows/fuzz.yml, after #40). |
+| `dynamic_analysis` | Met | Every pull request runs the race detector over the whole suite and fuzzes every parser (https://github.com/FullFran/veil/blob/main/.github/workflows/fuzz.yml). |
 | `dynamic_analysis_enable_assertions` | Met | Fuzz targets assert invariants (no leaked value, fail-closed errors, deterministic digests); the race detector checks every memory access during tests. |
 
 ## Owner-only items
