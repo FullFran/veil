@@ -113,6 +113,16 @@ const (
 	// ModelCatalogInvalid: the NER model catalog (VEIL_NER_CATALOG) is
 	// unreadable or invalid.
 	ModelCatalogInvalid Code = "VEIL_MODEL_CATALOG_INVALID"
+	// ModelMissing: a file of the NER model is not in the model cache.
+	ModelMissing Code = "VEIL_MODEL_MISSING"
+	// ModelDigestMismatch: a NER model file's size or SHA-256 differs
+	// from its catalog entry.
+	ModelDigestMismatch Code = "VEIL_MODEL_DIGEST_MISMATCH"
+	// ModelLicenseNotAccepted: `veil model pull` was not given the model's
+	// exact SPDX licence id with --accept-license.
+	ModelLicenseNotAccepted Code = "VEIL_MODEL_LICENSE_NOT_ACCEPTED"
+	// ModelDownload: a NER model file could not be downloaded or written.
+	ModelDownload Code = "VEIL_MODEL_DOWNLOAD"
 	// Timeout: raised by the OpenCode plugin when the binary does not
 	// answer in time.
 	Timeout Code = "VEIL_TIMEOUT"
@@ -181,6 +191,10 @@ var titles = map[Code]string{
 	NERModelMismatch:        "NER sidecar serves another model",
 	ModelUnknown:            "NER model is not in the catalog",
 	ModelCatalogInvalid:     "NER model catalog is invalid",
+	ModelMissing:            "NER model is not in the cache",
+	ModelDigestMismatch:     "NER model file does not match its digest",
+	ModelLicenseNotAccepted: "NER model licence not accepted",
+	ModelDownload:           "NER model download failed",
 	Timeout:                 "veil did not answer in time",
 	OutputTooLarge:          "veil answer is too large",
 	Unavailable:             "veil is unavailable",
@@ -219,6 +233,10 @@ var details = map[Code]string{
 	NERModelMismatch:        "The NER sidecar serves another model, revision or catalog entry than the policy selects; veil fails closed.",
 	ModelUnknown:            "The policy or VEIL_NER_MODEL selects a model id that no catalog entry has; veil fails closed.",
 	ModelCatalogInvalid:     "The NER model catalog in VEIL_NER_CATALOG is unreadable, does not match its schema, repeats an id or reuses an embedded id; veil fails closed.",
+	ModelMissing:            "A file of the selected NER model is not in the model cache; run veil model pull.",
+	ModelDigestMismatch:     "A NER model file's size or SHA-256 differs from its catalog entry; it is never used.",
+	ModelLicenseNotAccepted: "veil model pull needs --accept-license with the model's exact SPDX licence id.",
+	ModelDownload:           "A NER model file could not be downloaded over https or written to the cache.",
 	Timeout:                 "The veil binary did not answer before the deadline.",
 	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
 	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
@@ -233,7 +251,8 @@ var all = []Code{
 	ACSVersionUnsupported, ACSRequestInvalid, ACSMethodUnsupported, ACSSignatureInvalid,
 	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid, ACSUnredactable,
 	NERUnavailable, NERTimeout, NERCrashed, NERProtocol, NERModelMismatch,
-	ModelUnknown, ModelCatalogInvalid,
+	ModelUnknown, ModelCatalogInvalid, ModelMissing, ModelDigestMismatch,
+	ModelLicenseNotAccepted, ModelDownload,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,
 }

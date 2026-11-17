@@ -24,7 +24,7 @@
           "required": ["repo", "revision"],
           "properties": {
             "repo": { "type": "string", "minLength": 1 },
-            "revision": { "description": "Immutable revision: a commit hash or a release tag.", "type": "string", "minLength": 1 }
+            "revision": { "description": "Immutable revision: a commit hash or a release tag. It names a cache directory, so it is one path segment.", "type": "string", "pattern": "^[A-Za-z0-9][A-Za-z0-9._-]{0,127}$" }
           }
         },
         "license": { "description": "SPDX license identifier of the model.", "type": "string", "pattern": "^[A-Za-z0-9.+-]+$" },
