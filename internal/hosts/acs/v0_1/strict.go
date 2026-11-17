@@ -209,6 +209,20 @@ func hex4(raw []byte, at int) (rune, bool) {
 	if at+4 > len(raw) {
 		return 0, false
 	}
-	n, err := strconv.ParseUint(string(raw[at:at+4]), 16, 32)
-	return rune(n), err == nil
+	var r rune
+	for _, c := range raw[at : at+4] {
+		var d byte
+		switch {
+		case c >= '0' && c <= '9':
+			d = c - '0'
+		case c >= 'a' && c <= 'f':
+			d = c - 'a' + 10
+		case c >= 'A' && c <= 'F':
+			d = c - 'A' + 10
+		default:
+			return 0, false
+		}
+		r = r<<4 | rune(d)
+	}
+	return r, true
 }

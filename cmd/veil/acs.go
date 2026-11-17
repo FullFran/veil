@@ -25,7 +25,7 @@ import (
 const (
 	acsKeyIDEnv       = "VEIL_ACS_KEY_ID"
 	acsKeyFDEnv       = "VEIL_ACS_KEY_FD"
-	acsCredentialName = "veil-acs-key"
+	acsCredentialName = "veil-acs-key" // #nosec G101 -- the systemd credential's name, not a credential
 	// acsMinSecretBytes is the shortest secret veil accepts: the HMAC-SHA256
 	// output size, as ACS Specification section 10 requires.
 	acsMinSecretBytes = 32
@@ -79,7 +79,7 @@ func readACSSecret(getenv func(string) string) ([]byte, bool, error) {
 		return raw, true, nil
 	}
 	if dir := getenv("CREDENTIALS_DIRECTORY"); dir != "" {
-		raw, err := os.ReadFile(filepath.Join(dir, acsCredentialName))
+		raw, err := os.ReadFile(filepath.Join(dir, acsCredentialName)) // #nosec G304 -- the service manager sets CREDENTIALS_DIRECTORY; the file name is fixed
 		switch {
 		case err == nil:
 			return raw, true, nil
@@ -115,7 +115,7 @@ func runACS(stdin io.Reader, stdout, stderr io.Writer) int {
 
 	failed := false
 	onFailure := func(code problem.Code) {
-		problem.Write(stderr, problem.New(code))
+		_ = problem.Write(stderr, problem.New(code))
 		failed = true
 	}
 	if err := acs.Serve(stdin, stdout, acs.NewServer(cfg).Answer, onFailure); err != nil {
