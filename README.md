@@ -715,18 +715,24 @@ The release workflow runs both checks on the files before it publishes them.
 
 ### Reproducing a release build
 
-The binaries are reproducible: the same commit, built from a clean checkout
-with the same Go toolchain, gives the same bytes (`-trimpath`, no build
-time or path in the binary). `go version -m` on an asset prints the Go
-version and the commit it was built from. To rebuild one and compare it with
+The binaries are reproducible, but byte identity holds only for **the same
+commit built with the same Go version**, the two values `go version -m`
+reports for a release asset: the Go version on its first line and the commit
+in `vcs.revision`. Built that way from a clean checkout, the binary has the
+same bytes (`-trimpath`, no build time or path in it); a different Go
+version or commit gives different bytes. To rebuild one and compare it with
 the release's `SHA256SUMS`:
 
 ```bash
 TAG=v0.3.0
-git clone --depth 1 --branch "$TAG" https://github.com/FullFran/veil && cd veil
-go version -m ../veil-linux-amd64 | head -1   # use this Go version
-CGO_ENABLED=0 GOOS=linux GOARCH=amd64 go build -trimpath -ldflags "-s -w" -o ../rebuilt ./cmd/veil
-sha256sum ../rebuilt ../veil-linux-amd64
+go version -m veil-linux-amd64 | head -1               # "veil-linux-amd64: go1.X.Y"
+go version -m veil-linux-amd64 | grep vcs.revision     # the commit it was built from
+GO_VERSION=go1.X.Y                                     # the version printed above
+git clone --branch "$TAG" https://github.com/FullFran/veil veil-src
+git -C veil-src rev-parse HEAD                         # must equal vcs.revision
+(cd veil-src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOTOOLCHAIN="$GO_VERSION" \
+  go build -trimpath -ldflags "-s -w" -o ../rebuilt ./cmd/veil)
+sha256sum rebuilt veil-linux-amd64                     # the two digests match
 ```
 
 Build from a checkout with no untracked files: Go records whether the tree
