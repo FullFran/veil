@@ -6,15 +6,18 @@ import (
 	"errors"
 	"fmt"
 	"io"
+	"math"
 	"sort"
 	"strconv"
 	"unicode/utf16"
 )
 
 // canonicalJSON serializes v (as decoded by jsonschema.UnmarshalJSON) in
-// the RFC 8785 (JCS) canonical form. The policy schema admits no numbers,
-// so this implements JCS for null, booleans, strings, arrays and objects
-// and rejects numbers rather than guess at ECMAScript number formatting.
+// the RFC 8785 (JCS) canonical form. The policy schema admits only integer
+// numbers (ner.timeoutMs, at most 30000), so numbers are supported when
+// they are integers of at most 2^53 in magnitude, where the ECMAScript
+// form is the plain decimal integer; any other number is rejected rather
+// than guessed at.
 func canonicalJSON(v any) ([]byte, error) {
 	var b bytes.Buffer
 	if err := writeCanonical(&b, v); err != nil {
@@ -31,6 +34,12 @@ func writeCanonical(b *bytes.Buffer, v any) error {
 		b.WriteString(strconv.FormatBool(x))
 	case string:
 		writeCanonicalString(b, x)
+	case json.Number:
+		f, err := strconv.ParseFloat(string(x), 64)
+		if err != nil || f != math.Trunc(f) || math.Abs(f) > 1<<53 {
+			return fmt.Errorf("canonical form of number %s is not supported", x)
+		}
+		b.WriteString(strconv.FormatInt(int64(f), 10))
 	case []any:
 		b.WriteByte('[')
 		for i, e := range x {

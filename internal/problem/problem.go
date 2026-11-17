@@ -108,6 +108,11 @@ const (
 	// NERModelMismatch: the NER sidecar serves another model, revision or
 	// catalog entry than the one the policy selects.
 	NERModelMismatch Code = "VEIL_NER_MODEL_MISMATCH"
+	// ModelUnknown: the selected NER model is in no catalog entry.
+	ModelUnknown Code = "VEIL_MODEL_UNKNOWN"
+	// ModelCatalogInvalid: the NER model catalog (VEIL_NER_CATALOG) is
+	// unreadable or invalid.
+	ModelCatalogInvalid Code = "VEIL_MODEL_CATALOG_INVALID"
 	// Timeout: raised by the OpenCode plugin when the binary does not
 	// answer in time.
 	Timeout Code = "VEIL_TIMEOUT"
@@ -174,6 +179,8 @@ var titles = map[Code]string{
 	NERCrashed:              "NER sidecar closed the connection",
 	NERProtocol:             "NER sidecar answer is invalid",
 	NERModelMismatch:        "NER sidecar serves another model",
+	ModelUnknown:            "NER model is not in the catalog",
+	ModelCatalogInvalid:     "NER model catalog is invalid",
 	Timeout:                 "veil did not answer in time",
 	OutputTooLarge:          "veil answer is too large",
 	Unavailable:             "veil is unavailable",
@@ -210,6 +217,8 @@ var details = map[Code]string{
 	NERCrashed:              "The NER sidecar closed the connection before answering; veil fails closed.",
 	NERProtocol:             "The NER sidecar answered something that is not a valid protocol version 1 answer; veil fails closed.",
 	NERModelMismatch:        "The NER sidecar serves another model, revision or catalog entry than the policy selects; veil fails closed.",
+	ModelUnknown:            "The policy or VEIL_NER_MODEL selects a model id that no catalog entry has; veil fails closed.",
+	ModelCatalogInvalid:     "The NER model catalog in VEIL_NER_CATALOG is unreadable, does not match its schema, repeats an id or reuses an embedded id; veil fails closed.",
 	Timeout:                 "The veil binary did not answer before the deadline.",
 	OutputTooLarge:          "The veil binary answered with more data than the plugin accepts.",
 	Unavailable:             "The veil binary cannot be run or its answer cannot be understood.",
@@ -224,6 +233,7 @@ var all = []Code{
 	ACSVersionUnsupported, ACSRequestInvalid, ACSMethodUnsupported, ACSSignatureInvalid,
 	ACSReplay, ACSTimestampOutOfWindow, ACSKeyInvalid, ACSUnredactable,
 	NERUnavailable, NERTimeout, NERCrashed, NERProtocol, NERModelMismatch,
+	ModelUnknown, ModelCatalogInvalid,
 	Timeout, OutputTooLarge, Unavailable,
 	Internal,
 }

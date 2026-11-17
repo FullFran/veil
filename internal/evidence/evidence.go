@@ -62,6 +62,7 @@ const dpvBase = "https://w3id.org/dpv/pd#"
 // category while the detector id stays.
 var dpvByDetector = map[string]string{
 	"name-catalog": dpvBase + "Name",
+	"ner":          dpvBase + "Name",
 	"email":        dpvBase + "EmailAddress",
 	"phone":        dpvBase + "TelephoneNumber",
 	"dni":          dpvBase + "OfficialID",
@@ -73,6 +74,7 @@ var dpvByDetector = map[string]string{
 // subtype next to the DPV IRI.
 var labelByDetector = map[string]string{
 	"name-catalog": "NOMBRE",
+	"ner":          "NOMBRE",
 	"email":        "EMAIL",
 	"phone":        "TEL",
 	"dni":          "DNI",
@@ -93,7 +95,19 @@ type Input struct {
 	PolicyDigest    string
 	PolicyVersion   string
 	CatalogRevision string
-	Duration        time.Duration
+	// NERModel identifies the NER model that answered for this decision,
+	// or nil when the policy does not enable ner or the event never
+	// reached the sidecar (nothing to scan).
+	NERModel *NERModel
+	Duration time.Duration
+}
+
+// NERModel identifies a NER model: its catalog id, pinned revision and
+// the digest of its catalog entry. Never text or spans (HCS-0005-R011).
+type NERModel struct {
+	ID          string `json:"id"`
+	Revision    string `json:"revision"`
+	EntryDigest string `json:"entry_digest"`
 }
 
 // Record is a CloudEvents 1.0.2 event in structured JSON mode.
@@ -198,10 +212,11 @@ type Unmapped struct {
 
 // Veil is the veil profile of a record.
 type Veil struct {
-	Schema          string `json:"schema"`
-	Event           string `json:"event"`
-	Tool            string `json:"tool,omitempty"`
-	CatalogRevision string `json:"catalog_revision,omitempty"`
+	Schema          string    `json:"schema"`
+	Event           string    `json:"event"`
+	Tool            string    `json:"tool,omitempty"`
+	CatalogRevision string    `json:"catalog_revision,omitempty"`
+	NERModel        *NERModel `json:"ner_model,omitempty"`
 }
 
 type verdict struct {
@@ -260,7 +275,7 @@ func Build(in Input) (Record, error) {
 				DiscoveryDetails:     details,
 			},
 			Duration: in.Duration.Milliseconds(),
-			Unmapped: Unmapped{Veil: Veil{Schema: SchemaVersion, Event: string(in.Event), Tool: in.Tool, CatalogRevision: in.CatalogRevision}},
+			Unmapped: Unmapped{Veil: Veil{Schema: SchemaVersion, Event: string(in.Event), Tool: in.Tool, CatalogRevision: in.CatalogRevision, NERModel: in.NERModel}},
 		},
 	}, nil
 }
