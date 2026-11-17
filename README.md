@@ -1366,6 +1366,18 @@ real, installed OpenCode CLI against a local mock model provider, since
 that is the only way to prove OpenCode's actual plugin loader and hook
 signatures still behave the way this repo's design assumes.
 
+## Project
+
+- [GOVERNANCE.md](GOVERNANCE.md): roles and how decisions are made.
+- [ROADMAP.md](ROADMAP.md): what comes next and what is not planned.
+- [CODE_OF_CONDUCT.md](CODE_OF_CONDUCT.md): Contributor Covenant 2.1.
+- [CONTRIBUTING.md](.github/CONTRIBUTING.md): coding and review standards.
+- [docs/architecture.md](docs/architecture.md) and
+  [docs/assurance-case.md](docs/assurance-case.md): how veil is built and
+  why its security claims hold.
+- [docs/openssf-best-practices.md](docs/openssf-best-practices.md): the
+  OpenSSF Best Practices answers.
+
 ## License
 
 Apache License 2.0. See `LICENSE` and `NOTICE`.

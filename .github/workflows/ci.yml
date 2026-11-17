@@ -44,8 +44,16 @@ jobs:
         run: go vet ./...
 
       # The race detector instruments every test run (dynamic analysis).
+      # Coverage counts every package's statements, whichever package's
+      # tests run them, and fails below MIN_COVERAGE percent.
       - name: go test
-        run: go test -race -count=1 ./...
+        env:
+          MIN_COVERAGE: "80"
+        run: |
+          go test -race -count=1 -coverpkg=./... -coverprofile="$RUNNER_TEMP/coverage.out" ./...
+          total="$(go tool cover -func="$RUNNER_TEMP/coverage.out" | awk '/^total:/ { sub(/%/, "", $NF); print $NF }')"
+          echo "Statement coverage: ${total}% (minimum ${MIN_COVERAGE}%)" | tee -a "$GITHUB_STEP_SUMMARY"
+          awk -v t="$total" -v m="$MIN_COVERAGE" 'BEGIN { exit !(t >= m) }'
 
   lint:
     name: static analysis (golangci-lint, gosec)
