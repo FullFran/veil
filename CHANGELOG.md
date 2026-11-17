@@ -13,6 +13,25 @@ Each release's notes on GitHub are its section of this file
 
 ## [Unreleased]
 
+### Changed
+
+- **Breaking: store format change.** Session files are named injectively:
+  `<state>/veil/sessions/ids/<stem>.*`, where the stem is the session id in
+  RFC 4648 base32 (lowercase, no padding), or a 60-byte prefix plus its
+  SHA-256 with a `<stem>.id` file for ids over 100 bytes. Distinct session
+  ids such as `a/b`, `a\b`, `a..b` and `a_b` no longer share a mapping,
+  a counters file or a `forget` (#26). Existing stores are migrated on
+  first use: a legacy stem only one id can have produced is moved and
+  keeps its markers; a stem several ids could have produced (with `_`, or
+  `unknown-session`) is never read again for any of them, only its
+  counters seed theirs, and it stays reachable with `veil store find`
+  (`legacy_stem`), `veil store forget --legacy-stem <stem>` and the sweep
+  (`legacy_stems`). Hosts must stop every older veil first; markers minted
+  before the upgrade in such a shared session no longer rehydrate.
+- **Breaking:** an event that needs a pseudonym and carries no session id
+  fails closed with the new code `VEIL_SESSION_ID_MISSING` instead of
+  sharing the `unknown-session` store (#26).
+
 ### Added
 
 - Failures are reported as RFC 9457 problem details: one JSON line on stderr

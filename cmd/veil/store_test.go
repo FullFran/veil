@@ -71,6 +71,12 @@ func sessionsDir() string {
 	return filepath.Join(os.Getenv("XDG_STATE_HOME"), "veil", "sessions")
 }
 
+// sessionFile is the path of one of session's files (suffix ".age",
+// ".ctr", ".lock"...).
+func sessionFile(session, suffix string) string {
+	return pseudonymstore.SessionPath(sessionsDir(), session) + suffix
+}
+
 // foreignSession writes sess-1 encrypted to a key no source will give.
 func foreignSession(t *testing.T) {
 	t.Helper()
@@ -96,10 +102,10 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 		wantCode problem.Code
 	}{
 		{"store locked", func(t *testing.T) {
-			if err := os.MkdirAll(sessionsDir(), 0o700); err != nil {
+			if err := os.MkdirAll(filepath.Dir(sessionFile("sess-1", "")), 0o700); err != nil {
 				t.Fatal(err)
 			}
-			holdLock(t, filepath.Join(sessionsDir(), "sess-1.json.lock"))
+			holdLock(t, sessionFile("sess-1", ".lock"))
 		}, problem.StoreLocked},
 		{"key missing for an existing store", func(t *testing.T) {
 			useKeyring(t, newFakeKeyring())
@@ -127,7 +133,7 @@ func TestRun_StoreFailures_ReportTheirCode(t *testing.T) {
 		{"session retired by a keyless forget without counters", func(t *testing.T) {
 			useKeyring(t, newFakeKeyring())
 			foreignSession(t)
-			if err := os.Remove(filepath.Join(sessionsDir(), "sess-1.ctr")); err != nil {
+			if err := os.Remove(sessionFile("sess-1", ".ctr")); err != nil {
 				t.Fatal(err)
 			}
 			if exit, _, stderr := storeCmd("forget", "sess-1"); exit != problem.ExitDecision {

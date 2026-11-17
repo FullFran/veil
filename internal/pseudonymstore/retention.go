@@ -20,17 +20,57 @@ type SweepResult struct {
 	// Failed sessions could not be locked or removed; the sweep went on
 	// with the rest.
 	Failed []string `json:"failed"`
+	// LegacyStems is the same for store files a veil before #26 left
+	// under a name several session ids could have produced (see
+	// ambiguousLegacy): they are reported by that name, never as a
+	// session id, since their session id cannot be known.
+	LegacyStems LegacySweep `json:"legacy_stems"`
+}
+
+// LegacySweep is what a sweep did to legacy stems (see SweepResult).
+type LegacySweep struct {
+	Forgotten []string `json:"forgotten"`
+	Skipped   []string `json:"skipped"`
+	Failed    []string `json:"failed"`
+}
+
+// NewSweepResult returns a result with every list empty, not null.
+func NewSweepResult() SweepResult {
+	return SweepResult{
+		Forgotten: []string{}, Skipped: []string{}, Failed: []string{},
+		LegacyStems: LegacySweep{Forgotten: []string{}, Skipped: []string{}, Failed: []string{}},
+	}
 }
 
 // sweepLocked runs after Sweep takes a session's lock, before its
-// re-check. It is a variable only so tests can use a session meanwhile.
-var sweepLocked = func(sessionID string) {}
+// re-check, with the session id (or the legacy stem). It is a variable
+// only so tests can use a session meanwhile.
+var sweepLocked = func(name string) {}
 
 // Holding is one session whose store holds a searched value: the session
 // id and the categories the value was pseudonymized under, never a value.
+// A store a veil before #26 left under a name several session ids could
+// have produced has no knowable session id: it is reported by that name
+// in LegacyStem instead, and erased with ForgetLegacy.
 type Holding struct {
-	Session    string   `json:"session"`
+	Session    string   `json:"session,omitempty"`
+	LegacyStem string   `json:"legacy_stem,omitempty"`
 	Categories []string `json:"categories"`
+}
+
+// entry is one store on disk: where it is and what to report it as. id
+// is the real session id; it is empty only for an ambiguous legacy stem.
+type entry struct {
+	loc loc
+	id  string
+}
+
+// name is what a report calls the entry: its session id, else its stem.
+func (e entry) name() string {
+	if e.id != "" {
+		return e.id
+	}
+	return e.loc.stem
 }
 
 // Sweep removes every session unused for longer than ttl (GDPR art.
@@ -42,59 +82,73 @@ type Holding struct {
 // used the session, and deletes through removeLocked, the same path as
 // Forget. A session it cannot lock or remove is reported failed and the
 // sweep goes on with the rest; the error then joins every failure.
+// Legacy files are swept where they are, without migrating them.
 func (s *FileStore) Sweep(ttl time.Duration, limit int) (SweepResult, error) {
-	result := SweepResult{Forgotten: []string{}, Skipped: []string{}, Failed: []string{}}
-	sessions, err := s.sessions()
+	result := NewSweepResult()
+	entries, unnamed, err := s.entries()
 	if err != nil {
 		return result, err
 	}
 	now := s.now()
 	var failures []error
-	for _, id := range sessions {
-		if limit > 0 && len(result.Forgotten)+len(result.Failed) >= limit {
+	// A file that names no session must not stop retention for the
+	// others: it is reported by its file name and the sweep goes on.
+	for _, stem := range unnamed {
+		result.Failed = append(result.Failed, idsDir+"/"+stem)
+		failures = append(failures, fmt.Errorf("%w: a store file name maps to no session id", ErrCorrupt))
+	}
+	done := 0
+	for _, e := range entries {
+		if limit > 0 && done >= limit {
 			break
 		}
-		if !s.expired(id, now, ttl) {
+		if !expired(e.loc, now, ttl) {
 			continue
 		}
-		removed, held, err := s.sweepOne(id, now, ttl)
+		forgotten, skipped, failed := &result.Forgotten, &result.Skipped, &result.Failed
+		if e.id == "" {
+			forgotten, skipped, failed = &result.LegacyStems.Forgotten, &result.LegacyStems.Skipped, &result.LegacyStems.Failed
+		}
+		removed, held, err := s.sweepOne(e, now, ttl)
 		switch {
 		case err != nil:
-			result.Failed = append(result.Failed, id)
+			*failed = append(*failed, e.name())
 			failures = append(failures, err)
+			done++
 		case !held:
-			result.Skipped = append(result.Skipped, id)
+			*skipped = append(*skipped, e.name())
 		case removed:
-			result.Forgotten = append(result.Forgotten, id)
+			*forgotten = append(*forgotten, e.name())
+			done++
 		}
 	}
 	return result, errors.Join(failures...)
 }
 
-// sweepOne removes one session if it is still expired once its lock is
+// sweepOne removes one store if it is still expired once its lock is
 // held. held is false when another process holds the lock.
-func (s *FileStore) sweepOne(id string, now time.Time, ttl time.Duration) (removed, held bool, err error) {
-	release, held, err := tryLock(s.lockPath(id))
+func (s *FileStore) sweepOne(e entry, now time.Time, ttl time.Duration) (removed, held bool, err error) {
+	release, held, err := tryLock(e.loc.lockPath())
 	if err != nil || !held {
 		return false, held, err
 	}
 	defer release()
-	sweepLocked(id)
-	if !s.expired(id, now, ttl) {
+	sweepLocked(e.name())
+	if !expired(e.loc, now, ttl) {
 		return false, true, nil
 	}
-	if err := s.removeLocked(id); err != nil {
+	if err := s.removeLocked(e.loc); err != nil {
 		return false, true, err
 	}
 	return true, true, nil
 }
 
-// expired reports whether the session's newest file was last used more
-// than ttl before now. A session with no file left is not expired.
-func (s *FileStore) expired(id string, now time.Time, ttl time.Duration) bool {
+// expired reports whether the location's newest file was last used more
+// than ttl before now. A location with no file left is not expired.
+func expired(l loc, now time.Time, ttl time.Duration) bool {
 	var last time.Time
 	found := false
-	for _, path := range []string{s.agePath(id), s.legacyPath(id)} {
+	for _, path := range []string{l.agePath(), l.v1Path()} {
 		if info, err := os.Lstat(path); err == nil && info.Mode().IsRegular() {
 			found = true
 			if info.ModTime().After(last) {
@@ -107,27 +161,33 @@ func (s *FileStore) expired(id string, now time.Time, ttl time.Duration) bool {
 
 // Find lists the sessions whose store holds any of values (the canonical
 // forms of one value, as detection keys it), sorted by session, for a
-// data subject's access or erasure request (GDPR arts. 15 and 17).
+// data subject's access or erasure request (GDPR arts. 15 and 17), then
+// the legacy stems that hold them (see Holding).
 //
 // It decrypts every session and checks every entry with no early exit, so
 // its duration depends on the store's size, not on whether or where a
-// value is. It only reads: a v1 plaintext session is not migrated and no
-// key is generated. It fails closed: a session it cannot read (missing or wrong
-// key, corrupt file) aborts the whole search with no partial answer, since
-// an incomplete answer to such a request is worse than none.
+// value is. It only reads: no file is migrated and no key is generated.
+// It fails closed: a session it cannot read (missing or wrong key,
+// corrupt file, a file name veil cannot map back to a session id) aborts
+// the whole search with no partial answer, since an incomplete answer to
+// such a request is worse than none.
 func (s *FileStore) Find(values []string) ([]Holding, error) {
 	want := make(map[string]struct{}, len(values))
 	for _, v := range values {
 		want[v] = struct{}{}
 	}
-	sessions, err := s.sessions()
+	entries, unnamed, err := s.entries()
 	if err != nil {
 		return nil, err
 	}
+	if len(unnamed) > 0 { // an incomplete answer is worse than none
+		return nil, fmt.Errorf("%w: a store file name maps to no session id", ErrCorrupt)
+	}
 
 	holdings := []Holding{}
-	for _, id := range sessions {
-		data, err := s.peek(id)
+	index := map[string]int{} // a session met twice (a migration cut short) is one holding
+	for _, e := range entries {
+		data, err := s.peek(e.loc)
 		if err != nil {
 			return nil, err
 		}
@@ -141,47 +201,98 @@ func (s *FileStore) Find(values []string) ([]Holding, error) {
 		if len(categories) == 0 {
 			continue
 		}
-		h := Holding{Session: id, Categories: make([]string, 0, len(categories))}
+		key := "legacy:" + e.loc.stem
+		h := Holding{LegacyStem: e.loc.stem}
+		if e.id != "" {
+			key, h = "session:"+e.id, Holding{Session: e.id}
+		}
+		if i, ok := index[key]; ok {
+			for _, c := range holdings[i].Categories {
+				categories[c] = struct{}{}
+			}
+			h = holdings[i]
+		} else {
+			index[key] = len(holdings)
+			holdings = append(holdings, h)
+		}
+		h.Categories = make([]string, 0, len(categories))
 		for c := range categories {
 			h.Categories = append(h.Categories, c)
 		}
 		sort.Strings(h.Categories)
-		holdings = append(holdings, h)
+		holdings[index[key]] = h
 	}
 	return holdings, nil
 }
 
-// sessions lists the ids of the sessions with a store file (v2 age or v1
-// plaintext) in the store directory, sorted. A missing directory has none.
-func (s *FileStore) sessions() ([]string, error) {
-	entries, err := os.ReadDir(s.dir)
+// entries lists every store with a mapping file (v2 age or v1 plaintext):
+// the current ones in the ids directory, sorted by session id, then the
+// legacy ones in the store directory, sorted by stem. A legacy stem only
+// one session id can have produced is that session id; an ambiguous one
+// has none. A current file whose stem veil cannot map back to a session
+// id (not canonical base32, or a hashed stem without a matching .id file)
+// is returned in unnamed, by stem: Sweep reports it as failed and goes
+// on, Find fails closed. A missing directory has none.
+func (s *FileStore) entries() (out []entry, unnamed []string, err error) {
+	legacy, err := s.stems(s.dir)
+	if err != nil {
+		return nil, nil, err
+	}
+	current, err := s.stems(s.idsPath())
+	if err != nil {
+		return nil, nil, err
+	}
+
+	for _, stem := range current {
+		id, ok := s.idOf(stem)
+		if !ok {
+			unnamed = append(unnamed, stem)
+			continue
+		}
+		stem, hashed := encodeStem(id)
+		out = append(out, entry{loc: loc{dir: s.idsPath(), stem: stem, id: id, hashed: hashed}, id: id})
+	}
+	sort.Slice(out, func(i, j int) bool { return out[i].id < out[j].id })
+	for _, stem := range legacy {
+		e := entry{loc: s.legacyAt(stem)}
+		if !ambiguousLegacy(stem) {
+			e.id = stem
+		}
+		out = append(out, e)
+	}
+	return out, unnamed, nil
+}
+
+// stems lists the stems of the mapping files (age or v1) in dir, sorted.
+func (s *FileStore) stems(dir string) ([]string, error) {
+	entries, err := os.ReadDir(dir)
 	if errors.Is(err, fs.ErrNotExist) {
 		return nil, nil
 	}
 	if err != nil {
 		return nil, fmt.Errorf("pseudonymstore: list sessions: %w", err)
 	}
-	if err := securePrivateDir(s.dir); err != nil {
+	if err := securePrivateDir(dir); err != nil {
 		return nil, err
 	}
 
 	seen := map[string]bool{}
-	var ids []string
+	var stems []string
 	for _, e := range entries {
 		if !e.Type().IsRegular() {
 			continue
 		}
 		name := e.Name()
-		id, ok := strings.CutSuffix(name, ".age")
+		stem, ok := strings.CutSuffix(name, ".age")
 		if !ok {
-			id, ok = strings.CutSuffix(name, ".json")
+			stem, ok = strings.CutSuffix(name, ".json")
 		}
-		if !ok || id == "" || seen[id] {
+		if !ok || stem == "" || seen[stem] {
 			continue
 		}
-		seen[id] = true
-		ids = append(ids, id)
+		seen[stem] = true
+		stems = append(stems, stem)
 	}
-	sort.Strings(ids)
-	return ids, nil
+	sort.Strings(stems)
+	return stems, nil
 }

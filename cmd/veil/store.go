@@ -3,6 +3,7 @@ package main
 import (
 	"bytes"
 	"encoding/json"
+	"errors"
 	"io"
 	"strings"
 
@@ -21,6 +22,7 @@ const maxFindValue = 64 << 10
 //
 //	veil store reveal <session>
 //	veil store forget <session> [<session> ...]
+//	veil store forget --legacy-stem <stem> [<stem> ...]
 //	veil store find --value <value|->
 //	veil store sweep
 //
@@ -45,17 +47,26 @@ func runStore(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			Markers []pseudonymstore.Marker `json:"markers"`
 		}{markers})
 	case "forget":
+		forget := newStore().Forget
+		if len(rest) > 0 && rest[0] == "--legacy-stem" {
+			// A store a veil before #26 left under a name several session
+			// ids shared: no session id reaches it, so it is named.
+			forget, rest = newStore().ForgetLegacy, rest[1:]
+		}
 		if len(rest) == 0 {
 			return usage(stderr)
 		}
-		for _, session := range rest {
-			if session == "" {
+		for _, name := range rest {
+			if name == "" {
 				return usage(stderr)
 			}
 		}
-		store := newStore()
-		for _, session := range rest {
-			if err := store.Forget(session); err != nil {
+		for _, name := range rest {
+			err := forget(name)
+			if errors.Is(err, pseudonymstore.ErrLegacyStemInvalid) {
+				return usage(stderr)
+			}
+			if err != nil {
 				return failStore(stderr, err)
 			}
 		}
@@ -81,7 +92,7 @@ func runStore(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 			_ = problem.Write(stderr, problem.New(classifyPolicyError(err)))
 			return problem.ExitFailedClosed
 		}
-		result := pseudonymstore.SweepResult{Forgotten: []string{}, Skipped: []string{}, Failed: []string{}}
+		result := pseudonymstore.NewSweepResult()
 		if ttl, ok := p.Retention(); ok {
 			result, err = newStore().Sweep(ttl, 0)
 		}

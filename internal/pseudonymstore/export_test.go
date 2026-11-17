@@ -43,3 +43,20 @@ func OnSweepLocked(t *testing.T, f func(sessionID string)) {
 	sweepLocked = f
 	t.Cleanup(func() { sweepLocked = prev })
 }
+
+// CrashMigrationAfter makes a migration stop with err right after it
+// moves the file with suffix, as a crash there would, for the rest of
+// the test or until the returned function is called.
+func CrashMigrationAfter(t *testing.T, suffix string, err error) (recover func()) {
+	t.Helper()
+	prev := migrateStep
+	migrateStep = func(s string) error {
+		if s == suffix {
+			return err
+		}
+		return nil
+	}
+	recover = func() { migrateStep = prev }
+	t.Cleanup(recover)
+	return recover
+}

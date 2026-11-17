@@ -41,20 +41,29 @@ type countersFile struct {
 
 const countersVersion = 1
 
-// raiseCounters lifts data's counters to at least the counters file's, so
-// numbering continues after a removal.
-func (s *FileStore) raiseCounters(sessionID string, data *sessionFile) error {
-	raw, err := os.ReadFile(s.countersPath(sessionID))
+// readCountersFile reads l's counters file. found is false when it does
+// not exist. One that cannot be parsed fails closed: starting from zero
+// could reuse a marker.
+func readCountersFile(l loc) (c countersFile, found bool, err error) {
+	raw, err := os.ReadFile(l.countersPath())
 	if errors.Is(err, fs.ErrNotExist) {
-		return nil
+		return countersFile{}, false, nil
 	}
 	if err != nil {
-		return fmt.Errorf("pseudonymstore: read counters: %w", err)
+		return countersFile{}, false, fmt.Errorf("pseudonymstore: read counters: %w", err)
 	}
-	var c countersFile
 	if err := json.Unmarshal(raw, &c); err != nil || c.Version != countersVersion {
-		// Starting from zero could reuse a marker: fail closed.
-		return fmt.Errorf("%w: counters file", ErrCorrupt)
+		return countersFile{}, false, fmt.Errorf("%w: counters file", ErrCorrupt)
+	}
+	return c, true, nil
+}
+
+// raiseCounters lifts data's counters to at least the counters file's, so
+// numbering continues after a removal.
+func (s *FileStore) raiseCounters(l loc, data *sessionFile) error {
+	c, found, err := readCountersFile(l)
+	if err != nil || !found {
+		return err
 	}
 	if c.Retired {
 		return ErrSessionRetired
@@ -69,28 +78,39 @@ func (s *FileStore) raiseCounters(sessionID string, data *sessionFile) error {
 
 // writeCounters durably replaces the session's counters file. The caller
 // holds the session lock.
-func (s *FileStore) writeCounters(sessionID string, counters map[string]int) error {
-	return s.writeCountersFile(sessionID, countersFile{Version: countersVersion, Counters: counters})
+func (s *FileStore) writeCounters(l loc, counters map[string]int) error {
+	return s.writeCountersFile(l, countersFile{Version: countersVersion, Counters: counters})
 }
 
 // retire writes the session's tombstone (see countersFile).
-func (s *FileStore) retire(sessionID string) error {
-	return s.writeCountersFile(sessionID, countersFile{Version: countersVersion, Retired: true})
+func (s *FileStore) retire(l loc) error {
+	return s.writeCountersFile(l, countersFile{Version: countersVersion, Retired: true})
 }
 
-func (s *FileStore) writeCountersFile(sessionID string, c countersFile) error {
+// writeCountersFile is the first write of any new session (save writes
+// the counters before the mapping), so it claims a hashed location first.
+func (s *FileStore) writeCountersFile(l loc, c countersFile) error {
+	if err := s.claim(l); err != nil {
+		return err
+	}
 	encoded, err := json.Marshal(c)
 	if err != nil {
 		return fmt.Errorf("pseudonymstore: encode counters: %w", err)
 	}
-	path := s.countersPath(sessionID)
-	if err := writeSynced(path+".tmp", encoded); err != nil {
+	return writeDurable(l.dir, l.countersPath(), encoded)
+}
+
+// writeDurable replaces path with data through a synced temp file, a
+// rename and a synced directory (dir, path's own), so the new content is
+// whole and durable when it returns.
+func writeDurable(dir, path string, data []byte) error {
+	if err := writeSynced(path+".tmp", data); err != nil {
 		return err
 	}
 	if err := os.Rename(path+".tmp", path); err != nil {
-		return fmt.Errorf("pseudonymstore: rename counters: %w", err)
+		return fmt.Errorf("pseudonymstore: rename: %w", err)
 	}
-	if err := syncDir(s.dir); err != nil {
+	if err := syncDir(dir); err != nil {
 		return fmt.Errorf("pseudonymstore: sync dir: %w", err)
 	}
 	return nil
@@ -99,11 +119,11 @@ func (s *FileStore) writeCountersFile(sessionID string, c countersFile) error {
 // readOnly reads a session's mapping without writing anything (no
 // migration, no key generation): the age file when the key opens it, else
 // a v1 plaintext file. The caller holds the session lock.
-func (s *FileStore) readOnly(sessionID string) (*sessionFile, error) {
-	if raw, err := os.ReadFile(s.agePath(sessionID)); err == nil {
+func (s *FileStore) readOnly(l loc) (*sessionFile, error) {
+	if raw, err := os.ReadFile(l.agePath()); err == nil {
 		return s.decrypt(raw)
 	}
-	raw, err := os.ReadFile(s.legacyPath(sessionID))
+	raw, err := os.ReadFile(l.v1Path())
 	if err != nil {
 		return nil, err
 	}

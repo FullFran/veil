@@ -94,20 +94,21 @@ func TestRun_StoreForget_RemovesTheSession(t *testing.T) {
 	if exit != problem.ExitDecision || stdout != "" || stderr != "" {
 		t.Fatalf("forget = (exit %d, stdout %q, stderr %q), want (0, empty, empty)", exit, stdout, stderr)
 	}
-	entries, err := os.ReadDir(sessionsDir())
+	stem := filepath.Base(sessionFile("sess-1", ""))
+	entries, err := os.ReadDir(filepath.Dir(sessionFile("sess-1", "")))
 	if err != nil {
 		t.Fatal(err)
 	}
 	for _, e := range entries {
 		switch {
-		case e.Name() == "sess-1.ctr":
+		case e.Name() == stem+".ctr":
 			// The counters survive so the session never reuses a marker;
 			// they must hold no value.
-			raw, err := os.ReadFile(filepath.Join(sessionsDir(), e.Name()))
+			raw, err := os.ReadFile(sessionFile("sess-1", ".ctr"))
 			if err != nil || strings.Contains(string(raw), "12345678Z") {
 				t.Errorf("sess-1.ctr = (%q, %v), want counters only", raw, err)
 			}
-		case strings.HasPrefix(e.Name(), "sess-1."):
+		case strings.HasPrefix(e.Name(), stem+"."):
 			t.Errorf("%s still exists after forget", e.Name())
 		}
 	}

@@ -33,16 +33,18 @@ func mint(t *testing.T, store *pseudonymstore.FileStore, session, category, valu
 	return token
 }
 
+// sessionFiles lists the session's files by suffix (".age", ".ctr"...).
 func sessionFiles(t *testing.T, dir, session string) []string {
 	t.Helper()
-	entries, err := os.ReadDir(dir)
+	base := pseudonymstore.SessionPath(dir, session)
+	entries, err := os.ReadDir(filepath.Dir(base))
 	if err != nil {
 		t.Fatal(err)
 	}
 	var names []string
 	for _, e := range entries {
-		if strings.HasPrefix(e.Name(), session+".") {
-			names = append(names, e.Name())
+		if suffix, ok := strings.CutPrefix(e.Name(), filepath.Base(base)+"."); ok {
+			names = append(names, "."+suffix)
 		}
 	}
 	return names
@@ -62,7 +64,7 @@ func TestSweep_RemovesExpiredSession_KeepsUnexpiredOne(t *testing.T) {
 	if !reflect.DeepEqual(got.Forgotten, []string{"old"}) || len(got.Skipped) != 0 {
 		t.Fatalf("Sweep = %+v, want forgotten [old], nothing skipped", got)
 	}
-	if left := sessionFiles(t, dir, "old"); !reflect.DeepEqual(left, []string{"old.ctr"}) {
+	if left := sessionFiles(t, dir, "old"); !reflect.DeepEqual(left, []string{".ctr"}) {
 		t.Fatalf("expired session left %v behind, want only its counters", left)
 	}
 	if len(sessionFiles(t, dir, "recent")) == 0 {
@@ -108,7 +110,7 @@ func TestSweep_SkipsASessionAnotherProcessHoldsLocked(t *testing.T) {
 	dir := t.TempDir()
 	kr := newFakeKeyring()
 	mint(t, clockAt(t, dir, kr, t0), "busy", "DNI", "12345678Z")
-	pseudonymstore.HoldLock(t, filepath.Join(dir, "busy.json.lock"))
+	pseudonymstore.HoldLock(t, pseudonymstore.SessionPath(dir, "busy")+".lock")
 
 	start := time.Now()
 	got, err := clockAt(t, dir, kr, t0.Add(2*ttl)).Sweep(ttl, 0)
@@ -118,7 +120,7 @@ func TestSweep_SkipsASessionAnotherProcessHoldsLocked(t *testing.T) {
 	if !reflect.DeepEqual(got.Skipped, []string{"busy"}) || len(got.Forgotten) != 0 {
 		t.Fatalf("Sweep = %+v, want busy skipped and nothing forgotten", got)
 	}
-	if !exists(t, filepath.Join(dir, "busy.age")) {
+	if !exists(t, pseudonymstore.SessionPath(dir, "busy")+".age") {
 		t.Fatal("Sweep deleted a locked session")
 	}
 	if time.Since(start) > time.Second {
@@ -190,14 +192,14 @@ func TestLock_StaleLockFile_IsRecovered(t *testing.T) {
 	dir := t.TempDir()
 	store := newStore(t, dir, newFakeKeyring())
 	mintOne(t, store)
-	if err := os.WriteFile(filepath.Join(dir, "session-1.json.lock"), nil, 0o600); err != nil {
+	if err := os.WriteFile(pseudonymstore.SessionPath(dir, "session-1")+".lock", nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 
 	if _, err := store.Token("session-1", "DNI", "87654321X"); err != nil {
 		t.Fatalf("Token with a stale lock file = %v, want success", err)
 	}
-	if err := os.WriteFile(filepath.Join(dir, "session-1.json.lock"), nil, 0o600); err != nil {
+	if err := os.WriteFile(pseudonymstore.SessionPath(dir, "session-1")+".lock", nil, 0o600); err != nil {
 		t.Fatal(err)
 	}
 	if err := store.Forget("session-1"); err != nil {
@@ -215,7 +217,7 @@ func TestLock_HolderKilled_IsReleasedAndNeverShared(t *testing.T) {
 	mintOne(t, store)
 
 	child := exec.Command(os.Args[0], "-test.run=^TestHelperHoldLock$") // #nosec G702 -- re-runs this test binary as the lock-holding child
-	child.Env = append(os.Environ(), "VEIL_TEST_HOLD_LOCK="+filepath.Join(dir, "session-1.json.lock"))
+	child.Env = append(os.Environ(), "VEIL_TEST_HOLD_LOCK="+pseudonymstore.SessionPath(dir, "session-1")+".lock")
 	out, err := child.StdoutPipe()
 	if err != nil {
 		t.Fatal(err)
@@ -311,10 +313,10 @@ func TestRemovedSession_KeepsOnlyCounters(t *testing.T) {
 	}
 
 	left := sessionFiles(t, dir, "s")
-	if !reflect.DeepEqual(left, []string{"s.ctr"}) {
+	if !reflect.DeepEqual(left, []string{".ctr"}) {
 		t.Fatalf("files left = %v, want only s.ctr", left)
 	}
-	raw, err := os.ReadFile(filepath.Join(dir, "s.ctr"))
+	raw, err := os.ReadFile(pseudonymstore.SessionPath(dir, "s") + ".ctr")
 	if err != nil {
 		t.Fatal(err)
 	}
@@ -358,16 +360,16 @@ func TestRemoval_UnreadableCounters_RetiresTheSession(t *testing.T) {
 			kr := newFakeKeyring()
 			mint(t, clockAt(t, dir, kr, t0), "p1", "DNI", "12345678Z")
 			mint(t, clockAt(t, dir, kr, t0), "p1", "DNI", "87654321X")
-			if err := os.Remove(filepath.Join(dir, "p1.ctr")); err != nil { // as written before counters files
+			if err := os.Remove(pseudonymstore.SessionPath(dir, "p1") + ".ctr"); err != nil { // as written before counters files
 				t.Fatal(err)
 			}
 
 			removeSession(t, dir)
 
-			if exists(t, filepath.Join(dir, "p1.age")) {
+			if exists(t, pseudonymstore.SessionPath(dir, "p1")+".age") {
 				t.Fatal("removal was blocked")
 			}
-			raw, err := os.ReadFile(filepath.Join(dir, "p1.ctr"))
+			raw, err := os.ReadFile(pseudonymstore.SessionPath(dir, "p1") + ".ctr")
 			if err != nil || strings.Contains(string(raw), "12345678Z") {
 				t.Fatalf("p1.ctr = (%q, %v), want a tombstone with no value", raw, err)
 			}
@@ -405,7 +407,7 @@ func TestSweep_OnePoisonedSession_DoesNotBlockTheRest(t *testing.T) {
 	kr := newFakeKeyring()
 	mint(t, clockAt(t, dir, kr, t0), "a1", "DNI", "12345678Z")
 	mint(t, clockAt(t, dir, kr, t0), "b2", "DNI", "12345678Z")
-	if err := os.Symlink(filepath.Join(t.TempDir(), "elsewhere"), filepath.Join(dir, "a1.json.lock")); err != nil {
+	if err := os.Symlink(filepath.Join(t.TempDir(), "elsewhere"), pseudonymstore.SessionPath(dir, "a1")+".lock"); err != nil {
 		t.Fatal(err)
 	}
 
@@ -427,15 +429,15 @@ func TestSweep_SessionUsedMeanwhile_IsKeptAndNotReported(t *testing.T) {
 	mint(t, clockAt(t, dir, kr, t0), "s", "DNI", "12345678Z")
 	now := t0.Add(2 * ttl)
 	pseudonymstore.OnSweepLocked(t, func(id string) {
-		if err := os.Chtimes(filepath.Join(dir, id+".age"), now, now); err != nil {
+		if err := os.Chtimes(pseudonymstore.SessionPath(dir, id)+".age", now, now); err != nil {
 			t.Errorf("Chtimes: %v", err)
 		}
 	})
 
 	got, err := clockAt(t, dir, kr, now).Sweep(ttl, 0)
 
-	if err != nil || len(got.Forgotten) != 0 || !exists(t, filepath.Join(dir, "s.age")) {
-		t.Fatalf("Sweep = (%+v, %v), s present = %v; want s kept and not reported", got, err, exists(t, filepath.Join(dir, "s.age")))
+	if err != nil || len(got.Forgotten) != 0 || !exists(t, pseudonymstore.SessionPath(dir, "s")+".age") {
+		t.Fatalf("Sweep = (%+v, %v), s present = %v; want s kept and not reported", got, err, exists(t, pseudonymstore.SessionPath(dir, "s")+".age"))
 	}
 }
 
@@ -471,7 +473,7 @@ func TestFind_IsReadOnly(t *testing.T) {
 	if err != nil || !reflect.DeepEqual(got, want) {
 		t.Fatalf("Find = (%+v, %v), want %+v", got, err, want)
 	}
-	if !exists(t, legacy) || exists(t, filepath.Join(dir, "session-1.age")) || kr.sets != 0 {
+	if !exists(t, legacy) || exists(t, pseudonymstore.SessionPath(dir, "session-1")+".age") || kr.sets != 0 {
 		t.Fatal("Find migrated a v1 session or generated a key; it must only read")
 	}
 }

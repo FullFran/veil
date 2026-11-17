@@ -5,6 +5,7 @@
 package pseudonymstore_test
 
 import (
+	"github.com/FullFran/veil/internal/pseudonymstore"
 	"os"
 	"path/filepath"
 	"runtime"
@@ -73,9 +74,10 @@ func TestFileStore_DifferentSessions_UseSeparateFiles(t *testing.T) {
 		t.Fatalf("session-2 Token(...) = %q, want [DNI-001] (isolated from session-1)", tokenTwo)
 	}
 
-	entries, err := os.ReadDir(dir)
+	ids := filepath.Dir(pseudonymstore.SessionPath(dir, "session-1"))
+	entries, err := os.ReadDir(ids)
 	if err != nil {
-		t.Fatalf("ReadDir(%s) failed: %v", dir, err)
+		t.Fatalf("ReadDir(%s) failed: %v", ids, err)
 	}
 	if len(entries) != 4 {
 		t.Fatalf("got %d files in %s, want 4 (a store and a counters file per session): %v", len(entries), dir, entries)
@@ -152,7 +154,7 @@ func TestFileStore_CorruptedSessionFile_FailsClosed(t *testing.T) {
 		t.Fatalf("Token returned unexpected error: %v", err)
 	}
 
-	sessionFile := filepath.Join(dir, "session-1.age")
+	sessionFile := pseudonymstore.SessionPath(dir, "session-1") + ".age"
 	if err := os.WriteFile(sessionFile, []byte("not json"), 0o600); err != nil {
 		t.Fatalf("failed to corrupt fixture file: %v", err)
 	}
@@ -173,12 +175,13 @@ func TestFileStore_SessionFile_HoldsNoRealValueOrKey(t *testing.T) {
 		t.Fatalf("Token returned unexpected error: %v", err)
 	}
 
-	entries, err := os.ReadDir(dir)
+	ids := filepath.Dir(pseudonymstore.SessionPath(dir, "session-1"))
+	entries, err := os.ReadDir(ids)
 	if err != nil {
 		t.Fatalf("ReadDir failed: %v", err)
 	}
 	for _, entry := range entries {
-		raw, err := os.ReadFile(filepath.Join(dir, entry.Name()))
+		raw, err := os.ReadFile(filepath.Join(ids, entry.Name()))
 		if err != nil {
 			t.Fatalf("ReadFile(%s) failed: %v", entry.Name(), err)
 		}

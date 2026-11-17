@@ -268,6 +268,7 @@ var storeErrors = []struct {
 }{
 	{pseudonymstore.ErrLocked, problem.StoreLocked},
 	{pseudonymstore.ErrSessionRetired, problem.SessionRetired},
+	{pseudonymstore.ErrSessionIDMissing, problem.SessionIDMissing},
 	{pseudonymstore.ErrKeyMissing, problem.StoreKeyMissing},
 	{pseudonymstore.ErrKeyInvalid, problem.StoreKeyInvalid},
 	{pseudonymstore.ErrKeyringUnavailable, problem.StoreKeyringUnavailable},
