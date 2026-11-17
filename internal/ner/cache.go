@@ -12,6 +12,7 @@ import (
 	"os"
 	"path"
 	"path/filepath"
+	"strings"
 )
 
 // CacheEnvVar overrides the model cache root.
@@ -126,9 +127,13 @@ func checkDigest(f File, n int64, h hash.Hash) error {
 	return nil
 }
 
+// partialDir holds downloads in progress. No catalog path can name it:
+// the schema rejects any segment that starts with a dot.
+const partialDir = ".partial"
+
 // Pull downloads every file of e into dir that is not already there and
-// verified. Each file is written to a temporary name, hashed while it is
-// written, read up to one byte past its declared size, and renamed into
+// verified. Each file is written to a temporary name under partialDir,
+// hashed while it is written, read up to one byte past its declared size, and renamed into
 // place only when its size and digest match; otherwise it is removed.
 func Pull(ctx context.Context, client *http.Client, dir string, e Entry) error {
 	if err := os.MkdirAll(dir, 0o700); err != nil {
@@ -170,7 +175,10 @@ func download(ctx context.Context, client *http.Client, root *os.Root, f File) (
 		return fmt.Errorf("%w: %s: HTTP %d", ErrDownload, f.Path, resp.StatusCode)
 	}
 
-	part := name + ".part"
+	if err := root.MkdirAll(partialDir, 0o700); err != nil {
+		return fmt.Errorf("%w: %v", ErrDownload, err)
+	}
+	part := filepath.Join(partialDir, strings.ReplaceAll(f.Path, "/", "%"))
 	out, err := root.OpenFile(part, os.O_WRONLY|os.O_CREATE|os.O_TRUNC, 0o600)
 	if err != nil {
 		return fmt.Errorf("%w: %v", ErrDownload, err)

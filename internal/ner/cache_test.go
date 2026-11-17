@@ -110,7 +110,7 @@ func TestPull_RejectsWrongContentAndLeavesNothing(t *testing.T) {
 			if _, err := os.Stat(filepath.Join(dir, "config.json")); !errors.Is(err, os.ErrNotExist) {
 				t.Fatalf("config.json exists after a failed pull (stat err %v)", err)
 			}
-			leftovers, _ := filepath.Glob(filepath.Join(dir, "*.part*"))
+			leftovers, _ := filepath.Glob(filepath.Join(dir, ".partial", "*"))
 			if len(leftovers) > 0 {
 				t.Fatalf("temporary files left: %v", leftovers)
 			}
@@ -184,5 +184,31 @@ func TestAcceptLicense(t *testing.T) {
 		if err := ner.AcceptLicense(e, other); !errors.Is(err, ner.ErrLicenseNotAccepted) {
 			t.Fatalf("AcceptLicense(%q) = %v, want ErrLicenseNotAccepted", other, err)
 		}
+	}
+}
+
+// A catalog may name a file and the same name plus a suffix ("a" and
+// "a.part"): downloading one must never write over the other.
+func TestPull_TemporaryNameCannotBeACatalogFile(t *testing.T) {
+	content := map[string][]byte{"a.part": []byte("first file"), "a": []byte("second file")}
+	s := newModelServer(t, content)
+	e := validEntry()
+	var files []any
+	for _, path := range []string{"a.part", "a"} {
+		files = append(files, map[string]any{"path": path, "url": s.URL + "/" + path, "size": len(content[path]), "digest": sha(content[path])})
+	}
+	e["files"] = files
+	c, err := ner.ParseCatalog(catalogDoc(t, e))
+	if err != nil {
+		t.Fatal(err)
+	}
+	entry, _ := c.Lookup("test-model")
+	dir := ner.ModelDir(t.TempDir(), entry)
+
+	if err := ner.Pull(context.Background(), s.Client(), dir, entry); err != nil {
+		t.Fatal(err)
+	}
+	if err := ner.Verify(dir, entry); err != nil {
+		t.Fatalf("Verify after Pull: %v", err)
 	}
 }
