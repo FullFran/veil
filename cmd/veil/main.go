@@ -191,7 +191,7 @@ var hostsByName = map[string]hostProfile{
 	"opencode":    {handle: runOpenCode, failureExit: opencode.FailureExitCode},
 }
 
-// run implements the CLI: `policy`, `store` and `acs` go to their
+// run implements the CLI: `policy`, `model`, `store` and `acs` go to their
 // runners; otherwise
 // it reads exactly one JSON event from stdin,
 // dispatches on the requested host, and returns the process exit code.
@@ -201,6 +201,9 @@ var hostsByName = map[string]hostProfile{
 func run(args []string, stdin io.Reader, stdout, stderr io.Writer) int {
 	if len(args) >= 1 && args[0] == "policy" {
 		return runPolicy(args[1:], stdout, stderr)
+	}
+	if len(args) >= 1 && args[0] == "model" {
+		return runModel(args[1:], stdout, stderr)
 	}
 	if len(args) >= 1 && args[0] == "store" {
 		return runStore(args[1:], stdin, stdout, stderr)

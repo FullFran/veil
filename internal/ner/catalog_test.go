@@ -107,6 +107,7 @@ func TestParseCatalog_RejectsInvalidDocuments(t *testing.T) {
 		"label category":   with(func(e map[string]any) { e["labels"] = map[string]any{"person": "DNI"} }),
 		"no labels":        with(func(e map[string]any) { e["labels"] = map[string]any{} }),
 		"empty revision":   with(func(e map[string]any) { e["source"].(map[string]any)["revision"] = "" }),
+		"revision escapes": with(func(e map[string]any) { e["source"].(map[string]any)["revision"] = "../x" }),
 		"path escapes":     with(func(e map[string]any) { file(e)["path"] = "../model.safetensors" }),
 		"absolute path":    with(func(e map[string]any) { file(e)["path"] = "/etc/passwd" }),
 		"dot segment":      with(func(e map[string]any) { file(e)["path"] = "a/./b" }),

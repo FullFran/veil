@@ -643,6 +643,24 @@ a model takes seconds to load, so the model runs in a long-lived local
 
 Costs are CPU measurements from [`research/ner-benchmark`](research/ner-benchmark).
 
+Model files are never in this repository. Fetch and check them with
+`veil model`; they are cached in `$VEIL_MODEL_CACHE`, else
+`<user cache dir>/veil/models/<id>/<revision>/`:
+
+```bash
+veil model list                     # one JSON line per model: licence, size, cost, "present"
+veil model pull gliner2-pii --accept-license Apache-2.0
+veil model verify                   # re-hash the selected model (or: veil model verify <id>)
+```
+
+`pull` prints the model's licence first and downloads nothing unless
+`--accept-license` is exactly its SPDX id (`VEIL_MODEL_LICENSE_NOT_ACCEPTED`
+otherwise). Each file is fetched over https only (redirects included),
+hashed while it is written, cut one byte past its declared size, and moved
+into place only if its size and SHA-256 match the catalog
+(`VEIL_MODEL_DIGEST_MISMATCH` otherwise); files already verified are not
+fetched again.
+
 - **Fails closed.** Once the policy enables `ner`, the sidecar is not
   optional: no sidecar, a late answer, a dropped connection, an invalid
   answer or another model each block the event with its own code.
@@ -808,7 +826,7 @@ Environment variables the plugin and binary read:
 | --------------- | --------------------------------- | ------------------------------------------------------------------------ |
 | `VEIL_BINARY`   | `adapters/opencode/veil-plugin.js` | Path to the `veil` binary. Defaults to `veil` (resolved via `PATH`).      |
 | `VEIL_CATALOG`  | the `veil` binary (`cmd/veil`)     | Path to a name catalog file (JSON array or one-name-per-line). Optional.  |
-| `VEIL_NER_MODEL`, `VEIL_NER_SOCKET`, `VEIL_NER_CATALOG` | the `veil` binary (`cmd/veil`) | NER model selection, sidecar socket and extra model catalog (see [Local NER models](#local-ner-models)). Optional. |
+| `VEIL_NER_MODEL`, `VEIL_NER_SOCKET`, `VEIL_NER_CATALOG`, `VEIL_MODEL_CACHE` | the `veil` binary (`cmd/veil`) | NER model selection, sidecar socket, extra model catalog and model cache (see [Local NER models](#local-ner-models)). Optional. |
 | `VEIL_POLICY`   | the `veil` binary (`cmd/veil`)     | Path to a policy file (see [Policy](#policy)). Optional; unset means the embedded default policy. |
 | `XDG_STATE_HOME`| the `veil` binary (`cmd/veil`)     | Base directory for the per-session pseudonym store. Falls back to the OS temp dir. |
 | `VEIL_KEY_FD`   | the `veil` binary (`cmd/veil`)     | Number of an inherited descriptor holding the store key (an age identity). Set by a host; wins over every other key source. See [Key sources](#key-sources). |
@@ -1232,6 +1250,10 @@ line on stderr is what tells a failure apart.
 | `VEIL_NER_MODEL_MISMATCH` | `ner-model-mismatch` | The NER sidecar serves another model, revision or catalog entry than the policy selects |
 | `VEIL_MODEL_UNKNOWN` | `model-unknown` | The policy's `detectors.ner.model` or `VEIL_NER_MODEL` names no catalog entry |
 | `VEIL_MODEL_CATALOG_INVALID` | `model-catalog-invalid` | The NER model catalog in `VEIL_NER_CATALOG` is unreadable, breaks its schema, repeats an id or reuses an embedded id |
+| `VEIL_MODEL_MISSING` | `model-missing` | A file of the NER model is not in the model cache (`veil model verify`, `veil model serve`) |
+| `VEIL_MODEL_DIGEST_MISMATCH` | `model-digest-mismatch` | A NER model file, cached or downloaded, differs in size or SHA-256 from its catalog entry |
+| `VEIL_MODEL_LICENSE_NOT_ACCEPTED` | `model-license-not-accepted` | `veil model pull` was not given the model's exact SPDX id with `--accept-license` |
+| `VEIL_MODEL_DOWNLOAD` | `model-download` | A NER model file could not be downloaded over https or written to the cache |
 | `VEIL_TIMEOUT` | `timeout` | OpenCode plugin: the binary did not answer in time |
 | `VEIL_OUTPUT_TOO_LARGE` | `output-too-large` | OpenCode plugin: the answer exceeded its buffer |
 | `VEIL_UNAVAILABLE` | `unavailable` | OpenCode plugin: the binary cannot run, or failed without a problem line, or its answer is malformed |
