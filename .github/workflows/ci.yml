@@ -111,6 +111,22 @@ jobs:
           GOTOOLCHAIN: go1.27.3
         run: go run github.com/google/osv-scanner/v2/cmd/osv-scanner@v2.7.1 scan source --no-call-analysis=go --recursive .
 
+  goreleaser:
+    name: release build config (goreleaser check)
+    runs-on: ubuntu-latest
+    steps:
+      - uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      # Validates .goreleaser.yaml with the version release.yml uses, so a
+      # broken config fails here instead of at tag time.
+      - uses: goreleaser/goreleaser-action@a4f02ab5355a589de60d917a659ce617ed19b3de # v7.3.0
+        with:
+          distribution: goreleaser
+          version: v2.20.2
+          args: check
+
   plugin:
     name: opencode plugin test
     runs-on: ubuntu-latest

@@ -15,6 +15,10 @@ Each release's notes on GitHub are its section of this file
 
 ### Changed
 
+- Release binaries are built by GoReleaser (`.goreleaser.yaml`) instead of a
+  shell loop, with the same names, flags and bytes; checksums, provenance,
+  signing and publishing are unchanged. The build is reproducible, and
+  [`docs/releasing.md`](docs/releasing.md) documents how a release is cut (#33).
 - **Breaking: store format change.** Session files are named injectively:
   `<state>/veil/sessions/ids/<stem>.*`, where the stem is the session id in
   RFC 4648 base32 (lowercase, no padding), or a 60-byte prefix plus its

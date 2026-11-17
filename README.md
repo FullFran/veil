@@ -645,7 +645,8 @@ Every release publishes, as assets, `veil-<os>-<arch>` binaries built with
 `CGO_ENABLED=0` (`linux`, `darwin` and `windows`, each on `amd64` and
 `arm64`; Windows files end in `.exe`), the OpenCode plugin `veil-plugin.js`,
 and a `SHA256SUMS` file covering all of them
-(`.github/workflows/release.yml`). What changed in each release, including
+(`.github/workflows/release.yml`; [GoReleaser](https://goreleaser.com/)
+builds the binaries from [`.goreleaser.yaml`](.goreleaser.yaml)). What changed in each release, including
 the changes a host must act on, is in [`CHANGELOG.md`](CHANGELOG.md).
 Verify before use:
 
@@ -711,6 +712,32 @@ sha256sum --check SHA256SUMS
 ```
 
 The release workflow runs both checks on the files before it publishes them.
+
+### Reproducing a release build
+
+The binaries are reproducible, but byte identity holds only for **the same
+commit built with the same Go version**, the two values `go version -m`
+reports for a release asset: the Go version on its first line and the commit
+in `vcs.revision`. Built that way from a clean checkout, the binary has the
+same bytes (`-trimpath`, no build time or path in it); a different Go
+version or commit gives different bytes. To rebuild one and compare it with
+the release's `SHA256SUMS`:
+
+```bash
+TAG=v0.3.0
+go version -m veil-linux-amd64 | head -1               # "veil-linux-amd64: go1.X.Y"
+go version -m veil-linux-amd64 | grep vcs.revision     # the commit it was built from
+GO_VERSION=go1.X.Y                                     # the version printed above
+git clone --branch "$TAG" https://github.com/FullFran/veil veil-src
+git -C veil-src rev-parse HEAD                         # must equal vcs.revision
+(cd veil-src && CGO_ENABLED=0 GOOS=linux GOARCH=amd64 GOTOOLCHAIN="$GO_VERSION" \
+  go build -trimpath -ldflags "-s -w" -o ../rebuilt ./cmd/veil)
+sha256sum rebuilt veil-linux-amd64                     # the two digests match
+```
+
+Build from a checkout with no untracked files: Go records whether the tree
+was modified (`vcs.modified`) in the binary, and a modified tree gives
+different bytes. How a release is cut is in [`docs/releasing.md`](docs/releasing.md).
 
 ## Installing on OpenCode
 
