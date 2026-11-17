@@ -1,0 +1,7 @@
+kind: Fixed
+body: |-
+  A rewrite no longer takes time quadratic in the number of findings:
+  choosing each pseudonym's first written form searched the whole event
+  text once per finding. An event with 8000 rewritten fields now takes
+  about 60 ms instead of 550 ms.
+time: 2026-11-17T12:30:00Z

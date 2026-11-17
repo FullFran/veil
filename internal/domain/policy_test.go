@@ -344,8 +344,10 @@ func TestPolicy_Evaluate_UnsupportedCapability_ChecksEvenWithoutFindings(t *test
 // distinct DNI in each of many fields. Substituting them must not cost
 // fields × findings (a replacer built per field over every finding): at
 // this size that is minutes, linear work is well under a second.
-func TestEvaluate_RewriteScalesLinearlyWithFields(t *testing.T) {
-	const n = 20000
+// rewriteFields times one Evaluate that rewrites n fields, each holding a
+// distinct DNI that is also in the event text.
+func rewriteFields(t *testing.T, n int) time.Duration {
+	t.Helper()
 	letters := "TRWAGMYFPDXBNJZSQVHLCKE"
 	fields := make(map[string]string, n)
 	var text strings.Builder
@@ -370,8 +372,29 @@ func TestEvaluate_RewriteScalesLinearlyWithFields(t *testing.T) {
 	if strings.Contains(d.RedactedFields["arg7"], "10000007") {
 		t.Fatalf("arg7 = %q, still in clear", d.RedactedFields["arg7"])
 	}
-	if elapsed > 10*time.Second {
-		t.Fatalf("rewrite of %d fields took %v, want linear work", n, elapsed)
+	return elapsed
+}
+
+// TestEvaluate_RewriteScalesLinearlyWithFields compares the time of a rewrite
+// of 8000 fields with one of 1000, so it measures how the work grows and not
+// how fast the machine is: linear work gives about 8, quadratic about 64.
+// Each size keeps its fastest of three runs to drop scheduling noise.
+func TestEvaluate_RewriteScalesLinearlyWithFields(t *testing.T) {
+	const small, large, maxRatio = 1000, 8000, 24.0
+	fastest := func(n int) time.Duration {
+		best := rewriteFields(t, n)
+		for i := 0; i < 2; i++ {
+			if d := rewriteFields(t, n); d < best {
+				best = d
+			}
+		}
+		return best
 	}
-	t.Logf("rewrite of %d fields: %v", n, elapsed)
+	s, l := fastest(small), fastest(large)
+	ratio := float64(l) / float64(s)
+	t.Logf("rewrite of %d fields: %v, of %d: %v, ratio %.1f", small, s, large, l, ratio)
+	if ratio > maxRatio {
+		t.Fatalf("rewrite of %d fields took %.1f times as long as %d (%v vs %v), want at most %.0f for linear work",
+			large, ratio, small, l, s, maxRatio)
+	}
 }
