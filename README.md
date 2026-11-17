@@ -52,7 +52,17 @@ of finding:
   shares one token, and rehydration gives back its compact form
   (`12345678Z`, `+34612345670`). Email addresses may carry non-ASCII
   letters in the local part and the domain (`josé@bücher.example.de`,
-  RFC 6531).
+  RFC 6531). Unicode lookalikes are found too: compatibility forms such as
+  full-width digits and letters (`１２３４５６７８Ｚ`, `zed＠example.org`),
+  no-break spaces, format characters inside a value (a zero-width space in
+  `1234<U+200B>5678Z`, a soft hyphen, a word joiner) and decimal digits of
+  other scripts. veil scans an NFKC view of the text (Unicode UAX #15)
+  with Default_Ignorable_Code_Point characters (UAX #44) removed, replaces
+  exactly the characters that were written, leaves unrelated text as it
+  was, and keys the token by the canonical value, so rehydration writes
+  `12345678Z` and `zed@example.org`. UTS #39 confusable skeletons are not
+  used: they are meant only for comparing strings and map digits to
+  letters.
 - **Hard-deny** (a tool call targeting a known secrets-bearing file, or
   tool output veil cannot scan at all — see "Attachments and binary
   content" below): there is no safe rewrite, so the event is blocked
@@ -403,9 +413,10 @@ JSON array of strings, or one name per line:
 
 Matching is whole-word, and both case- and accent-insensitive (`MARIA
 PEREZ`, `maria perez`, and `María Pérez` all match the same catalog
-entry). A catalog name joined to another name part by a hyphen or an
-apostrophe is replaced whole: `Juan García-López` and `Ana-María Pérez`
-are one token each, keyed by the whole written name, so no part of the
+entry), and so are full-width and decomposed forms (`Ｍａｒíａ`, or `Mari`
+plus a combining acute accent plus `a`), keyed by the canonical `María`.
+A catalog name joined to another name part by a hyphen or an apostrophe
+is replaced whole: `Juan García-López` and `Ana-María Pérez` are one token each, keyed by the whole written name, so no part of the
 surname stays in clear and they never share a token with `Juan García`
 or `María Pérez`. A name is cut from the original text at its exact position,
 whatever other characters (`¿`, `€`, `«`, emoji) the text holds. If
@@ -832,7 +843,9 @@ no Spanish split and declares no licence in its dataset card.
   name is annotated `NOMBRE`, including names outside the catalog.
 - It covers valid and invalid control letters and check digits, separated
   forms, near misses (dates, amounts, invoice numbers, digit runs), names
-  next to Unicode, names outside the catalog, and nested tool arguments.
+  next to Unicode, names outside the catalog, nested tool arguments, and
+  Unicode lookalikes (full-width forms, zero-width and other format
+  characters, no-break spaces, digits of other scripts).
 - `catalog.json` is the name catalog the corpus is evaluated with.
 - `baseline.json` holds the committed numbers.
 
@@ -864,16 +877,16 @@ How to read it:
   in-memory pseudonym store), over every repeat of every event: p50, p95
   and max in microseconds. Process start-up and disk I/O are not included.
 
-The baseline at the time of writing (78 cases, default policy):
+The baseline at the time of writing (87 cases, default policy):
 
 | label | tp | fp | fn | precision | recall | f1 |
 | --- | --: | --: | --: | --: | --: | --: |
-| DNI | 20 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| IBAN | 12 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| EMAIL | 10 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| TEL | 15 | 3 | 0 | 0.8333 | 1.0000 | 0.9091 |
-| NOMBRE | 13 | 1 | 2 | 0.9286 | 0.8667 | 0.8966 |
-| micro | 70 | 4 | 2 | 0.9459 | 0.9722 | 0.9589 |
+| DNI | 23 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| IBAN | 13 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| EMAIL | 12 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| TEL | 18 | 3 | 0 | 0.8571 | 1.0000 | 0.9231 |
+| NOMBRE | 14 | 1 | 2 | 0.9333 | 0.8750 | 0.9032 |
+| micro | 80 | 4 | 2 | 0.9524 | 0.9756 | 0.9639 |
 
 Known misses, kept on purpose so the numbers stay honest. They need
 context or named-entity recognition (#3), not a pattern:

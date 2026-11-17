@@ -3,51 +3,51 @@
     "DNI": 1,
     "EMAIL": 1,
     "IBAN": 1,
-    "NOMBRE": 0.8666,
+    "NOMBRE": 0.875,
     "TEL": 1
   },
   "latencyP95BudgetMicros": 2000,
   "report": {
     "corpus": "testdata/corpus/es/v1",
     "policy": "sha256:cc0ab7b0430dac34a71111c9fec329a331aba91dc51204aa91dc61b0510e661b",
-    "cases": 78,
+    "cases": 87,
     "labels": {
       "DNI": {
-        "tp": 20,
+        "tp": 23,
         "fp": 0,
         "fn": 0
       },
       "EMAIL": {
-        "tp": 10,
-        "fp": 0,
-        "fn": 0
-      },
-      "IBAN": {
         "tp": 12,
         "fp": 0,
         "fn": 0
       },
-      "NOMBRE": {
+      "IBAN": {
         "tp": 13,
+        "fp": 0,
+        "fn": 0
+      },
+      "NOMBRE": {
+        "tp": 14,
         "fp": 1,
         "fn": 2
       },
       "TEL": {
-        "tp": 15,
+        "tp": 18,
         "fp": 3,
         "fn": 0
       }
     },
     "micro": {
-      "tp": 70,
+      "tp": 80,
       "fp": 4,
       "fn": 2
     },
     "latency": {
-      "samples": 1560,
-      "p50Micros": 15.51,
-      "p95Micros": 37.602,
-      "maxMicros": 427.555
+      "samples": 1740,
+      "p50Micros": 34.425,
+      "p95Micros": 88.358,
+      "maxMicros": 473.152
     }
   }
 }
