@@ -19,6 +19,7 @@ import (
 	"text/tabwriter"
 
 	"github.com/FullFran/veil/internal/eval"
+	"github.com/FullFran/veil/internal/ner"
 	"github.com/FullFran/veil/internal/policy"
 )
 
@@ -67,7 +68,17 @@ func run(args []string, stdout, stderr io.Writer) int {
 		fmt.Fprintf(stderr, "veil-eval: %v\n", err)
 		return exitUsage
 	}
-	report, err := eval.Run(corpus, p, eval.Options{Repeats: *repeats})
+	opts := eval.Options{Repeats: *repeats}
+	// A policy that enables ner is measured against the sidecar the
+	// environment points at (VEIL_NER_MODEL, VEIL_NER_SOCKET), as veil
+	// would run it.
+	if sel, enabled, err := ner.FromPolicy(p); err != nil {
+		fmt.Fprintf(stderr, "veil-eval: %v\n", err)
+		return exitUsage
+	} else if enabled {
+		opts.NER, opts.NERAction = sel.Detector, sel.Action
+	}
+	report, err := eval.Run(corpus, p, opts)
 	if err != nil {
 		fmt.Fprintf(stderr, "veil-eval: %v\n", err)
 		return exitUsage

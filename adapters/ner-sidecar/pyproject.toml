@@ -1,0 +1,28 @@
+[project]
+name = "veil-ner-sidecar"
+version = "0.1.0"
+description = "Reference NER sidecar for veil's ner detector (FullFran/veil#32): serves a pinned catalog model on a Unix socket."
+requires-python = ">=3.12,<3.13"
+license = "Apache-2.0"
+# Versions are the ones research/ner-benchmark measured.
+dependencies = [
+  "gliner2==2.1.0",
+  "torch==2.15.0",
+  "transformers>=5.6,<6",
+]
+
+[project.optional-dependencies]
+# Only for the spacy runtime (spacy-es-core-news-lg); the model itself is
+# the catalog's pinned wheel in the veil model cache, not a dependency.
+spacy = ["spacy==3.8.18"]
+
+[tool.uv]
+package = false
+
+[tool.uv.sources]
+torch = { index = "pytorch-cpu" }
+
+[[tool.uv.index]]
+name = "pytorch-cpu"
+url = "https://download.pytorch.org/whl/cpu"
+explicit = true

@@ -17,6 +17,10 @@ type Options struct {
 	// Repeats is how many times each event is evaluated for latency.
 	// Zero means 1.
 	Repeats int
+	// NER, when set, is the policy's ner detector (veil-eval wires it
+	// from the environment like veil does); NERAction is its action.
+	NER       domain.FallibleDetector
+	NERAction policy.Action
 }
 
 // Latency summarizes domain.Policy.Evaluate time per event, in
@@ -99,6 +103,10 @@ func Run(c *Corpus, p *policy.Policy, opts Options) (Report, error) {
 		return Report{}, err
 	}
 	raw := domain.NewRegistry(detectors...)
+	if opts.NER != nil {
+		raw.RegisterFallible(opts.NER)
+		registry.RegisterFallible(policy.WithAction(opts.NER, opts.NERAction))
+	}
 	evaluator := domain.NewPolicy(registry, domain.NewMemoryPseudonymStore())
 
 	scores := Scores{Labels: map[string]Counts{}}

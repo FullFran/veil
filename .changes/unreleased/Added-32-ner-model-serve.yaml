@@ -1,0 +1,13 @@
+kind: Added
+body: |-
+  `veil model serve <command> [<arg> ...]` re-verifies the selected model
+  and runs a NER sidecar in the foreground with `VEIL_NER_SOCKET`,
+  `VEIL_NER_MODEL_DIR` and `VEIL_NER_ENTRY`, an allow-listed environment
+  and no inherited descriptor beyond 0-2, forwarding SIGINT and SIGTERM
+  and killing a sidecar still running 10 s later (on Linux, also when
+  `serve` dies). A reference Python sidecar (`adapters/ner-sidecar`, uv,
+  offline, idle connections closed after 10 s) serves `gliner2-pii` and
+  `spacy-es-core-news-lg`. `veil-eval` measures a
+  policy that enables `ner` against the running sidecar. An opt-in end-to-
+  end test with the real model runs with `VEIL_NER_E2E=1` (#32).
+time: 2026-11-17T18:00:00Z

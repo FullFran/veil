@@ -661,6 +661,37 @@ into place only if its size and SHA-256 match the catalog
 (`VEIL_MODEL_DIGEST_MISMATCH` otherwise); files already verified are not
 fetched again.
 
+Run the sidecar with `veil model serve <command> [<arg> ...]`. It
+re-verifies the selected model (`VEIL_MODEL_MISSING`,
+`VEIL_MODEL_DIGEST_MISMATCH`), creates the socket's directory (0700) and
+runs `<command>` in the foreground with `VEIL_NER_SOCKET`,
+`VEIL_NER_MODEL_DIR` and `VEIL_NER_ENTRY` (the catalog entry, whose
+SHA-256 the sidecar reports as its entry digest). The sidecar gets no
+other variable of veil's environment except `PATH`, `HOME`, `TMPDIR`,
+`LANG`, `LC_*` and `XDG_*`, and no open descriptor beyond stdin, stdout
+and stderr. SIGINT and SIGTERM are passed on to it; a sidecar still
+running 10 s later is killed, and on Linux the kernel kills it if
+`serve` itself dies. `serve` exits with the sidecar's exit code. The reference
+sidecar is [`adapters/ner-sidecar`](adapters/ner-sidecar) (Python, run
+with [uv](https://docs.astral.sh/uv/)):
+
+```bash
+export VEIL_NER_MODEL=gliner2-pii   # or "model" in the policy's ner rule
+veil model serve uv run --project adapters/ner-sidecar --frozen \
+  python adapters/ner-sidecar/veil_ner_sidecar.py
+```
+
+To keep it running, make that command a systemd user service
+(`ExecStart=` the line above, `Restart=on-failure`): it then listens on
+`$XDG_RUNTIME_DIR/veil/ner.sock`, where veil looks by default.
+
+Measured on the Spanish corpus (`veil-eval`, 90 cases, CPU), adding
+`ner` with `gliner2-pii` to the default policy raises NOMBRE recall from
+0.875 to 1.0 and lowers its precision from 0.933 to 0.667 (8 false
+positives); p95 `Evaluate` latency per event goes from 0.05 ms to 239 ms.
+`veil-eval -policy <file>` measures a policy with `ner` against the
+running sidecar.
+
 - **Fails closed.** Once the policy enables `ner`, the sidecar is not
   optional: no sidecar, a late answer, a dropped connection, an invalid
   answer or another model each block the event with its own code.
