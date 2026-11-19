@@ -1,6 +1,0 @@
-kind: Added
-body: |-
-  Pseudonym store commands `veil store reveal <session>` and
-  `veil store forget <session> [...]` (#17), `veil store sweep` and
-  `veil store find --value <v|->` (#19).
-time: 2026-11-17T00:00:08Z

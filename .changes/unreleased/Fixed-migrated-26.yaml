@@ -1,5 +1,0 @@
-kind: Fixed
-body: |-
-  Catalog names are cut at rune offsets: inputs such as `¿Ana García` no
-  longer leak in clear or panic on multibyte runes (#4).
-time: 2026-11-17T00:00:26Z

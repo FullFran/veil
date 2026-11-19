@@ -1,9 +1,0 @@
-kind: Added
-body: |-
-  `veil model list`, `veil model pull <id> --accept-license <SPDX id>` and
-  `veil model verify [<id>]` manage the model cache (`VEIL_MODEL_CACHE`,
-  else the user cache directory). Downloads are https only, size-capped
-  and checked against the catalog digest before use. New codes:
-  `VEIL_MODEL_MISSING`, `VEIL_MODEL_DIGEST_MISMATCH`,
-  `VEIL_MODEL_LICENSE_NOT_ACCEPTED`, `VEIL_MODEL_DOWNLOAD` (#32).
-time: 2026-11-17T16:00:00Z

@@ -1,6 +1,0 @@
-kind: Added
-body: |-
-  Synthetic Spanish evaluation corpus (`testdata/corpus/es/v1`), the
-  `veil-eval` command and a recall and latency baseline enforced by
-  `go test ./...` (#15).
-time: 2026-11-17T00:00:07Z
