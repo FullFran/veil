@@ -1,5 +1,0 @@
-kind: Fixed
-body: |-
-  A dotted top-level tool-argument key no longer hides a nested key with the
-  same path from the scan, and JSON numbers keep full precision (#4).
-time: 2026-11-17T00:00:28Z

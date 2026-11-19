@@ -1,8 +1,0 @@
-kind: Changed
-body: |-
-  **Breaking (`veil-eval` only, not hosts):** `baseline.json` replaces
-  `latencyP95BudgetMicros` with `latencyRatioBudget`, and an unknown
-  field is now an error; regenerate with `go run ./cmd/veil-eval
-  -write-baseline`. The flag `-latency-budget-us` is replaced by
-  `-latency-ratio-budget` (#44).
-time: 2026-11-17T11:00:01Z

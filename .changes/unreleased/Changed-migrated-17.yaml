@@ -1,7 +1,0 @@
-kind: Changed
-body: |-
-  **Breaking (error format):** failures are no longer `veil: ...` text on
-  stderr. Hosts must parse the problem JSON line and branch on `type` or
-  `code`, never on text. OpenCode plugin errors carry a `code`
-  (`VEIL_OUTPUT_TOO_LARGE`, `VEIL_TIMEOUT`, `VEIL_UNAVAILABLE`) (#4, #13).
-time: 2026-11-17T00:00:17Z

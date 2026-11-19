@@ -1,5 +1,0 @@
-kind: Changed
-body: |-
-  Releases are built with the Go 1.26.11 toolchain (`toolchain` directive in
-  `go.mod`).
-time: 2026-11-17T00:00:23Z

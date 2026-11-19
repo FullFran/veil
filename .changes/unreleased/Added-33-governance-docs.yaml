@@ -1,7 +1,0 @@
-kind: Added
-body: |-
-  Governance documents (`GOVERNANCE.md`, `CODE_OF_CONDUCT.md`, `ROADMAP.md`),
-  `docs/architecture.md`, `docs/assurance-case.md`, coding and code review
-  standards in `CONTRIBUTING.md`, a CI gate at 80% statement coverage, and
-  the OpenSSF Best Practices answers for silver and gold (#33).
-time: 2026-11-17T00:00:04.500Z

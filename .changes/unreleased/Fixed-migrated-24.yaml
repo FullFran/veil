@@ -1,8 +1,0 @@
-kind: Fixed
-body: |-
-  One Spanish phone is one marker however it is written: `612345678`,
-  `612 345 678`, `0034612345678` and `(+34) 612-345-678` are keyed by their
-  ITU-T E.164 form, `+34612345678`, which is what `veil store find`
-  matches. The compact `0034` prefix is now detected. Markers an existing
-  session already holds are not merged or renumbered (#27).
-time: 2026-11-17T00:00:24Z

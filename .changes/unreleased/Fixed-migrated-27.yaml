@@ -1,5 +1,0 @@
-kind: Fixed
-body: |-
-  IBAN, DNI/NIE and Spanish phone numbers written with separators are
-  detected, and share a token with the compact form (#4).
-time: 2026-11-17T00:00:27Z

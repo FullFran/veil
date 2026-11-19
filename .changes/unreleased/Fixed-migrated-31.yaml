@@ -1,5 +1,0 @@
-kind: Fixed
-body: |-
-  Overlapping catalog names are replaced longest first, so `Juan García`
-  no longer leaves `[NOMBRE-001]-López` behind (#21).
-time: 2026-11-17T00:00:31Z

@@ -1,6 +1,0 @@
-kind: Fixed
-body: |-
-  Findings that overlap in part, from one detector or several (a catalog
-  name and a model name, `Ana Ruiz` and `Ruiz López`), are replaced as
-  one run, so no part of either is left in clear (#32).
-time: 2026-11-17T11:00:00Z

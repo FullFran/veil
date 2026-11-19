@@ -1,5 +1,0 @@
-kind: Added
-body: |-
-  OpenCode plugin: `VEIL_TIMEOUT_MS` (default 30000) and a 64 MiB output
-  limit (#4).
-time: 2026-11-17T00:00:14Z

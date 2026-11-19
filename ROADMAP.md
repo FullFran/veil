@@ -6,13 +6,16 @@ The maintainer reviews this file with every release.
 
 ## Next
 
-- **Release 0.2.0** with the Unreleased changes in the changelog (store
-  format with injective file names, problem-details failures, declarative
-  policy, decision evidence, ACS server, signed and attested assets).
-- **Optional local NER detector** for names that are not in a catalog: a
-  pluggable detector behind a port, with a model the user selects and pins,
-  off by default ([#32](https://github.com/FullFran/veil/issues/32), research
-  in [#3](https://github.com/FullFran/veil/issues/3)).
+- **Spanish address detector**: rules for street, number, floor/door, postal
+  code and city, so a catalog name inside a street is no longer a name
+  ([#50](https://github.com/FullFran/veil/issues/50)).
+- **Checksummed identifiers**: CIF, card numbers (Luhn) and NSS
+  ([#51](https://github.com/FullFran/veil/issues/51)).
+- **Shared memory groundwork**: a threat-model entry for frequency and
+  co-occurrence inference on stored pseudonymized text
+  ([#52](https://github.com/FullFran/veil/issues/52)), and a design for
+  pseudonyms shared across the users of a team
+  ([#53](https://github.com/FullFran/veil/issues/53)).
 - **Supply chain and assurance**: keep the OpenSSF Scorecard and Best
   Practices answers current
   ([#33](https://github.com/FullFran/veil/issues/33), and
@@ -20,8 +23,8 @@ The maintainer reviews this file with every release.
 
 ## Later
 
-- More detectors for Spanish and EU identifiers, each measured against the
-  evaluation corpus before it ships ([README, Evaluation corpus](README.md#evaluation-corpus)).
+- More detectors for Spanish and EU identifiers (free-text health data
+  included), each measured against the evaluation corpus before it ships ([README, Evaluation corpus](README.md#evaluation-corpus)).
 - More hosts, through the host-agnostic domain and the ACS server.
 
 ## Not planned

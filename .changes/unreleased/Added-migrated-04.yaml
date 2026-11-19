@@ -1,6 +1,0 @@
-kind: Added
-body: |-
-  Native Go fuzz tests for every parser of untrusted input (host decoders and
-  encoders, ACS JSON-RPC and stdio framing, policy, detectors, store files,
-  keys and file names), fuzzed in CI by `.github/workflows/fuzz.yml` (#33).
-time: 2026-11-17T00:00:04Z
