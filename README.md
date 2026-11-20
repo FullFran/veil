@@ -14,6 +14,18 @@ veil is not a compliance product. It enforces exactly what is listed
 below, on exactly the hosts listed below, and says so explicitly wherever
 it cannot.
 
+## Real-world adoption
+
+veil is used by [Hagalink](https://hagalink.es/), a Spanish AI engineering
+company, in its own products and customer deployments. These deployments
+inform its development and maintenance, especially the handling of sensitive
+data and privacy boundaries in AI-assisted workflows.
+
+The project is available under the Apache License 2.0 so these mechanisms
+can be reused and independently reviewed by the wider open-source community.
+The limitations documented below still apply; adoption does not imply
+certification or a guarantee of regulatory compliance.
+
 ## What this is
 
 veil sits between an AI coding agent host (currently Claude Code and
