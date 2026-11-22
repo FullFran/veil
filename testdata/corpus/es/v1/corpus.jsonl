@@ -88,3 +88,23 @@
 {"id": "lookalike-007", "tags": ["full-width", "nie"], "text": "NIE [[DNI:Ｘ１２３４５６７Ｌ]] en vigor."}
 {"id": "lookalike-008", "tags": ["near-miss", "full-width"], "text": "Pedido nº １２３４５ del ２０２４－０５－１２, sin datos personales."}
 {"id": "lookalike-009", "tags": ["near-miss", "zero-width"], "text": "Equipo 👩\u200d💻 listo, revisión ２０２４."}
+{"id": "cif-001", "tags": ["valid"], "text": "Emitir la factura a [[CIF:B12345674]] con IVA."}
+{"id": "cif-002", "tags": ["valid"], "text": "La sociedad anónima [[CIF:A58000027]] aprobó las cuentas."}
+{"id": "cif-003", "tags": ["valid", "letter-control"], "text": "Convenio con el organismo [[CIF:P0800000B]] firmado."}
+{"id": "cif-004", "tags": ["separated"], "text": "Proveedor: [[CIF:G-8765432C]], pago a 30 días."}
+{"id": "cif-005", "tags": ["invalid-checksum"], "text": "Referencia interna B12345675 del expediente."}
+{"id": "cif-006", "tags": ["near-miss"], "text": "El modelo A5800002G no lleva letra de control válida para una SA."}
+{"id": "tarjeta-001", "tags": ["valid"], "text": "Cobra a la tarjeta [[TARJETA:4111111111111111]] mañana."}
+{"id": "tarjeta-002", "tags": ["separated"], "text": "Mi tarjeta es la [[TARJETA:5555 5555 5555 4444]], caduca en 2028."}
+{"id": "tarjeta-003", "tags": ["separated", "amex"], "text": "Amex [[TARJETA:3782-822463-10005]] para el hotel."}
+{"id": "tarjeta-004", "tags": ["separated"], "text": "Usa la [[TARJETA:6011-1111-1111-1117]] de empresa."}
+{"id": "tarjeta-005", "tags": ["invalid-checksum"], "text": "Pedido 4111111111111112 entregado."}
+{"id": "tarjeta-006", "tags": ["near-miss"], "text": "Número de envío 1000000000000008, sin datos personales."}
+{"id": "tarjeta-007", "tags": ["near-miss"], "text": "Lote de códigos 1234 4111 1111 1111 1111 9999 para el inventario."}
+{"id": "nss-001", "tags": ["valid"], "text": "Mi número de la Seguridad Social es [[NSS:281234567840]]."}
+{"id": "nss-002", "tags": ["separated"], "text": "Afiliación [[NSS:08/87654321/46]] en alta."}
+{"id": "nss-003", "tags": ["separated", "short-number"], "text": "NSS [[NSS:46 00123456 76]] del trabajador."}
+{"id": "nss-004", "tags": ["valid"], "text": "Alta del empleado con NSS [[NSS:412345678978]] hoy."}
+{"id": "nss-005", "tags": ["invalid-checksum"], "text": "Factura 281234567841 pendiente de pago."}
+{"id": "nss-006", "tags": ["near-miss"], "text": "Código de seguimiento 991234567868 del paquete."}
+{"id": "mixed-001", "tags": ["nested"], "text": "Cliente [[CIF:B76543214]], pago con [[TARJETA:4000 0566 5566 5556]] y trabajador [[NSS:281234567840]]."}

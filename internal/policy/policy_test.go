@@ -180,7 +180,7 @@ func TestDefault_Registry_IsBuiltInDetectorSet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	want := "dni,iban,email,phone,secret-path,binary-content"
+	want := "dni,iban,email,phone,secret-path,binary-content,cif,card,nss"
 	if got := strings.Join(detectorNames(t, r), ","); got != want {
 		t.Fatalf("detectors = %s, want %s", got, want)
 	}
@@ -190,7 +190,7 @@ func TestDefault_Registry_IsBuiltInDetectorSet(t *testing.T) {
 	if err != nil {
 		t.Fatal(err)
 	}
-	if got := strings.Join(detectorNames(t, r), ","); got != want+",name-catalog" {
+	if got := strings.Join(detectorNames(t, r), ","); got != "dni,iban,email,phone,secret-path,binary-content,name-catalog,cif,card,nss" {
 		t.Fatalf("detectors with catalog = %s", got)
 	}
 }

@@ -67,10 +67,13 @@ var dpvByDetector = map[string]string{
 	"phone":        dpvBase + "TelephoneNumber",
 	"dni":          dpvBase + "OfficialID",
 	"iban":         dpvBase + "FinancialAccountNumber",
+	"cif":          dpvBase + "OfficialID",
+	"nss":          dpvBase + "OfficialID",
+	"card":         dpvBase + "PaymentCardNumber",
 }
 
 // labelByDetector is veil's own category label for each personal data
-// detector: DPV has no DNI/NIE-specific term, so the label keeps the
+// detector: DPV has no DNI/NIE, CIF or NSS-specific term, so the label keeps the
 // subtype next to the DPV IRI.
 var labelByDetector = map[string]string{
 	"name-catalog": "NOMBRE",
@@ -79,6 +82,9 @@ var labelByDetector = map[string]string{
 	"phone":        "TEL",
 	"dni":          "DNI",
 	"iban":         "IBAN",
+	"cif":          "CIF",
+	"nss":          "NSS",
+	"card":         "TARJETA",
 }
 
 // Input is everything a record is built from. Findings are read only for

@@ -9,8 +9,6 @@ The maintainer reviews this file with every release.
 - **Spanish address detector**: rules for street, number, floor/door, postal
   code and city, so a catalog name inside a street is no longer a name
   ([#50](https://github.com/FullFran/veil/issues/50)).
-- **Checksummed identifiers**: CIF, card numbers (Luhn) and NSS
-  ([#51](https://github.com/FullFran/veil/issues/51)).
 - **Shared memory groundwork**: a threat-model entry for frequency and
   co-occurrence inference on stored pseudonymized text
   ([#52](https://github.com/FullFran/veil/issues/52)), and a design for

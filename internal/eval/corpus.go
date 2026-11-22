@@ -21,7 +21,7 @@ import (
 
 // Labels are the span labels the corpus annotates: veil's pseudonym
 // categories.
-var Labels = []string{"DNI", "IBAN", "EMAIL", "TEL", "NOMBRE"}
+var Labels = []string{"DNI", "IBAN", "EMAIL", "TEL", "NOMBRE", "CIF", "TARJETA", "NSS"}
 
 func knownLabel(label string) bool {
 	for _, l := range Labels {

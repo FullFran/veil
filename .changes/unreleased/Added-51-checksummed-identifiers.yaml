@@ -1,0 +1,4 @@
+kind: Added
+body: |-
+  Three detectors in the default policy, each with its check digits validated: `cif` (Spanish CIF company tax ID, category `CIF`, also as `B-12345674`), `card` (payment card numbers, 13 to 19 digits with a known issuer prefix and a valid Luhn digit, compact or in groups, category `TARJETA`) and `nss` (Spanish social security number, province code and mod-97 control, also as `28/12345678/40`, category `NSS`). Evidence records map them to DPV `pd:OfficialID` (CIF, NSS) and `pd:PaymentCardNumber` (card). The default policy digest changes; a custom policy enables them by listing `cif`, `card` or `nss` (#51).
+time: 2026-11-22T21:30:00Z
