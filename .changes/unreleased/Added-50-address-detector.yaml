@@ -1,0 +1,4 @@
+kind: Added
+body: |-
+  An `address` detector in the default policy finds Spanish postal addresses (category `DIRECCION`, DPV `pd:PhysicalAddress`): a street type (`Calle`, `C/`, `Avda.`, `Plaza`, `Paseo`, `Urb.` and others), the street name and a house number or `s/n`, with the floor/door and postal code + city that follow, as one span (`Calle de Santa Engracia 112, 3º izq., 28003 Madrid`), and the number-first form (`número 14 de la calle Larios`). A street with no number stays in clear. A catalog name right after a street type is no longer replaced as a name. The default policy digest changes; a custom policy enables it by listing `address` (#50).
+time: 2026-11-22T22:30:00Z

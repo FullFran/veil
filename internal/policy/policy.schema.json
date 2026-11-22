@@ -23,6 +23,7 @@
         "cif": { "$ref": "#/$defs/rewritable", "description": "Spanish CIF company tax ID (category CIF)." },
         "card": { "$ref": "#/$defs/rewritable", "description": "Payment card number, Luhn-checked with a known issuer prefix (category TARJETA)." },
         "nss": { "$ref": "#/$defs/rewritable", "description": "Spanish social security number (category NSS)." },
+        "address": { "$ref": "#/$defs/rewritable", "description": "Spanish postal address with a house number, floor/door and postal code + city when they follow (category DIRECCION)." },
         "name-catalog": { "$ref": "#/$defs/rewritable", "description": "Names from the client catalog (category NOMBRE). Runs only when a catalog is configured." },
         "secret-path": { "$ref": "#/$defs/denyOnly", "description": "Tool call targeting a secrets-bearing file. No safe rewrite exists." },
         "binary-content": { "$ref": "#/$defs/denyOnly", "description": "Tool output veil cannot scan (binary or base64). No safe rewrite exists." },

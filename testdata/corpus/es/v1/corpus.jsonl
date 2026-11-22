@@ -108,3 +108,20 @@
 {"id": "nss-005", "tags": ["invalid-checksum"], "text": "Factura 281234567841 pendiente de pago."}
 {"id": "nss-006", "tags": ["near-miss"], "text": "Código de seguimiento 991234567868 del paquete."}
 {"id": "mixed-001", "tags": ["nested"], "text": "Cliente [[CIF:B76543214]], pago con [[TARJETA:4000 0566 5566 5556]] y trabajador [[NSS:281234567840]]."}
+{"id": "dir-001", "tags": ["valid"], "text": "Envíalo a [[DIRECCION:Calle de Santa Engracia 112, 3º izq., 28003 Madrid]]."}
+{"id": "dir-002", "tags": ["valid", "abbreviated"], "text": "Domicilio: [[DIRECCION:C/ Mayor 15, 1ºA]], Valladolid."}
+{"id": "dir-003", "tags": ["valid", "abbreviated"], "text": "Vive en [[DIRECCION:Avda. de la Constitución 8, portal 2]]."}
+{"id": "dir-004", "tags": ["valid"], "text": "La entrega es en [[DIRECCION:Plaza del Pilar 3, bajo]] a las 10."}
+{"id": "dir-005", "tags": ["valid"], "text": "Dirección de facturación: [[DIRECCION:Paseo de Gracia 55, 08007 Barcelona]]"}
+{"id": "dir-006", "tags": ["valid", "lowercase"], "text": "mi casa es en [[DIRECCION:calle ancha 27, 4º d]], pásate luego"}
+{"id": "dir-007", "tags": ["valid", "sin-numero"], "text": "Vivo en [[DIRECCION:Camino de los Molinos s/n, 41500 Alcalá de Guadaíra]]."}
+{"id": "dir-008", "tags": ["valid", "abbreviated"], "text": "Nueva dirección: [[DIRECCION:Urb. Los Pinos, parcela 14, 29600 Marbella]]."}
+{"id": "dir-009", "tags": ["valid", "number-first"], "text": "Estoy en el [[DIRECCION:número 14 de la calle Larios]], en Málaga."}
+{"id": "dir-010", "tags": ["valid", "multiline"], "text": "Datos de envío:\nEmilio Navarro\n[[DIRECCION:C/ Real 9, 37001 Salamanca]]"}
+{"id": "dir-011", "tags": ["nested"], "text": "[[NOMBRE:Lucía Martín]] recoge el pedido en [[DIRECCION:Travesía del Carmen 2, 3º dcha., 33201 Gijón]]."}
+{"id": "dir-012", "tags": ["nested", "catalog-street"], "text": "El paquete va a [[DIRECCION:Calle María Pérez de la Rosa 12]], segundo piso."}
+{"id": "dir-013", "tags": ["near-miss", "catalog-street"], "text": "Calle María Pérez de la Rosa no aplica: es una calle."}
+{"id": "dir-014", "tags": ["near-miss", "street-public"], "text": "La calle Alcalá estará cortada el domingo por la maratón."}
+{"id": "dir-015", "tags": ["near-miss", "street-public"], "text": "El desfile recorre la Gran Vía y termina en la Plaza de España."}
+{"id": "dir-016", "tags": ["near-miss"], "text": "Tenemos plaza para 3 personas en el coche."}
+{"id": "dir-017", "tags": ["nested"], "tool": "write", "args": {"filePath": "envio.txt", "content": "Destino: [[DIRECCION:Ronda de Valencia 6, 5º C]]\nContacto: [[TEL:612000111]]"}}

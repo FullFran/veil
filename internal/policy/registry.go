@@ -19,6 +19,7 @@ const (
 	DetectorCIF           = "cif"
 	DetectorCard          = "card"
 	DetectorNSS           = "nss"
+	DetectorAddress       = "address"
 )
 
 // runOrder is the order veil runs detectors in, whatever order the policy
@@ -36,6 +37,7 @@ var runOrder = []string{
 	DetectorCIF,
 	DetectorCard,
 	DetectorNSS,
+	DetectorAddress,
 }
 
 // DetectorSet returns the detectors this policy enables, in run order, as
@@ -71,6 +73,8 @@ func (p *Policy) DetectorSet(catalogEnv string) ([]domain.Detector, error) {
 			detectors = append(detectors, domain.NewCardDetector())
 		case DetectorNSS:
 			detectors = append(detectors, domain.NewNSSDetector())
+		case DetectorAddress:
+			detectors = append(detectors, domain.NewAddressDetector())
 		case DetectorNameCatalog:
 			if catalogPath == "" {
 				// No catalog configured: the detector does not run,
