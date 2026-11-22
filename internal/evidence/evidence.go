@@ -70,6 +70,7 @@ var dpvByDetector = map[string]string{
 	"cif":          dpvBase + "OfficialID",
 	"nss":          dpvBase + "OfficialID",
 	"card":         dpvBase + "PaymentCardNumber",
+	"address":      dpvBase + "PhysicalAddress",
 }
 
 // labelByDetector is veil's own category label for each personal data
@@ -85,6 +86,7 @@ var labelByDetector = map[string]string{
 	"cif":          "CIF",
 	"nss":          "NSS",
 	"card":         "TARJETA",
+	"address":      "DIRECCION",
 }
 
 // Input is everything a record is built from. Findings are read only for

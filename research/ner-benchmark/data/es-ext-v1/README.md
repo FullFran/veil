@@ -3,8 +3,8 @@
 **Research data.** Every name, address and identifier here is invented for
 this benchmark. The set is not part of veil's evaluation gate
 (`testdata/corpus/es/v1`), is not read by `go test` or `cmd/veil-eval`, and
-uses one label veil does not have (`DIRECCION`), which `internal/eval`
-rejects on purpose.
+uses the label `DIRECCION`, which veil's `address` detector (#50) was
+written against: its address cases are not an independent test of it.
 
 It exists because the gate corpus has 15 names and no addresses, so a model
 compared only there would be judged on the shape the regex detectors were

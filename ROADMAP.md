@@ -6,9 +6,6 @@ The maintainer reviews this file with every release.
 
 ## Next
 
-- **Spanish address detector**: rules for street, number, floor/door, postal
-  code and city, so a catalog name inside a street is no longer a name
-  ([#50](https://github.com/FullFran/veil/issues/50)).
 - **Shared memory groundwork**: a threat-model entry for frequency and
   co-occurrence inference on stored pseudonymized text
   ([#52](https://github.com/FullFran/veil/issues/52)), and a design for

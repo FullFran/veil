@@ -109,6 +109,9 @@ func (d *NameCatalogDetector) Detect(event Event) []Finding {
 	for _, pattern := range d.patterns {
 		for _, idx := range pattern.FindAllStringIndex(folded, -1) {
 			start, end := extendJoined(original, runeAt[idx[0]], runeAt[idx[1]])
+			if afterStreetType(string(original[max(0, start-32):start])) {
+				continue // a street named after someone, not the person
+			}
 			match := string(original[start:end])
 			findings = append(findings, Finding{
 				Detector: "name-catalog",

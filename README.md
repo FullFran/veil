@@ -51,9 +51,10 @@ of finding:
 
 - **Rewritable** (DNI/NIE, IBAN, email, Spanish phone number, a name from
   a client's name catalog, CIF, payment card number, social security
-  number): the event proceeds, but every match is replaced with a stable
+  number, Spanish postal address): the event proceeds, but every match is replaced with a stable
   pseudonym token — `[DNI-001]`, `[IBAN-001]`, `[EMAIL-001]`, `[TEL-001]`,
-  `[NOMBRE-001]`, `[CIF-001]`, `[TARJETA-001]`, `[NSS-001]` — before it
+  `[NOMBRE-001]`, `[CIF-001]`, `[TARJETA-001]`, `[NSS-001]`,
+  `[DIRECCION-001]` — before it
   leaves the machine. The same original value always gets the same token within one
   session, and a different session never reuses another session's
   numbering. IBAN, DNI/NIE and phone numbers are also found when written
@@ -588,7 +589,7 @@ Set `VEIL_POLICY` to a policy file to use your own:
   safe rewrite for them. Detector ids map to pseudonym categories one to
   one: `dni` (DNI/NIE) -> `DNI`, `iban` -> `IBAN`, `email` -> `EMAIL`,
   `phone` -> `TEL`, `name-catalog` -> `NOMBRE`, `cif` -> `CIF`, `card` ->
-  `TARJETA`, `nss` -> `NSS`. veil always runs detectors
+  `TARJETA`, `nss` -> `NSS`, `address` -> `DIRECCION`. veil always runs detectors
   in its own fixed order, whatever order the file lists them in.
 - **Catalog.** `catalog.path` is resolved relative to the policy file.
   `name-catalog` runs only when a catalog is set, by `catalog.path` or by
@@ -1179,7 +1180,7 @@ event in structured JSON mode whose `data` is an
     "actor": {"app_name": "opencode", "session": {"uid": "ses_123"}},
     "data_security": {
       "detection_system_id": 10, "data_lifecycle_state_id": 2, "category_id": 1,
-      "policy": {"uid": "sha256:b0ff…", "name": "veil policy", "version": "1.0", "is_applied": true},
+      "policy": {"uid": "sha256:055a…", "name": "veil policy", "version": "1.0", "is_applied": true},
       "discovery_details": [
         {"type": "https://w3id.org/dpv/pd#OfficialID", "count": 2, "rule": {"uid": "dni", "name": "DNI"}}
       ]
@@ -1196,7 +1197,7 @@ event in structured JSON mode whose `data` is an
 | `severity_id` | 1 Informational (allow), 2 Low (rewrite), 3 Medium (deny): a fixed mapping, veil has no severity model |
 | `actor` | `app_name` is the host mode; `session.uid` the host's session id, when it sent one |
 | `data_security.policy.uid` | The policy digest (see [Policy](#policy)) |
-| `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`, `cif` and `nss` `pd:OfficialID`, `card` `pd:PaymentCardNumber`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
+| `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`, `cif` and `nss` `pd:OfficialID`, `card` `pd:PaymentCardNumber`, `address` `pd:PhysicalAddress`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
 | `data_security.category_id` | 1 Personal when any personal data detector fired, 6 Security when only `secret-path`/`binary-content` did, absent otherwise |
 | `duration` | Evaluation time in milliseconds |
 | `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision`, `ner_model` (`id`, `revision`, `entry_digest` of the NER model, when the sidecar answered for this event) |
@@ -1339,8 +1340,8 @@ no Spanish split and declares no licence in its dataset card.
 - `corpus.jsonl` has one record per line: either `{"id", "tags", "text"}`
   (a prompt) or `{"id", "tags", "tool", "args"}` (a tool call, nested
   arguments included). Gold annotations are inline, `[[LABEL:value]]`, with
-  labels `DNI`, `IBAN`, `EMAIL`, `TEL`, `NOMBRE`, `CIF`, `TARJETA` and
-  `NSS`; the loader strips them
+  labels `DNI`, `IBAN`, `EMAIL`, `TEL`, `NOMBRE`, `CIF`, `TARJETA`,
+  `NSS` and `DIRECCION`; the loader strips them
   and derives the offsets, so nobody types offsets by hand. A span covers
   the whole value as written, separators and `+34` included. Every personal
   name is annotated `NOMBRE`, including names outside the catalog.
@@ -1391,28 +1392,35 @@ How to read it:
   about ten times larger. For trends in absolute time, use `go test
   -bench` with `benchstat`.
 
-The baseline at the time of writing (110 cases, default policy):
+The baseline at the time of writing (127 cases, default policy):
 
 | label | tp | fp | fn | precision | recall | f1 |
 | --- | --: | --: | --: | --: | --: | --: |
 | DNI | 23 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | IBAN | 13 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | EMAIL | 12 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| TEL | 22 | 3 | 0 | 0.8800 | 1.0000 | 0.9362 |
-| NOMBRE | 14 | 1 | 2 | 0.9333 | 0.8750 | 0.9032 |
+| TEL | 23 | 3 | 0 | 0.8846 | 1.0000 | 0.9388 |
+| NOMBRE | 15 | 0 | 2 | 1.0000 | 0.8824 | 0.9375 |
 | CIF | 5 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | TARJETA | 5 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | NSS | 5 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
-| micro | 99 | 4 | 2 | 0.9612 | 0.9802 | 0.9706 |
+| DIRECCION | 13 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| micro | 114 | 3 | 2 | 0.9744 | 0.9828 | 0.9785 |
 
 Known misses, kept on purpose so the numbers stay honest. They need
 context or named-entity recognition (#3), not a pattern:
 
 - Names outside the catalog (`nombre-006`, `nombre-007`): missed.
-- A catalog name inside a street name (`nombre-010`, `Calle María Pérez
-  de la Rosa`): replaced although it is a street. Particles such as `de
-  la` are not joined to a name for the same reason: `Juan García de la
-  oficina` would be swallowed too.
+- Particles such as `de la` are not joined to a name: `Juan García de la
+  oficina` would be swallowed too. A catalog name right after a street
+  type (`nombre-010`, `Calle María Pérez de la Rosa`) is a street, not a
+  person, and is left to the `address` detector.
+- `address` covers a street type (`Calle`, `C/`, `Avda.`, `Plaza`,
+  `Paseo`, `Ronda`, `Travesía`, `Camino`, `Urb.` and others), a name and a
+  house number or `s/n`, plus the floor/door and postal code + city that
+  follow. A street with no number is a public place and stays in clear
+  (`dir-014`, `La calle Alcalá estará cortada`), and so does an address
+  written without a street type (`Mayor 15, Valladolid`).
 - Nine bare digits starting with 6-9 that are not a phone, such as an
   invoice number (`tel-012`) or a CLI count (`args-005`): replaced.
 - A dot-grouped nine-digit count with no currency (`tel-017`, `712.345.678

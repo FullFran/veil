@@ -10,6 +10,7 @@
     "name-catalog": { "action": "rewrite" },
     "cif": { "action": "rewrite" },
     "card": { "action": "rewrite" },
-    "nss": { "action": "rewrite" }
+    "nss": { "action": "rewrite" },
+    "address": { "action": "rewrite" }
   }
 }
