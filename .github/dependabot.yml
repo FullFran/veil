@@ -3,6 +3,7 @@
 # No npm entry yet: the repository has no package.json (the OpenCode plugin
 # and its tests have no dependencies) and Dependabot fails on an ecosystem
 # without a manifest. Add an npm entry together with the first package.json.
+# Dependabot security alerts are a repository setting, not part of this file.
 version: 2
 updates:
   - package-ecosystem: gomod
@@ -15,6 +16,17 @@ updates:
     # filippo.io/age, and OSV-based checks flag it all the same.
     allow:
       - dependency-type: all
+    open-pull-requests-limit: 5
+
+  # The reference NER sidecar ships with veil (veil model serve), so its
+  # Python lock is kept current too. research/ner-benchmark is not watched:
+  # it is a one-off study that never ships.
+  - package-ecosystem: uv
+    directory: /adapters/ner-sidecar
+    schedule:
+      interval: weekly
+    commit-message:
+      prefix: "build(deps)"
     open-pull-requests-limit: 5
 
   - package-ecosystem: github-actions
