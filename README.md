@@ -50,15 +50,19 @@ anything useful with client data at all. veil now distinguishes two kinds
 of finding:
 
 - **Rewritable** (DNI/NIE, IBAN, email, Spanish phone number, a name from
-  a client's name catalog): the event proceeds, but every match is
-  replaced with a stable pseudonym token — `[DNI-001]`, `[IBAN-001]`,
-  `[EMAIL-001]`, `[TEL-001]`, `[NOMBRE-001]` — before it leaves the
-  machine. The same original value always gets the same token within one
+  a client's name catalog, CIF, payment card number, social security
+  number): the event proceeds, but every match is replaced with a stable
+  pseudonym token — `[DNI-001]`, `[IBAN-001]`, `[EMAIL-001]`, `[TEL-001]`,
+  `[NOMBRE-001]`, `[CIF-001]`, `[TARJETA-001]`, `[NSS-001]` — before it
+  leaves the machine. The same original value always gets the same token within one
   session, and a different session never reuses another session's
   numbering. IBAN, DNI/NIE and phone numbers are also found when written
   with spaces, dots or dashes (`ES91 2100 0418 …`, `FR14 2004 1010 … 606`,
   `12.345.678-Z`, `600 12 34 56`, `699.123.457`, `+34 600 123 456`,
-  `(+34) 612 345 670`), only in those strict shapes, with the checksum
+  `(+34) 612 345 670`), a CIF with a hyphen after its letter
+  (`B-12345674`), a card in groups (`4111 1111 1111 1111`,
+  `3782-822463-10005`) and a social security number with spaces, slashes
+  or dashes (`28/12345678/40`), only in those strict shapes, with the checksum
   checked, and never as part of a date, an amount or a longer run of digit
   groups. A separated IBAN of any country must also have that country's
   length in the SWIFT IBAN Registry (ISO 13616). A value written two ways
@@ -191,7 +195,9 @@ diagram of veil as a guard). The limits you are most likely to hit:
 - **Claude Code: no output, history or system-prompt redaction.** The host
   has no hook for them (threat model DD1).
 - **Detection is pattern-based.** veil detects Spanish DNI/NIE, IBAN,
-  email, Spanish phone numbers, sensitive file paths, an optional client
+  email, Spanish phone numbers, Spanish CIF, payment card numbers (Luhn,
+  with a known issuer prefix), Spanish social security numbers, sensitive
+  file paths, an optional client
   name catalog, and unscannable binary/base64 output, which it denies. It
   is not a general-purpose PII scanner: unstructured data is missed
   (threat model L4, I4; NER under study in #3).
@@ -581,7 +587,8 @@ Set `VEIL_POLICY` to a policy file to use your own:
   event. `secret-path` and `binary-content` accept only `deny`: there is no
   safe rewrite for them. Detector ids map to pseudonym categories one to
   one: `dni` (DNI/NIE) -> `DNI`, `iban` -> `IBAN`, `email` -> `EMAIL`,
-  `phone` -> `TEL`, `name-catalog` -> `NOMBRE`. veil always runs detectors
+  `phone` -> `TEL`, `name-catalog` -> `NOMBRE`, `cif` -> `CIF`, `card` ->
+  `TARJETA`, `nss` -> `NSS`. veil always runs detectors
   in its own fixed order, whatever order the file lists them in.
 - **Catalog.** `catalog.path` is resolved relative to the policy file.
   `name-catalog` runs only when a catalog is set, by `catalog.path` or by
@@ -1172,7 +1179,7 @@ event in structured JSON mode whose `data` is an
     "actor": {"app_name": "opencode", "session": {"uid": "ses_123"}},
     "data_security": {
       "detection_system_id": 10, "data_lifecycle_state_id": 2, "category_id": 1,
-      "policy": {"uid": "sha256:cc0a…", "name": "veil policy", "version": "1.0", "is_applied": true},
+      "policy": {"uid": "sha256:b0ff…", "name": "veil policy", "version": "1.0", "is_applied": true},
       "discovery_details": [
         {"type": "https://w3id.org/dpv/pd#OfficialID", "count": 2, "rule": {"uid": "dni", "name": "DNI"}}
       ]
@@ -1189,13 +1196,13 @@ event in structured JSON mode whose `data` is an
 | `severity_id` | 1 Informational (allow), 2 Low (rewrite), 3 Medium (deny): a fixed mapping, veil has no severity model |
 | `actor` | `app_name` is the host mode; `session.uid` the host's session id, when it sent one |
 | `data_security.policy.uid` | The policy digest (see [Policy](#policy)) |
-| `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
+| `data_security.discovery_details` | One entry per detector that fired: `count` occurrences, `rule.uid` the detector id, `type` its [W3C DPV](https://w3id.org/dpv/pd) personal data concept (`name-catalog` `pd:Name`, `email` `pd:EmailAddress`, `phone` `pd:TelephoneNumber`, `dni` `pd:OfficialID`, `iban` `pd:FinancialAccountNumber`, `cif` and `nss` `pd:OfficialID`, `card` `pd:PaymentCardNumber`). `secret-path` and `binary-content` have no DPV concept: their `type` is the detector id. Absent when nothing was found. |
 | `data_security.category_id` | 1 Personal when any personal data detector fired, 6 Security when only `secret-path`/`binary-content` did, absent otherwise |
 | `duration` | Evaluation time in milliseconds |
 | `unmapped.veil` | veil's own members: `schema` (version of this block), `event` (`PromptSubmit`, `ToolArgs`, `ToolOutput`, `HistoryText`, `SystemPrompt`), `tool` (tool name, for tool events), `catalog_revision`, `ner_model` (`id`, `revision`, `entry_digest` of the NER model, when the sidecar answered for this event) |
 
 DPV 2.3 is a W3C Community Group report, not a W3C Standard, and has no
-DNI/NIE-specific concept: `rule.name` keeps veil's own label next to the
+DNI/NIE, CIF or NSS-specific concept: `rule.name` keeps veil's own label next to the
 DPV IRI.
 
 ### Never included
@@ -1323,7 +1330,7 @@ the model provider (HCS-0008-R020) and the operation is denied
 
 ## Evaluation corpus
 
-No public corpus covers Spanish DNI, NIE or IBAN, so veil ships a synthetic
+No public corpus covers Spanish DNI, NIE, IBAN, CIF or NSS, so veil ships a synthetic
 one: [`testdata/corpus/es/v1`](testdata/corpus/es/v1). Every value in it is
 made up (checksums computed, not copied from real people). The
 ai4privacy `pii-masking-200k` dataset was considered and not used: it has
@@ -1332,7 +1339,8 @@ no Spanish split and declares no licence in its dataset card.
 - `corpus.jsonl` has one record per line: either `{"id", "tags", "text"}`
   (a prompt) or `{"id", "tags", "tool", "args"}` (a tool call, nested
   arguments included). Gold annotations are inline, `[[LABEL:value]]`, with
-  labels `DNI`, `IBAN`, `EMAIL`, `TEL` and `NOMBRE`; the loader strips them
+  labels `DNI`, `IBAN`, `EMAIL`, `TEL`, `NOMBRE`, `CIF`, `TARJETA` and
+  `NSS`; the loader strips them
   and derives the offsets, so nobody types offsets by hand. A span covers
   the whole value as written, separators and `+34` included. Every personal
   name is annotated `NOMBRE`, including names outside the catalog.
@@ -1383,7 +1391,7 @@ How to read it:
   about ten times larger. For trends in absolute time, use `go test
   -bench` with `benchstat`.
 
-The baseline at the time of writing (90 cases, default policy):
+The baseline at the time of writing (110 cases, default policy):
 
 | label | tp | fp | fn | precision | recall | f1 |
 | --- | --: | --: | --: | --: | --: | --: |
@@ -1392,7 +1400,10 @@ The baseline at the time of writing (90 cases, default policy):
 | EMAIL | 12 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
 | TEL | 22 | 3 | 0 | 0.8800 | 1.0000 | 0.9362 |
 | NOMBRE | 14 | 1 | 2 | 0.9333 | 0.8750 | 0.9032 |
-| micro | 84 | 4 | 2 | 0.9545 | 0.9767 | 0.9655 |
+| CIF | 5 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| TARJETA | 5 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| NSS | 5 | 0 | 0 | 1.0000 | 1.0000 | 1.0000 |
+| micro | 99 | 4 | 2 | 0.9612 | 0.9802 | 0.9706 |
 
 Known misses, kept on purpose so the numbers stay honest. They need
 context or named-entity recognition (#3), not a pattern:

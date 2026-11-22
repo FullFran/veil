@@ -16,11 +16,15 @@ const (
 	DetectorSecretPath    = "secret-path"
 	DetectorBinaryContent = "binary-content"
 	DetectorNameCatalog   = "name-catalog"
+	DetectorCIF           = "cif"
+	DetectorCard          = "card"
+	DetectorNSS           = "nss"
 )
 
 // runOrder is the order veil runs detectors in, whatever order the policy
 // file lists them in. It is the order veil used before policies existed,
-// which keeps combined deny reasons byte-identical.
+// which keeps combined deny reasons byte-identical; detectors added
+// since run after them.
 var runOrder = []string{
 	DetectorDNI,
 	DetectorIBAN,
@@ -29,6 +33,9 @@ var runOrder = []string{
 	DetectorSecretPath,
 	DetectorBinaryContent,
 	DetectorNameCatalog,
+	DetectorCIF,
+	DetectorCard,
+	DetectorNSS,
 }
 
 // DetectorSet returns the detectors this policy enables, in run order, as
@@ -58,6 +65,12 @@ func (p *Policy) DetectorSet(catalogEnv string) ([]domain.Detector, error) {
 			detectors = append(detectors, domain.NewSecretPathDetector())
 		case DetectorBinaryContent:
 			detectors = append(detectors, domain.NewBinaryContentDetector())
+		case DetectorCIF:
+			detectors = append(detectors, domain.NewCIFDetector())
+		case DetectorCard:
+			detectors = append(detectors, domain.NewCardDetector())
+		case DetectorNSS:
+			detectors = append(detectors, domain.NewNSSDetector())
 		case DetectorNameCatalog:
 			if catalogPath == "" {
 				// No catalog configured: the detector does not run,

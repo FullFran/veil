@@ -23,6 +23,9 @@ func fuzzRegistry() *domain.Registry {
 		domain.NewSecretPathDetector(),
 		domain.NewBinaryContentDetector(),
 		domain.NewNameCatalogDetector([]string{"Juan García", "María Pérez"}),
+		domain.NewCIFDetector(),
+		domain.NewCardDetector(),
+		domain.NewNSSDetector(),
 	)
 }
 
@@ -35,6 +38,7 @@ var fuzzSeeds = []string{
 	"escribe a juan.garcia@example.com",
 	"Juan García y María Pérez",
 	"１２３４５６７８Ｚ",
+	"CIF B12345674, tarjeta 4111 1111 1111 1111, NSS 28/12345678/40",
 	"cat ~/.ssh/id_rsa",
 	"[DNI-001] ya es un marcador",
 	"\x00\xff\xfe",

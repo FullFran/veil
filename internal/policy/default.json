@@ -7,6 +7,9 @@
     "phone": { "action": "rewrite" },
     "secret-path": { "action": "deny" },
     "binary-content": { "action": "deny" },
-    "name-catalog": { "action": "rewrite" }
+    "name-catalog": { "action": "rewrite" },
+    "cif": { "action": "rewrite" },
+    "card": { "action": "rewrite" },
+    "nss": { "action": "rewrite" }
   }
 }
