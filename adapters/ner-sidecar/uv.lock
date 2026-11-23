@@ -1,5 +1,5 @@
 version = 1
-revision = 3
+revision = 5
 requires-python = "==3.12.*"
 resolution-markers = [
     "sys_platform != 'darwin'",
@@ -187,7 +187,7 @@ wheels = [
 
 [[package]]
 name = "gliner2"
-version = "2.1.0"
+version = "2.2.0"
 source = { registry = "https://pypi.org/simple" }
 dependencies = [
     { name = "pydantic" },
@@ -195,9 +195,9 @@ dependencies = [
     { name = "tqdm" },
     { name = "urllib3" },
 ]
-sdist = { url = "https://files.pythonhosted.org/packages/b1/ab/cebcf92279c85f988bf3853530ec3aa16bfb9f21cc15bde1fba9d2c6db2e/gliner2-2.1.0.tar.gz", hash = "sha256:cfded5eeaa5e95a4ea325ed205889beda3e00b486c69c9d369a1c4cf616fe4f1", size = 399121, upload-time = "2026-10-09T17:49:14.471Z" }
+sdist = { url = "https://files.pythonhosted.org/packages/21/b8/e1592946d945ca72fed380d00c4b637f2f6545f29348c17a7fc553301527/gliner2-2.2.0.tar.gz", hash = "sha256:20f99b5a7797d8d1c4491b6504d85a05bf714ec59bfcb84829453be9b524d5d5", size = 424321, upload-time = "2026-11-20T12:21:05.084Z" }
 wheels = [
-    { url = "https://files.pythonhosted.org/packages/6a/b1/cae13092a6ca796dd17493c8129d48e38fc370f23b9cce6f616020ed3654/gliner2-2.1.0-py3-none-any.whl", hash = "sha256:0c242c5de53f37020df835788fc4eb820e1673b5212c202cd90e9234a7e786bc", size = 355814, upload-time = "2026-10-09T17:49:12.815Z" },
+    { url = "https://files.pythonhosted.org/packages/36/64/bbb96c966669af6ee7bfc9b605a2d8d3065e8b060f0460cfc48bfa829215/gliner2-2.2.0-py3-none-any.whl", hash = "sha256:649ec00350a2c337640ac980d5dd1b5a44402aaa59cdca9a4619b11f13d9d803", size = 375840, upload-time = "2026-11-20T12:21:01.445Z" },
 ]
 
 [[package]]
@@ -794,13 +794,13 @@ resolution-markers = [
     "sys_platform == 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform == 'darwin'" },
-    { name = "fsspec", marker = "sys_platform == 'darwin'" },
-    { name = "jinja2", marker = "sys_platform == 'darwin'" },
-    { name = "networkx", marker = "sys_platform == 'darwin'" },
-    { name = "setuptools", marker = "sys_platform == 'darwin'" },
-    { name = "sympy", marker = "sys_platform == 'darwin'" },
-    { name = "typing-extensions", marker = "sys_platform == 'darwin'" },
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "jinja2" },
+    { name = "networkx" },
+    { name = "setuptools" },
+    { name = "sympy" },
+    { name = "typing-extensions" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.15.0-cp312-cp312-macosx_14_0_arm64.whl", hash = "sha256:593e5fd0c204284890d1c3dff643be34e549e1d24523e13402510f960d4da438", upload-time = "2026-10-28T13:17:02Z" },
@@ -814,13 +814,13 @@ resolution-markers = [
     "sys_platform != 'darwin'",
 ]
 dependencies = [
-    { name = "filelock", marker = "sys_platform != 'darwin'" },
-    { name = "fsspec", marker = "sys_platform != 'darwin'" },
-    { name = "jinja2", marker = "sys_platform != 'darwin'" },
-    { name = "networkx", marker = "sys_platform != 'darwin'" },
-    { name = "setuptools", marker = "sys_platform != 'darwin'" },
-    { name = "sympy", marker = "sys_platform != 'darwin'" },
-    { name = "typing-extensions", marker = "sys_platform != 'darwin'" },
+    { name = "filelock" },
+    { name = "fsspec" },
+    { name = "jinja2" },
+    { name = "networkx" },
+    { name = "setuptools" },
+    { name = "sympy" },
+    { name = "typing-extensions" },
 ]
 wheels = [
     { url = "https://download-r2.pytorch.org/whl/cpu/torch-2.15.0%2Bcpu-cp312-cp312-linux_s390x.whl", hash = "sha256:29c74659a82483d9a9c5d7f9e1112973dfa2dce5b3956dba5d1b97381b94cfae", upload-time = "2026-10-28T13:18:25Z" },
@@ -935,7 +935,7 @@ spacy = [
 
 [package.metadata]
 requires-dist = [
-    { name = "gliner2", specifier = "==2.1.0" },
+    { name = "gliner2", specifier = "==2.2.0" },
     { name = "spacy", marker = "extra == 'spacy'", specifier = "==3.8.18" },
     { name = "torch", specifier = "==2.15.0", index = "https://download.pytorch.org/whl/cpu" },
     { name = "transformers", specifier = ">=5.6,<6" },
